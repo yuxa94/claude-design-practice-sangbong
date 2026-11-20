@@ -169,6 +169,14 @@ aside{border-left:1px solid var(--line);background:var(--panel);overflow:auto;pa
 .hd{fill:var(--panel);stroke:var(--accent);stroke-width:1.6}
 .eh{fill:var(--accent);fill-opacity:.25;stroke:var(--accent);stroke-width:1.4;cursor:grab}
 .gridl{stroke:var(--grid);stroke-width:1}
+.sv{fill:var(--panel);stroke:var(--site);stroke-width:1.6;cursor:move}
+.sv.first{fill:var(--site)}
+.sm{fill:var(--site);fill-opacity:.2;stroke:var(--site);stroke-width:1;cursor:copy}
+.sdraw{fill:color-mix(in srgb,var(--site) 10%,transparent);stroke:var(--site);stroke-width:1.8}
+.sbox{position:absolute;left:10px;top:84px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;display:none;flex-direction:column;gap:6px;max-width:330px}
+.sbox.on{display:flex}
+.sbox input{border:1px solid var(--line);border-radius:6px;padding:3px 6px;background:var(--bg);color:var(--ink);font:inherit;width:150px}
+.sbox .r{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .rubber{fill:color-mix(in srgb,var(--accent) 15%,transparent);stroke:var(--accent);stroke-width:1.4;stroke-dasharray:4 3}
 @media (max-width:1100px){ .app{grid-template-columns:150px minmax(0,1fr) 290px} .hint{display:none} }
 </style>
@@ -199,6 +207,9 @@ aside{border-left:1px solid var(--line);background:var(--panel);overflow:auto;pa
         <label><input type="checkbox" id="stallOn" checked>주차구획 표시</label>
         <button class="btn sm" id="fitBtn">화면 맞춤 (F)</button>
       </div>
+      <div class="sbox" id="sbox"><b id="sboxT">대지 경계 그리기</b><span id="sboxInfo" style="color:var(--muted)"></span>
+        <div class="r"><input id="sboxIn" placeholder="u,v 또는 @du,dv" title="절대 좌표 u,v (m) 또는 마지막 점에서 @du,dv · Enter=점 추가"><button class="btn sm" id="sboxClose">닫기 ⏎</button><button class="btn sm" id="sboxUndo">점 빼기 ⌫</button></div>
+        <div class="r"><button class="btn sm" id="sboxRedraw">처음부터 다시 그리기</button><button class="btn sm" id="sboxGeo">조사 자료 경계 불러오기</button></div></div>
       <div class="hint" id="hint"></div>
       <div class="coord" id="coord"></div>
     </div>
@@ -274,6 +285,7 @@ const typeColor=t=>(TYPES[t]||{color:'#ccc'}).color;
 /* ---------- doc + history ---------- */
 let doc=null, cur=0, selId=null, tool='select', unitPreset='원룸';
 let undo=[], redo=[];
+let siteDraw=null; // 대지 경계 그리는 중: {pts:[[u,v]...], hover:[u,v]}
 function loadInitial(){
   try{ const s=localStorage.getItem(LSKEY); if(s){ const d=JSON.parse(s); if(d&&d.schema===DEFAULT.schema) return d; } }catch(e){}
   return clone(DEFAULT);
@@ -396,8 +408,8 @@ const r3=v=>Math.round(v*1000)/1000;
 
 function emptyHint(){ let h=document.getElementById('emptyHint'); const none=!(doc.site&&doc.site.uv&&doc.site.uv.length);
   if(!h){ h=document.createElement('div'); h.id='emptyHint'; h.style.cssText='position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);max-width:460px;padding:22px 26px;border-radius:14px;background:var(--panel,#1b2028);border:1px dashed var(--accent,#ff6b8b);color:var(--text,#e8ecf1);font-size:14px;line-height:1.6;text-align:center;z-index:5;pointer-events:none';
-    h.innerHTML='<b style="font-size:16px">대지 경계가 아직 없습니다</b><br>대화창에서 Claude에게<br><b>“대지 경계 표시해줘”</b><br>라고 요청한 뒤 이 페이지를 새로고침하세요.'; (svg.parentElement||document.body).appendChild(h); }
-  h.style.display=none?'block':'none'; }
+    h.innerHTML='<b style="font-size:16px">대지 경계가 아직 없습니다</b><br>왼쪽 위 <b>⌖ 대지 경계</b> 도구로 꼭짓점을 찍어 직접 그리거나,<br>대화창에서 Claude에게 <b>“대지 경계 표시해줘”</b>라고 요청한 뒤 새로고침하세요.'; (svg.parentElement||document.body).appendChild(h); }
+  h.style.display=(none&&tool!=='site'&&tool!=='outline')?'block':'none'; }
 function drawPlan(){ try{ emptyHint(); }catch(e){}
   const s=px(), f=F();
   // grid
@@ -410,7 +422,7 @@ function drawPlan(){ try{ emptyHint(); }catch(e){}
   el('polygon',{points:ptsA(doc.site.uv),class:'site','vector-effect':'non-scaling-stroke'},gb);
   if(f.level>0){ const bl=doc.context.bline; el('line',{x1:-30,x2:60,y1:0,y2:0,class:'bl','vector-effect':'non-scaling-stroke'},gb);
     const t=el('text',{x:vb.x+8*s,y:12*s,'font-size':10*s,fill:css('--bline')},gb); t.textContent='건축한계선 3m (망우로 쪽)'; }
-  const tt=el('text',{x:vb.x+8*s,y:-(doc.site.uv.reduce((m,p)=>Math.min(m,p[1]),1e9))+26*s,'font-size':11*s,fill:css('--muted')},gb); tt.textContent='↓ 망우로';
+  if(doc.site.uv.length){ const tt=el('text',{x:vb.x+8*s,y:-(doc.site.uv.reduce((m,p)=>Math.min(m,p[1]),1e9))+26*s,'font-size':11*s,fill:css('--muted')},gb); tt.textContent='↓ 망우로'; }
   el('polygon',{points:ptsA(f.outline),class:'outl','vector-effect':'non-scaling-stroke'},gb);
   // ghost (floor below)
   const gh=$('gGhost'); gh.innerHTML='';
@@ -439,7 +451,8 @@ function drawPlan(){ try{ emptyHint(); }catch(e){}
   drawTop(); drawPins(); updateAsk();
   $('hint').textContent = tool==='select' ? '클릭=선택 · Shift+클릭=여러 개 · 빈 곳 드래그=범위 선택 · 우클릭 드래그·Space+드래그=화면 이동 · C=Claude에게 요청 · W=벽 선택 · ⌫ 삭제 · ⌘D 복제'
     : tool==='wall' ? '실 안쪽에서 벽 가까이 클릭=그 벽 선택 · Shift+클릭=여러 벽 · 빈 곳 드래그=범위 안 벽 선택 · C=Claude에게 요청 · V=실 선택'
-    : tool==='outline' ? '외곽선 변의 ● 핸들을 끌면 그 변이 평행 이동합니다 (직각 유지) · Esc=선택 도구'
+    : tool==='outline' ? (F().outline.length? '외곽선 변의 ● 핸들을 끌면 그 변이 평행 이동합니다 (직각 유지) · Esc=선택 도구' : '이 층 외곽선이 없습니다 — 드래그해 사각형 외곽선 그리기 · Esc=선택 도구')
+    : tool==='site' ? (siteDraw? '클릭=꼭짓점 추가 · Shift=직각 · 첫 점 클릭·더블클릭·Enter=닫기 · ⌫=마지막 점 빼기 · Esc=취소 · Space+드래그=화면 이동' : '○ 꼭짓점 끌기=이동 · ＋ 변 가운데 끌기=꼭짓점 추가 · Alt+클릭=꼭짓점 삭제 · 빈 곳 드래그=화면 이동 · Esc=선택 도구')
     : `${TYPES[tool].label} 그리기: 빈 곳에서 드래그해 사각형 만들기 · Esc=선택 도구`;
 }
 function drawStalls(z,g){
@@ -480,6 +493,44 @@ function drawRamp(z,g){
     const tip=[cx+v[0]*cw*0.5,cy+v[1]*cw*0.5], a=[cx-v[0]*cw*0.5+px_*cw,cy-v[1]*cw*0.5+py_*cw], b=[cx-v[0]*cw*0.5-px_*cw,cy-v[1]*cw*0.5-py_*cw];
     el('polyline',{points:`${a[0]},${-a[1]} ${tip[0]},${-tip[1]} ${b[0]},${-b[1]}`,fill:'none',stroke:C,'stroke-opacity':.55,'stroke-width':2,'vector-effect':'non-scaling-stroke'},g); }
 }
+/* ---------- 대지 경계 직접 그리기 ---------- */
+function siteArea(){ return (doc.project&&doc.project.siteAreaOfficial) || polyArea((doc.site&&doc.site.uv)||[]) || 1; }
+function sitePt(m,ev){ let p=[r3(snap(m[0])),r3(snap(m[1]))]; const P=siteDraw&&siteDraw.pts, L=P&&P[P.length-1];
+  if(L && ev && ev.shiftKey){ if(Math.abs(p[0]-L[0])>Math.abs(p[1]-L[1])) p[1]=L[1]; else p[0]=L[0]; } return p; }
+function nearFirst(p){ const P=siteDraw.pts; return P.length>=3 && Math.hypot(p[0]-P[0][0],p[1]-P[0][1]) < 9*px(); }
+function siteAddPt(p){ const P=siteDraw.pts, L=P[P.length-1]; if(L && Math.hypot(p[0]-L[0],p[1]-L[1])<1e-6) return; P.push(p); updSiteBox(); drawTop(); }
+function siteFinish(){ const P=siteDraw.pts.filter((p,i,a)=>i===0||Math.hypot(p[0]-a[i-1][0],p[1]-a[i-1][1])>1e-6);
+  if(P.length>1 && Math.hypot(P[0][0]-P[P.length-1][0],P[0][1]-P[P.length-1][1])<1e-6) P.pop();
+  if(P.length<3){ toast('꼭짓점이 3개 이상 필요합니다'); return; }
+  if(polyArea(P)<1){ toast('면적이 너무 작습니다'); return; }
+  commit(); doc.site=doc.site||{}; doc.site.uv=P; if(doc.site.buildingLineV==null) doc.site.buildingLineV=0; delete doc.site.envelopeUv; doc.site.source='manual';
+  siteDraw=null; const a=polyArea(P), off=doc.project&&doc.project.siteAreaOfficial;
+  toast(`대지 경계 저장 — 꼭짓점 ${P.length}개 · ${fmt(a,1)}㎡`+(off?` (공부 ${fmt(off,0)}㎡, 차이 ${fmt((a-off)/off*100,1)}%)`:''));
+  changed({fit:true}); updSiteBox(); }
+function siteCancel(){ siteDraw=null; updSiteBox(); drawPlan(); }
+function siteStart(){ siteDraw={pts:[],hover:null}; updSiteBox(); drawPlan(); }
+function updSiteBox(){ const b=$('sbox'); b.classList.toggle('on',tool==='site'); if(tool!=='site') return;
+  const has=doc.site&&doc.site.uv&&doc.site.uv.length;
+  $('sboxT').textContent= siteDraw? '대지 경계 그리기' : '대지 경계 편집';
+  if(siteDraw){ const P=siteDraw.pts; $('sboxInfo').textContent= P.length? `꼭짓점 ${P.length}개`+(P.length>=3?` · 닫으면 ${fmt(polyArea(P),1)}㎡`:'')+` · 마지막 ${fmt(P[P.length-1][0],2)}, ${fmt(P[P.length-1][1],2)}` : '첫 꼭짓점을 클릭하거나 좌표를 입력하세요 (u=망우로 방향, v=안쪽, m)'; }
+  else $('sboxInfo').textContent= has? `꼭짓점 ${doc.site.uv.length}개 · ${fmt(polyArea(doc.site.uv),1)}㎡`+(doc.project&&doc.project.siteAreaOfficial?` (공부 ${fmt(doc.project.siteAreaOfficial,0)}㎡)`:'') : '';
+  ['sboxIn','sboxClose','sboxUndo'].forEach(id=>$(id).style.display=siteDraw?'':'none'); }
+function drawSiteTop(gt,s){
+  if(siteDraw){ const P=siteDraw.pts, H=siteDraw.hover, all=H?[...P,H]:P;
+    if(all.length>=3) el('polygon',{points:ptsA(all),class:'sdraw','vector-effect':'non-scaling-stroke','stroke-dasharray':'0','stroke-opacity':0},gt);
+    if(all.length>=2) el('polyline',{points:ptsA(all),fill:'none',stroke:css('--site'),'stroke-width':2,'vector-effect':'non-scaling-stroke'},gt);
+    for(let i=0;i<all.length-1;i++){ const a=all[i],b=all[i+1], L=Math.hypot(b[0]-a[0],b[1]-a[1]); if(L<0.5) continue;
+      const t=el('text',{x:(a[0]+b[0])/2,y:-(a[1]+b[1])/2-5*s,'font-size':10*s,'text-anchor':'middle',fill:css('--site'),'font-weight':700},gt); t.textContent=fmt(L,2)+'m'; }
+    P.forEach((p,i)=>el('circle',{cx:p[0],cy:-p[1],r:(i===0&&H&&nearFirst(H)?7:4)*s,class:'sv'+(i===0?' first':''),'vector-effect':'non-scaling-stroke','pointer-events':'none'},gt));
+    return; }
+  const S=doc.site&&doc.site.uv; if(!S||!S.length) return;
+  S.forEach((a,i)=>{ const b=S[(i+1)%S.length]; const m=el('circle',{cx:(a[0]+b[0])/2,cy:-(a[1]+b[1])/2,r:4*s,class:'sm','vector-effect':'non-scaling-stroke'},gt);
+    m.addEventListener('pointerdown',e=>{ if(e.button!==0) return; e.stopPropagation(); commit(); S.splice(i+1,0,[r3((a[0]+b[0])/2),r3((a[1]+b[1])/2)]); drag={k:'sitev',i:i+1,moved:true}; svg.setPointerCapture(e.pointerId); drawPlan(); }); });
+  S.forEach((p,i)=>{ const c=el('circle',{cx:p[0],cy:-p[1],r:6*s,class:'sv','vector-effect':'non-scaling-stroke'},gt);
+    c.addEventListener('pointerdown',e=>{ if(e.button!==0) return; e.stopPropagation();
+      if(e.altKey){ if(S.length<=3){ toast('꼭짓점은 3개 이상이어야 합니다'); return; } commit(); S.splice(i,1); changed(); updSiteBox(); return; }
+      commit(); drag={k:'sitev',i,moved:false}; svg.setPointerCapture(e.pointerId); }); });
+}
 function drawTop(){
   const gt=$('gTop'); gt.innerHTML=''; const s=px(); const f=F(); const AC=css('--askc')||'#f0507a';
   if(tool==='select' && selId){ const z=zoneById(selId); if(z){
@@ -494,10 +545,14 @@ function drawTop(){
     const tx=el('text',{x:(g[0]+g[2])/2,y:-(g[1]+g[3])/2-7*s,'font-size':10*s,'text-anchor':'middle',fill:AC,'font-weight':800,class:'zl',style:'fill:'+AC},gt); tx.textContent=`${SIDE_LABEL[t.side]} ${fmt(segLen(g),2)}m`; });
   if(tool==='wall' && hoverWall && hoverWall.fid===f.id){ const z=f.zones.find(q=>q.id===hoverWall.id); if(z){ const g=wallSeg(z,hoverWall.side);
     el('line',{x1:g[0],y1:-g[1],x2:g[2],y2:-g[3],stroke:AC,'stroke-width':5,'stroke-dasharray':'6 4','stroke-opacity':.8,'vector-effect':'non-scaling-stroke','pointer-events':'none'},gt); } }
+  if(tool==='site') drawSiteTop(gt,s);
+  if(drag&&drag.k==='odraw'){ const a=drag.start,b=drag.cur, x=Math.min(a[0],b[0]), y=Math.min(a[1],b[1]), w=Math.abs(b[0]-a[0]), h=Math.abs(b[1]-a[1]);
+    el('rect',{x,y:-(y+h),width:w,height:h,class:'rubber','vector-effect':'non-scaling-stroke'},gt);
+    const t=el('text',{x:x+w/2,y:-(y+h)-6*s,'font-size':11*s,'text-anchor':'middle',fill:css('--accent'),'font-weight':700},gt); t.textContent=`${fmt(w,2)} × ${fmt(h,2)} = ${fmt(w*h,1)}㎡ · 건폐율 ${fmt(w*h/siteArea()*100,1)}%`; }
   if(tool==='outline'){ const o=f.outline;
     o.forEach((a,i)=>{ const b=o[(i+1)%o.length]; const c=el('circle',{cx:(a[0]+b[0])/2,cy:-(a[1]+b[1])/2,r:6*s,class:'eh','vector-effect':'non-scaling-stroke'},gt);
       c.addEventListener('pointerdown',e=>onEdgeDown(e,i)); });
-    const t=el('text',{x:vb.x+8*s,y:vb.y+vb.h-28*s,'font-size':11*s,fill:css('--accent'),'font-weight':700},gt); t.textContent=`외곽선 ${fmt(polyArea(o),1)}㎡ · 건폐율 ${fmt(polyArea(o)/doc.project.siteAreaOfficial*100,2)}%`;
+    const t=el('text',{x:vb.x+8*s,y:vb.y+vb.h-28*s,'font-size':11*s,fill:css('--accent'),'font-weight':700},gt); if(o.length) t.textContent=`외곽선 ${fmt(polyArea(o),1)}㎡ · 건폐율 ${fmt(polyArea(o)/siteArea()*100,2)}%`;
   }
 }
 function drawPins(){
@@ -556,13 +611,17 @@ function onEdgeDown(e,i){ e.stopPropagation(); commit(); const o=F().outline, a=
 svg.addEventListener('pointerdown',e=>{
   if(e.button!==0&&e.button!==1) return;
   const m=toM(e);
+  if(tool==='site' && e.button===0 && !spaceDown && (siteDraw || !(doc.site&&doc.site.uv&&doc.site.uv.length))){
+    if(!siteDraw) siteStart(); const p=sitePt(m,e); if(nearFirst(p)){ siteFinish(); return; } siteAddPt(p); return; }
+  if(tool==='outline' && e.button===0 && !spaceDown && !F().outline.length){ const p=[snap(m[0]),snap(m[1])]; drag={k:'odraw',start:p,cur:p}; svg.setPointerCapture(e.pointerId); return; }
   if(TYPES[tool] && e.button===0 && !spaceDown){ drag={k:'draw',start:[snap(m[0]),snap(m[1])],cur:[snap(m[0]),snap(m[1])]}; svg.setPointerCapture(e.pointerId); return; }
-  if(e.button===1 || e.button===2 || spaceDown || tool==='outline'){ drag={k:'pan',sx:e.clientX,sy:e.clientY,vb:{...vb},moved:false}; svg.classList.add('panning'); svg.setPointerCapture(e.pointerId); return; }
+  if(e.button===1 || e.button===2 || spaceDown || tool==='outline' || tool==='site'){ drag={k:'pan',sx:e.clientX,sy:e.clientY,vb:{...vb},moved:false}; svg.classList.add('panning'); svg.setPointerCapture(e.pointerId); return; }
   drag={k:'box',start:m,cur:m,sx:e.clientX,sy:e.clientY,add:e.shiftKey||e.metaKey||e.ctrlKey,moved:false}; svg.setPointerCapture(e.pointerId);
 });
 function zoneAt(m){ const zs=F().zones; for(let i=zs.length-1;i>=0;i--){ const z=zs[i]; if(m[0]>=z.x&&m[0]<=z.x+z.w&&m[1]>=z.y&&m[1]<=z.y+z.h) return z; } return null; }
 svg.addEventListener('pointermove',e=>{
   const m=toM(e); $('coord').textContent=`u ${fmt(m[0],2)} · v ${fmt(m[1],2)} m`;
+  if(!drag && tool==='site' && siteDraw){ siteDraw.hover=sitePt(m,e); drawTop(); return; }
   if(!drag){ if(tool==='wall'){ const z=zoneAt(m); const hw=z? {fid:F().id,id:z.id,side:nearestSide(z,m)[0]} : null;
       if(JSON.stringify(hw)!==JSON.stringify(hoverWall)){ hoverWall=hw; drawTop(); } } return; }
   if(drag.k==='pan'){ const k=px(); vb.x=drag.vb.x-(e.clientX-drag.sx)*k; vb.y=drag.vb.y-(e.clientY-drag.sy)*k; drag.moved=true; applyVB(); return; }
@@ -573,6 +632,8 @@ svg.addEventListener('pointermove',e=>{
   if(drag.k==='resize'){ const z=drag.z,o=drag.orig,k=drag.h, u=snap(m[0]), v=snap(m[1]); let x0=o.x,y0=o.y,x1=o.x+o.w,y1=o.y+o.h;
     if(k.includes('w')) x0=Math.min(u,x1-0.3); if(k.includes('e')) x1=Math.max(u,x0+0.3); if(k.includes('s')) y0=Math.min(v,y1-0.3); if(k.includes('n')) y1=Math.max(v,y0+0.3);
     z.x=r3(x0); z.y=r3(y0); z.w=r3(x1-x0); z.h=r3(y1-y0); drag.moved=true; drawPlan(); renderSide(); return; }
+  if(drag.k==='sitev'){ doc.site.uv[drag.i]=[r3(snap(m[0])),r3(snap(m[1]))]; drag.moved=true; drawPlan(); updSiteBox(); return; }
+  if(drag.k==='odraw'){ drag.cur=[snap(m[0]),snap(m[1])]; drawTop(); return; }
   if(drag.k==='edge'){ const o=F().outline, a=drag.i, b=(drag.i+1)%o.length;
     if(drag.horiz){ const v=snap(m[1]); o[a][1]=r3(v); o[b][1]=r3(v); } else { const u=snap(m[0]); o[a][0]=r3(u); o[b][0]=r3(u); }
     drag.moved=true; drawPlan(); renderSide(); return; }
@@ -593,6 +654,9 @@ function endDrag(e){
       else if(ov(z,{x:x0,y:y0,w:x1-x0,h:y1-y0})>0.01) found.push({k:'zone',fid:f.id,id:z.id}); });
     setSel(d.add? [...sel,...found] : found); renderSide(); drawPlan(); renderFloors();
     if(found.length) toast(`${found.length}개 ${tool==='wall'?'벽':'실'} 선택 — C 또는 ✦ 버튼으로 요청`); return; }
+  if(d.k==='odraw'){ const x=Math.min(d.start[0],d.cur[0]), y=Math.min(d.start[1],d.cur[1]), w=Math.abs(d.cur[0]-d.start[0]), h=Math.abs(d.cur[1]-d.start[1]);
+    if(w<1||h<1){ drawPlan(); return; }
+    commit(); F().outline=[[r3(x),r3(y)],[r3(x+w),r3(y)],[r3(x+w),r3(y+h)],[r3(x),r3(y+h)]]; changed(); toast(`${F().name} 외곽선 ${fmt(w*h,1)}㎡ — ● 핸들로 변을 옮겨 다듬으세요`); return; }
   if(d.k==='draw'){ const x=Math.min(d.start[0],d.cur[0]), y=Math.min(d.start[1],d.cur[1]), w=Math.abs(d.cur[0]-d.start[0]), h=Math.abs(d.cur[1]-d.start[1]);
     if(w<0.6||h<0.6){ drawPlan(); return; }
     commit(); const z={id:newId(),type:tool,name:autoName(tool),x:r3(x),y:r3(y),w:r3(w),h:r3(h)};
@@ -601,6 +665,7 @@ function endDrag(e){
   if(!d.moved){ undo.pop(); return; }
   changed();
 }
+svg.addEventListener('dblclick',e=>{ if(tool==='site'&&siteDraw){ e.preventDefault(); siteFinish(); } });
 svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointercancel',endDrag);
 svg.addEventListener('wheel',e=>{ e.preventDefault(); const m=toM(e); const mx=m[0],my=-m[1]; const k=Math.exp(e.deltaY*0.0015);
   const nw=Math.max(5,Math.min(500,vb.w*k)), f=nw/vb.w; vb={x:mx-(mx-vb.x)*f,y:my-(my-vb.y)*f,w:vb.w*f,h:vb.h*f}; applyVB(); },{passive:false});
@@ -609,6 +674,10 @@ function autoName(t){ const f=F();
   const c=f.zones.filter(z=>z.type===t).length+1; return `${TYPES[t].label} ${c}`; }
 const typing=e=>['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName);
 document.addEventListener('keydown',e=>{
+  if(tool==='site' && siteDraw && !typing(e)){
+    if(e.key==='Escape'){ siteCancel(); return; }
+    if(e.key==='Enter'){ e.preventDefault(); siteFinish(); return; }
+    if(e.key==='Backspace'||e.key==='Delete'){ e.preventDefault(); siteDraw.pts.pop(); updSiteBox(); drawTop(); return; } }
   if(e.key==='Escape'){ if($('composer').classList.contains('on')){ closeComposer(); return; } if(typing(e)) return; if(sel.length){ setSel([]); renderAll(); return; } setTool('select'); return; }
   if(typing(e)) return;
   if(e.key===' '){ e.preventDefault(); if(!spaceDown){ spaceDown=true; svg.style.cursor='grab'; } return; }
@@ -635,7 +704,7 @@ function delSel(){ const f=F(); const ids=new Set(sel.filter(s=>s.k==='zone'&&s.
 function dupSel(){ const z=selId&&zoneById(selId); if(!z) return; commit(); const n={...clone(z),id:newId(),name:autoName(z.type)};
   if(z.type==='unit' && z.h>z.w) n.x=r3(z.x+z.w); else if(z.type==='unit') n.y=r3(z.y+z.h); else n.x=r3(z.x+z.w);
   F().zones.push(n); setSel([{k:'zone',fid:F().id,id:n.id}]); changed(); }
-function setTool(t){ tool=t; hoverWall=null; svg.classList.toggle('drawing',!!TYPES[t]); renderPalette(); syncSeg3(); drawPlan(); }
+function setTool(t){ if(t!=='site') siteDraw=null; else if(!siteDraw && !(doc.site&&doc.site.uv&&doc.site.uv.length)) siteDraw={pts:[],hover:null}; tool=t; hoverWall=null; svg.classList.toggle('drawing',!!TYPES[t]||t==='site'); updSiteBox(); renderPalette(); syncSeg3(); drawPlan(); }
 function syncSeg3(){ [...$('seg3').children].forEach(b=>b.classList.toggle('on',b.dataset.t===(tool==='wall'?'wall':'select'))); }
 $('seg3').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setTool(b.dataset.t); });
 
@@ -714,7 +783,7 @@ function focusComment(id,fromList){ const c=(doc.comments||[]).find(x=>x.id===id
 /* ---------- palette ---------- */
 function renderPalette(){
   const p=$('palette');
-  p.innerHTML=`<button class="tool ${tool==='select'?'on':''}" data-t="select" title="V">↖ 실 선택</button><button class="tool wall ${tool==='wall'?'on':''}" data-t="wall" title="W">▭ 벽 선택</button><button class="tool ${tool==='outline'?'on':''}" data-t="outline">⬚ 외곽선</button>`+
+  p.innerHTML=`<button class="tool ${tool==='select'?'on':''}" data-t="select" title="V">↖ 실 선택</button><button class="tool wall ${tool==='wall'?'on':''}" data-t="wall" title="W">▭ 벽 선택</button><button class="tool ${tool==='site'?'on':''}" data-t="site" title="대지 경계 직접 그리기·편집">⌖ 대지 경계</button><button class="tool ${tool==='outline'?'on':''}" data-t="outline">⬚ 외곽선</button>`+
    Object.entries(TYPES).map(([k,v],i)=>`<button class="tool ${i===0?'sep ':''}${tool===k?'on':''}" data-t="${k}"><i style="background:${v.color}"></i>${v.label}</button>`).join('')+
    (tool==='unit'?`<select class="tool" id="unitPreset">${Object.keys(UNIT_TYPES).map(k=>`<option ${k===unitPreset?'selected':''}>${k}</option>`).join('')}</select>`:'');
   const up=$('unitPreset'); if(up) up.onchange=()=>{unitPreset=up.value;};
@@ -810,14 +879,15 @@ function renderSide(){
         :`<div><b>${s.stalls}</b><span>주차 대수 (추정)</span></div><div><b>${fmt((s.byType.parking||0),0)}</b><span>주차구역 ㎡</span></div>`}
     </div>
     <div class="rowsel">이 층 전체를 → <select id="fcFrom">${floorOpts(cur,true)}</select>~<select id="fcTo">${floorOpts(cur,true)}</select><button class="btn sm" id="fCopy">덮어쓰기</button></div>
-    <div class="btns"><button class="btn sm" id="fOutTower">지상 기준 외곽선 적용</button><button class="btn sm" id="fOutBase">지하 기준 외곽선 적용</button></div>`;
+    <div class="btns"><button class="btn sm" id="fOutTower">지상 기준 외곽선 적용</button><button class="btn sm" id="fOutBase">지하 기준 외곽선 적용</button><button class="btn sm" id="fOutClear">외곽선 다시 그리기</button></div>`;
   $('fH').onchange=()=>{ const v=parseFloat($('fH').value); if(!isFinite(v)||v<2.4) return renderSide(); commit(); f.height=r3(v); changed(); };
   $('fCopy').onclick=()=>copyFloorToRange(+$('fcFrom').value,+$('fcTo').value);
   $('fOutTower').onclick=()=>{ commit(); f.outline=clone(refOutline(1)); changed(); };
+  $('fOutClear').onclick=()=>{ if(f.outline.length&&!confirm(f.name+' 외곽선을 지우고 다시 그립니다. (되돌리기 가능)')) return; commit(); f.outline=[]; changed(); setTool('outline'); toast('드래그해 새 외곽선을 그리세요'); };
   $('fOutBase').onclick=()=>{ commit(); f.outline=clone(refOutline(-1)); changed(); };
   renderChecks();
 }
-function refOutline(sign){ const d=DEFAULT.floors.find(f=>sign>0? f.level===3 : f.level===-1); return d.outline; }
+function refOutline(sign){ const d=DEFAULT.floors.find(f=>sign>0? f.level===3 : f.level===-1) || doc.floors.find(f=>(sign>0? f.level>0 : f.level<0) && f.outline.length && f!==F()); if(!d){ toast('복사할 기준 외곽선이 없습니다'); return F().outline; } return d.outline; }
 function floorOpts(selIdx,excludeSelf){ return doc.floors.map((f,i)=>({f,i})).sort((a,b)=>b.f.level-a.f.level).filter(({i})=>!excludeSelf||i!==selIdx).map(({f,i})=>`<option value="${i}" ${i===selIdx?'selected':''}>${f.id}</option>`).join(''); }
 function rangeIdx(a,b){ const la=doc.floors[a].level, lb=doc.floors[b].level, lo=Math.min(la,lb), hi=Math.max(la,lb); return doc.floors.map((f,i)=>({f,i})).filter(({f})=>f.level>=lo&&f.level<=hi).map(({i})=>i); }
 function copyZoneToRange(z,a,b){ commit(); let n=0; rangeIdx(a,b).forEach(i=>{ if(i===cur) return; const f=doc.floors[i];
@@ -990,6 +1060,16 @@ $('impFile').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; try{ 
 $('resetBtn').onclick=()=>{ if(!confirm('기본 초안으로 되돌립니다. (되돌리기 가능)')) return; commit(); const keep=doc.comments||[]; doc=clone(DEFAULT); doc.comments=keep; cur=doc.floors.findIndex(f=>f.id==='3F'); setSel([]); changed({fit:true}); };
 window.addEventListener('resize',()=>{ updateAsk(); if(tab==='plan'){ const B=box(), r=B.w/B.h, cx=vb.x+vb.w/2, cy=vb.y+vb.h/2; vb.h=vb.w/r; vb.y=cy-vb.h/2; applyVB(); } resize3D(); });
 
+$('sboxIn').addEventListener('keydown',e=>{ if(e.key!=='Enter'||e.isComposing) return; e.preventDefault(); e.stopPropagation(); const raw=e.target.value.trim();
+  if(!raw){ siteFinish(); return; } const rel=raw.startsWith('@'); const n=raw.replace('@','').split(/[ ,]+/).map(Number);
+  if(n.length!==2||n.some(x=>!isFinite(x))){ toast('형식: u,v 또는 @du,dv (m)'); return; }
+  const P=siteDraw.pts, L=P[P.length-1]; if(rel&&!L){ toast('첫 점은 절대 좌표 u,v로 입력하세요'); return; }
+  siteAddPt(rel? [r3(L[0]+n[0]),r3(L[1]+n[1])] : [r3(n[0]),r3(n[1])]); e.target.value=''; });
+$('sboxClose').onclick=siteFinish; $('sboxUndo').onclick=()=>{ if(siteDraw){ siteDraw.pts.pop(); updSiteBox(); drawTop(); } };
+$('sboxRedraw').onclick=()=>{ siteStart(); toast('첫 꼭짓점을 클릭하세요 — 기존 경계는 닫을 때 바뀝니다'); };
+$('sboxGeo').onclick=async()=>{ try{ const r=await fetch('site/site_geometry.json',{cache:'no-store'}); if(!r.ok) throw 0; const g=await r.json();
+  if(!confirm('site/site_geometry.json 의 조사 자료 경계로 바꿉니다. (되돌리기 가능)')) return; commit(); siteDraw=null; doc.site=g.site; ['frame','context','params'].forEach(k=>{ if(g[k]) doc[k]=g[k]; }); if(g.project) doc.project=Object.assign({},doc.project,g.project); changed({fit:true}); updSiteBox(); toast('조사 자료 경계를 불러왔습니다'); }
+  catch(e){ toast('site/site_geometry.json 을 읽지 못했습니다 (서버로 열었는지 확인)'); } };
 renderAll({fit:true}); loadFromServer();
 svg.addEventListener('contextmenu',e=>e.preventDefault());
 </script>
