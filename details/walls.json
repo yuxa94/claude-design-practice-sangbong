@@ -1,0 +1,60 @@
+{
+  "schema": "details-walls/1",
+  "note": "벽 종류별 두께·구성. tools/gen_plan.py 가 계획설계를 만들 때 읽습니다. 두께(t, m)를 바꾸면 다시 생성할 때 평면의 벽 두께가 바뀝니다.",
+  "types": {
+    "exterior": {
+      "t": 0.30,
+      "label": "외벽 (RC 200 + 단열)",
+      "layers": ["RC 200", "내단열 100 (비드법 보온판 2종)", "석고보드 9.5 + 도배"],
+      "cad": {"layer": "A-WALL-CONC", "hatch": "ANSI31 (RC 부분)", "insulation": "실내측 단열 띠 + 지그재그 기호"}
+    },
+    "basement": {
+      "t": 0.40,
+      "label": "지하 외벽 (RC 400)",
+      "layers": ["RC 400 (방수 외측)", "드라이월 마감"],
+      "cad": {"layer": "A-WALL-CONC", "hatch": "ANSI31"}
+    },
+    "core": {
+      "t": 0.25,
+      "label": "코어벽 (RC 250, 내력)",
+      "layers": ["RC 250"],
+      "cad": {"layer": "A-WALL-CONC", "hatch": "ANSI31"}
+    },
+    "core_inner": {
+      "t": 0.20,
+      "label": "코어 내부벽 (RC 200)",
+      "layers": ["RC 200"],
+      "cad": {"layer": "A-WALL-CONC", "hatch": "ANSI31"}
+    },
+    "party": {
+      "t": 0.20,
+      "label": "세대간 경계벽 (RC 200)",
+      "layers": ["RC 200 (차음 기준: 경계벽 두께 150 이상)"],
+      "cad": {"layer": "A-WALL-CONC", "hatch": "ANSI31"}
+    },
+    "unit_corr": {
+      "t": 0.20,
+      "label": "세대-공용 경계벽 (RC 200)",
+      "layers": ["RC 200"],
+      "cad": {"layer": "A-WALL-CONC", "hatch": "ANSI31"}
+    },
+    "fire": {
+      "t": 0.20,
+      "label": "방화구획벽 (RC 200)",
+      "layers": ["RC 200 (내화 2시간)"],
+      "cad": {"layer": "A-WALL-CONC", "hatch": "ANSI31"}
+    },
+    "partition": {
+      "t": 0.10,
+      "label": "세대 내 칸막이 (경량 100)",
+      "layers": ["경량 스터드 65", "석고보드 2겹 양면", "도배"],
+      "cad": {"layer": "A-WALL-PRTN", "hatch": "없음 (선 2줄)"}
+    },
+    "light": {
+      "t": 0.15,
+      "label": "칸막이벽 (조적·경량 150)",
+      "layers": ["조적 또는 경량 150"],
+      "cad": {"layer": "A-WALL-PRTN", "hatch": "없음 (선 2줄)"}
+    }
+  }
+}

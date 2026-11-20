@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>상봉동 116-49 법규·인허가</title>
+<style>
+:root{
+  --bg:#f4f2ee; --panel:#fff; --ink:#1d2326; --muted:#5f6b70; --line:#d9d5cc; --chip:#eef1f3;
+  --accent:#1f4fd1; --ok:#1f7a4c; --warn:#b26a00; --bad:#d92d20; --proc:#6b4fd1; --na:#8a949a; --askc:#f0507a;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#15191b; --panel:#1d2225; --ink:#e7ecee; --muted:#9aa6ab; --line:#333b3f; --chip:#262d31;
+  --accent:#7aa2ff; --ok:#5fd39a; --warn:#f0b44c; --bad:#ff6b5e; --proc:#a993ff; --na:#7d878c;}}
+:root[data-theme="dark"]{
+  --bg:#15191b; --panel:#1d2225; --ink:#e7ecee; --muted:#9aa6ab; --line:#333b3f; --chip:#262d31;
+  --accent:#7aa2ff; --ok:#5fd39a; --warn:#f0b44c; --bad:#ff6b5e; --proc:#a993ff; --na:#7d878c;}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+
+header{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:15px;margin:0;font-weight:700;white-space:nowrap}
+header .sub{color:var(--muted);font-size:12px}
+.sp{flex:1}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--muted)} .btn.sm{padding:3px 8px;font-size:12px}
+.save{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.save i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block} .save.ok i{background:var(--ok)} .save.pending i{background:var(--warn)} .save.err i{background:var(--bad)}
+nav{border-right:1px solid var(--line);background:var(--panel);overflow:auto;padding:10px 8px}
+nav h2,aside h2{font-size:12px;color:var(--muted);margin:14px 4px 6px;font-weight:700} nav h2:first-child,aside h2:first-child{margin-top:2px}
+.cat{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;border:1.5px solid transparent}
+.cat:hover{background:var(--chip)} .cat.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel))}
+.cat span{flex:1}
+.dots{display:flex;gap:3px}
+.dot{min-width:17px;height:17px;border-radius:999px;font-size:10.5px;font-weight:800;color:#fff;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
+
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;flex:none}
+.kpi{padding:6px 12px!important} .kpi b{font-size:19px!important}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 12px;cursor:pointer}
+.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums} .kpi span{font-size:12px;color:var(--muted)}
+.kpi.on{outline:2px solid var(--accent)}
+h3.grp{font-size:14px;margin:18px 0 6px;display:flex;align-items:center;gap:8px}
+h3.grp small{color:var(--muted);font-weight:400}
+table{border-collapse:collapse;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top;font-size:12.5px}
+th{color:var(--muted);font-weight:600;background:color-mix(in srgb,var(--chip) 60%,var(--panel))}
+tr.row{cursor:pointer} tr.row:hover td{background:color-mix(in srgb,var(--chip) 55%,transparent)} tr.row.sel td{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+td.v{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:11.5px;font-weight:800;white-space:nowrap;color:#fff}
+.s-ok{background:var(--ok)} .s-bad{background:var(--bad)} .s-chk{background:var(--warn)} .s-proc{background:var(--proc)} .s-na{background:var(--na)}
+.ov{font-size:10.5px;color:var(--accent);font-weight:700;margin-left:4px}
+.src a{font-size:11.5px}
+.law{color:var(--muted);font-size:11.5px}
+
+.info{display:grid;grid-template-columns:78px 1fr;gap:5px 8px;font-size:12.5px} .info span{color:var(--muted)}
+.box{border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px}
+.seg{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.seg button{border:1.5px solid var(--line);background:var(--panel);border-radius:999px;padding:2px 9px;font-size:12px;cursor:pointer}
+.seg button.on{border-color:var(--accent);font-weight:800}
+textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--bg);resize:vertical}
+.asm{display:grid;grid-template-columns:1fr 74px 40px;gap:4px 6px;align-items:center;font-size:12px}
+.asm input{width:100%;border:1px solid var(--line);border-radius:6px;padding:2px 5px;background:var(--bg);text-align:right;font-variant-numeric:tabular-nums}
+.asm .lb{line-height:1.25} .asm .lb small{display:block;color:var(--muted);font-size:10.5px}
+.road{display:flex;gap:0;overflow-x:auto;padding:4px 2px 8px}
+.step{flex:1;min-width:150px;position:relative;padding:10px 12px 10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-right:16px}
+.step:not(:last-child)::after{content:"";position:absolute;right:-13px;top:50%;border:6px solid transparent;border-left:8px solid var(--line);transform:translateY(-50%)}
+.step b{display:block;font-size:12.5px} .step small{color:var(--muted);font-size:11.5px;display:block;margin-top:2px}
+.step.on{border-color:var(--proc);box-shadow:0 0 0 2px color-mix(in srgb,var(--proc) 20%,transparent)} .step.off{opacity:.45}
+.empty{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:7px 13px;border-radius:8px;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+.app{display:grid;grid-template-columns:170px minmax(0,1fr) 440px;grid-template-rows:auto minmax(0,1fr);height:100vh}
+main{overflow:hidden;padding:12px 14px 96px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.planbox{position:relative;flex:1;min-height:340px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.planbox svg{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+.lfloors{position:absolute;left:8px;top:8px;right:70px;display:flex;flex-wrap:wrap;gap:3px;z-index:2}
+.lfloors button{border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 92%,transparent);border-radius:6px;padding:1px 7px;font-size:11.5px;cursor:pointer}
+.lfloors button.on{border-color:var(--accent);color:var(--accent);font-weight:800}
+.lfloors .sep{width:8px}
+.lfit{position:absolute;right:8px;top:8px}
+.lcap{position:absolute;left:8px;right:8px;bottom:8px;background:color-mix(in srgb,var(--panel) 94%,transparent);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12.5px}
+aside{border-left:1px solid var(--line);background:var(--panel);overflow:hidden;padding:10px 12px 92px;display:flex;flex-direction:column;min-height:0}
+#lsel{flex:none;max-height:46%;overflow:auto;margin-bottom:8px}
+.card.tabcard{display:flex;flex-direction:column;flex:1;min-height:0;border:1px solid var(--line);border-radius:12px}
+.tabs{display:flex;gap:2px;padding:6px 8px 0;border-bottom:1px solid var(--line)}
+.tabs button{border:none;background:none;padding:6px 9px;border-bottom:2.5px solid transparent;cursor:pointer;color:var(--muted);font-weight:600;font-size:12.5px}
+.tabs button.on{color:var(--ink);border-color:var(--accent)}
+.tabbody{flex:1;overflow:auto;min-height:0}
+.lgrp{font-size:12px;color:var(--muted);font-weight:700;padding:8px 10px 3px;background:color-mix(in srgb,var(--chip) 50%,var(--panel));position:sticky;top:0}
+.lrow{display:flex;gap:8px;align-items:flex-start;padding:6px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:12.5px}
+.lrow:hover{background:color-mix(in srgb,var(--chip) 55%,transparent)} .lrow.sel{background:color-mix(in srgb,var(--accent) 10%,transparent);box-shadow:inset 3px 0 0 var(--accent)}
+.lrow .pill{flex:none;margin-top:1px;min-width:62px;text-align:center}
+.pri{display:inline-block;font-size:10px;font-weight:800;border-radius:4px;padding:0 4px;color:#fff;background:var(--na);vertical-align:1px} .pri.P0{background:var(--bad)} .pri.P1{background:var(--warn)}
+.refnote{color:var(--ink)} table.rt{border-collapse:collapse;width:calc(100% - 20px);margin:0 10px 8px;font-size:12px} table.rt td,table.rt th{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top} table.rt th{color:var(--muted);font-weight:600}
+.road.vert{flex-direction:column;padding:4px 10px 10px;overflow:visible} .road.vert .step{margin:0 0 12px;min-width:0} .road.vert .step:not(:last-child)::after{right:auto;left:20px;top:auto;bottom:-13px;border:6px solid transparent;border-top:8px solid var(--line);transform:none}
+details.box summary{cursor:pointer}
+@media (max-width:1200px){ .app{grid-template-columns:130px minmax(0,1fr) 360px} }
+@media (max-width:900px){ .app{grid-template-columns:110px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;height:auto} aside{grid-column:1/-1;overflow:visible} .tabbody{max-height:70vh} main{overflow:visible} .planbox{height:60vh;flex:none} .kpis{grid-template-columns:repeat(3,1fr)} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a class="btn sm" href="index.html" title="작업 허브">⌂ 허브</a>
+    <h1>상봉동 116-49 · 법규·인허가</h1>
+    <span class="sub" id="srcInfo">불러오는 중…</span>
+    <span class="sp"></span>
+    <a class="btn sm" href="상봉동_116-49_조닝편집기.html" target="_blank">조닝 ↗</a>
+    <a class="btn sm" href="상봉동_116-49_계획설계.html" target="_blank">계획설계 ↗</a>
+    <span class="save" id="save"><i></i><span id="saveTxt">—</span></span>
+    <button class="btn sm" id="themeBtn">◐</button>
+  </header>
+  <nav id="nav"></nav>
+  <main id="main"><div class="empty">데이터를 불러오는 중…</div></main>
+  <aside id="side"></aside>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=(v,d=1)=>(+v).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const ST={ok:['적합','s-ok'],bad:['부적합','s-bad'],chk:['확인 필요','s-chk'],proc:['해당 (절차)','s-proc'],na:['해당 없음','s-na']};
+const PAGES={fire:'상봉동_116-49_소방피난.html',zoning:'상봉동_116-49_조닝편집기.html',plan:'상봉동_116-49_계획설계.html',site:'index.html',hub:'index.html'};
+let Z=null,P=null,C=null,L=null,REF=null,checks=[],selId=null,catSel='all',stFilter=null;
+const A=k=>+L.assumptions[k].v;
+// ---------- 기하
+function polyArea(p){ let a=0; for(let i=0;i<p.length;i++){ const q=p[i],r=p[(i+1)%p.length]; a+=q[0]*r[1]-r[0]*q[1]; } return Math.abs(a)/2; }
+function rectPolyArea(z,poly){ const xs=[...new Set([z.x,z.x+z.w,...poly.map(p=>p[0]).filter(v=>v>z.x&&v<z.x+z.w)])].sort((a,b)=>a-b), ys=[...new Set([z.y,z.y+z.h,...poly.map(p=>p[1]).filter(v=>v>z.y&&v<z.y+z.h)])].sort((a,b)=>a-b); let a=0;
+  for(let i=0;i<xs.length-1;i++) for(let j=0;j<ys.length-1;j++){ const cx=(xs[i]+xs[i+1])/2, cy=(ys[j]+ys[j+1])/2; let c=false; for(let k=0,m=poly.length-1;k<poly.length;m=k++){ const A_=poly[k],B=poly[m]; if((A_[1]>cy)!==(B[1]>cy)&&cx<(B[0]-A_[0])*(cy-A_[1])/(B[1]-A_[1])+A_[0]) c=!c; } if(c) a+=(xs[i+1]-xs[i])*(ys[j+1]-ys[j]); } return a; }
+function segDist(p,a,b){ const dx=b[0]-a[0], dy=b[1]-a[1], L2=dx*dx+dy*dy; let t=L2?((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L2:0; t=Math.max(0,Math.min(1,t)); return Math.hypot(p[0]-(a[0]+t*dx),p[1]-(a[1]+t*dy)); }
+function polyDist(P1,P2){ let m=Infinity; const ed=P=>P.map((p,i)=>[p,P[(i+1)%P.length]]); ed(P1).forEach(([a,b])=>P2.forEach(p=>m=Math.min(m,segDist(p,a,b)))); ed(P2).forEach(([a,b])=>P1.forEach(p=>m=Math.min(m,segDist(p,a,b)))); return m; }
+// ---------- 지표 계산
+function metrics(){ const M={}; const fl=Z.floors; const above=fl.filter(f=>f.level>0), below=fl.filter(f=>f.level<0);
+  M.site=A('siteArea'); M.gfaAbove=0; M.farGfa=0; M.maxCov=0; M.parkAbove=0; M.openRamp=0;
+  above.forEach(f=>{ const a=polyArea(f.outline); const up=fl.find(g=>g.level===f.level+1); const open=up?f.zones.filter(z=>z.type==='ramp').reduce((s,z)=>s+z.w*z.h-rectPolyArea(z,up.outline),0):0;
+    const park=f.zones.filter(z=>['ramp','parking','aisle'].includes(z.type)).reduce((s,z)=>s+z.w*z.h,0); M.gfaAbove+=a; M.farGfa+=a-park; M.parkAbove+=park; M.openRamp+=open; M.maxCov=Math.max(M.maxCov,a-open); });
+  M.gfaBelow=below.reduce((s,f)=>s+polyArea(f.outline),0); M.gfa=M.gfaAbove+M.gfaBelow;
+  M.cov=M.maxCov/M.site*100; M.far=M.farGfa/M.site*100; M.height=above.reduce((s,f)=>s+f.height,0); M.floorsAbove=above.length; M.floorsBelow=below.length;
+  M.depth=below.reduce((s,f)=>s+f.height,0);
+  const zt=t=>fl.filter(f=>f.level>0).flatMap(f=>f.zones).filter(z=>z.type===t).reduce((s,z)=>s+z.w*z.h,0);
+  M.retail=zt('retail'); M.pub=zt('public'); M.community=zt('community'); M.nonRes=(M.retail+M.pub)/M.gfaAbove*100;
+  const units=P.floors.flatMap(f=>f.units.map(u=>({...u,floor:f.id,level:f.level}))); M.units=units.length; M.unitMin=Math.min(...units.map(u=>u.area)); M.unitMax=Math.max(...units.map(u=>u.area));
+  M.unitMinU=units.find(u=>u.area===M.unitMin); M.unitMaxU=units.find(u=>u.area===M.unitMax); M.units6=units.filter(u=>u.level>=6).length;
+  const stalls=P.floors.flatMap(f=>f.stalls||[]); M.stalls=stalls.length; M.ext=stalls.filter(s=>s.type.startsWith('확장형')).length; M.acc=stalls.filter(s=>s.type.startsWith('장애인')).length; M.ev=stalls.filter(s=>/전기차|EV/.test(s.type)).length;
+  M.reqPark=Math.ceil(M.units*A('parkingPerUnit')+M.retail/A('retailM2PerStall'));
+  const ramps=P.floors.flatMap(f=>(f.ramps||[]).map(r=>({...r,floor:f.id}))).filter(r=>r.slopePct!=null); M.rampMax=Math.max(...ramps.map(r=>r.slopePct)); M.rampEff=Math.min(...ramps.filter(r=>r.mode==='down').map(r=>r.width-(r.curb?2*r.curb.width:0))); M.headroom=Math.min(...ramps.filter(r=>r.headroom!=null).map(r=>r.headroom));
+  const top=P.floors.filter(f=>f.level>0).reduce((a,f)=>f.level>a.level?f:a); M.topStairs=top.stairs.length; M.stairBad=P.floors.flatMap(f=>f.stairs).filter(s=>(s.checks||[]).some(c=>!c.ok)).length;
+  M.emerg=top.elevators.filter(e=>e.emergency).length; M.lifts=top.elevators.length; M.maxFloorArea=Math.max(...above.map(f=>polyArea(f.outline)));
+  M.daylightWarn=P.issues.filter(i=>i.kind==='daylight'&&i.level==='warn').length; M.planWarn=P.issues.filter(i=>i.level==='warn').length;
+  M.openSpaceZones=fl.flatMap(f=>f.zones).filter(z=>/공개공지/.test(z.name)).reduce((s,z)=>s+z.w*z.h,0);
+  M.landscape=fl.flatMap(f=>f.zones).filter(z=>/조경/.test(z.name)).reduce((s,z)=>s+z.w*z.h,0);
+  const f1=fl.find(f=>f.level===1); M.minV=Math.min(...f1.outline.map(p=>p[1]));
+  if(C&&!C.error){ const site=Z.site.uv; M.railDist=Math.min(...C.rail.map(r=>polyDist(site,r.pts))); const road=(C.roads.find(r=>r.front)||C.roads.find(r=>/대로/.test(r.name))); M.roadDist=road?polyDist(site,road.pts):null; }
+  return M; }
+// ---------- 항목
+function build(M){ const pct=v=>fmt(v,1)+'%', m2=v=>fmt(v,1)+'㎡';
+  const ck=(id,cat,title,law,value,req,status,how,src,note,ref,pri)=>({id,cat,title,law,value,req,status,how,src,note,ref,pri});
+  const req=[]; const add=(...a)=>req.push(ck(...a));
+  // 1. 밀도·형태
+  add('cov','밀도·형태','건폐율','건축법 제55조 · 지구단위계획',pct(M.cov),`≤ ${A('coverageLimit')}%`,M.cov<=A('coverageLimit')+0.01?'ok':'bad',`최대 층 바닥면적 ${m2(M.maxCov)} ÷ 대지 ${m2(M.site)}${M.openRamp>0.05?` (지하주차장 경사로 ${m2(M.openRamp)} 제외)`:''}`,['zoning'],'');
+  add('far','밀도·형태','용적률','건축법 제56조 · 지구단위계획 시행지침 (상한 960% 조건부)',pct(M.far),`≤ ${A('farLimit')}%`,M.far<=A('farLimit')+0.05?'ok':'bad',`지상 연면적 ${m2(M.gfaAbove)} − 지상 주차용 ${m2(M.parkAbove)} = ${m2(M.farGfa)}`,['zoning'],'완화·인센티브 조건 충족 여부는 별도 확인');
+  add('height','밀도·형태','최고높이','가로구역별 최고높이 (망우로)',fmt(M.height,1)+'m',`≤ ${A('heightLimit')}m`,M.height<=A('heightLimit')?'ok':'bad',`지상 ${M.floorsAbove}개 층 층고 합 (옥탑 제외)`,['zoning'],'기준지반·옥탑 높이 산정 확인');
+  { const RZ=/(전용|일반)주거/.test('일반상업지역'); add('sunlight','밀도·형태','정북 일조 사선','건축법 제61조','일반상업지역',RZ?'정북 인접대지경계에서 높이 10m 이하 1.5m · 초과분 높이의 1/2':'적용 제외',RZ?'chk':'na','전용·일반주거지역에만 적용',['site'],RZ?'매스 스터디 일조 사선으로 확인':'인접 주거지역 그림자 영향은 민원 대응용으로 별도 검토 권장'); }
+  // 2. 건축선·공지
+  add('bline','건축선·공지','건축한계선 3m','시행지침 제12조 (건축한계선 3m)',M.minV>=-0.001?'후퇴 지킴':'침범',`망우로 경계에서 3m`,M.minV>=-0.001?'ok':'bad',`1층 외곽선 최소 v = ${fmt(M.minV,2)} (v=0이 3m 선)`,['zoning'],'확정 도로경계 미확보 — 측량 후 재확인');
+  if(3>0) add('front','건축선·공지','전면공지 3m','시행지침 제12조 (건축한계선 3m)','램프 진입부 외 시설 없음','공작물·주차장 등 설치 금지','chk','1층 램프 입구가 전면공지를 지나 망우로로 진출입',['plan'],'차량 진출입 위치와 전면공지 통과 방식 협의 필요');
+  const osNeed=M.gfa>=A('openSpaceTrigger')? M.site*A('openSpaceRate')/100 : 0;
+  add('openspace','건축선·공지','공개공지','건축법 제43조 · 시행령 제27조의2',M.openSpaceZones?m2(M.openSpaceZones):'계획 없음',osNeed?`${m2(osNeed)} 이상 (대지 ${A('openSpaceRate')}%)`:'대상 아님',osNeed?(M.openSpaceZones>=osNeed?'ok':'bad'):'na',`연면적 ${m2(M.gfa)} ≥ ${fmt(A('openSpaceTrigger'),0)}㎡ → 대상`,['zoning'],'1층 전면공지·보행 공간과 합쳐 공개공지로 지정하는 안 검토 (조닝에 "공개공지" 구역 추가)');
+  const lsNeed=M.site*A('landscapeRate')/100;
+  add('landscape','건축선·공지','조경 면적','건축법 제42조 · 서울시 조례',M.landscape?m2(M.landscape):'계획 없음',`${m2(lsNeed)} (대지 ${A('landscapeRate')}%) — 옥상 ${A('roofLandscapeCredit')}%까지 인정`,M.landscape>=lsNeed?'ok':'chk',`지상 조경 ${m2(M.landscape)} · 옥상 인정 최대 ${m2(lsNeed*A('roofLandscapeCredit')/100)}`,['zoning'],'옥상정원(16층 지붕)과 1층 공개공지 식재로 충족하는 안 검토');
+  // 3. 주택·시행지침
+  if(L.assumptions.unitMin) add('unitsize','주택·시행지침','세대 면적 범위','지구단위계획 시행지침',`${fmt(M.unitMin,1)} ~ ${fmt(M.unitMax,1)}㎡`,`${A('unitMin')} ~ ${A('unitMax')}㎡`,M.unitMin>=A('unitMin')&&M.unitMax<=A('unitMax')?'ok':'bad',`최소 ${M.unitMinU.floor} ${M.unitMinU.name} · 최대 ${M.unitMaxU.floor} ${M.unitMaxU.name} (벽 중심선 면적)`,['plan'],'전용면적(안목치수) 기준으로 다시 확인');
+  if(L.assumptions.nonResMin) add('nonres','주택·시행지침','비주거 비율','지구단위계획 시행지침',pct(M.nonRes),`${A('nonResMin')} ~ ${A('nonResMax')}%`,M.nonRes>=A('nonResMin')&&M.nonRes<=A('nonResMax')?'ok':'bad',`근생 ${m2(M.retail)} + 공공 ${m2(M.pub)} ÷ 지상 연면적`,['zoning'],'');
+  if(L.assumptions.publicArea&&+L.assumptions.publicArea.v>0) add('public','주택·시행지침','공공시설 면적','지구단위계획 시행지침',m2(M.pub),`≥ ${m2(A('publicArea'))}`,M.pub>=A('publicArea')-0.5?'ok':'bad','공공 구역 합계',['zoning'],'귀속·운영 주체 협의');
+  if(L.assumptions.communityMin&&+L.assumptions.communityMin.v>0) add('community','주택·시행지침','주민공동시설','주택건설기준 제55조의2 (세대수 기준)',m2(M.community),`≥ ${m2(A('communityMin'))}`,M.community>=A('communityMin')?'ok':'bad',`${M.units}세대 기준`,['zoning'],'');
+  add('housingact','주택·시행지침','주택법 사업계획승인','주택법 제15조',`${M.units}세대`,'30세대 이상 → 승인 대상','proc','건축허가 대신 사업계획승인 (도시형생활주택 포함 여부 확인)',['plan'],'');
+  add('daylight','주택·시행지침','거실 채광 (창 ≥ 바닥 1/10)','피난·방화규칙 제17조',M.daylightWarn?`부족 ${M.daylightWarn}실`:'모두 충족','창 면적 ≥ 바닥면적 1/10',M.daylightWarn?'bad':'ok','계획설계 채광 검사 결과 (알코브·트인 실 간접 채광 포함)',['plan'],'');
+  // 4. 피난·방화 (기본)
+  add('specialstair','피난·방화','특별피난계단 2개소','건축법 시행령 제34·35조',`${M.topStairs}개소 (최상층)`,`${A('specialStairFloor')}층 이상 → 특별피난계단`,M.topStairs>=2?'ok':'bad','코어 A·B 각 1개 — 모든 층 연결',['plan'],'보행거리·피난 동선은 소방 페이지에서 상세 검토');
+  { const FI=(P.disciplines||{}).fire, fs=FI&&FI.summary; const sep=P.floors.map(f=>f.fire&&f.fire.egress&&f.fire.egress.stairSep).find(Boolean);
+    if(fs){ add('travel','피난·방화','직통계단까지 보행거리','건축법 시행령 제34조',`최대 ${(+fs.maxTravel).toFixed(1)}m`,`${fs.travelLimit}m 이하 (16층 이상 공동주택 40m)`,fs.maxTravel<=fs.travelLimit?'ok':'bad','소방·피난 페이지 계산 결과 (같은 계획설계 데이터)',['fire','zoning'],'');
+      if(sep) add('stairsep','피난·방화','두 직통계단 이격','피난·방화구조 규칙',`${sep.dist.toFixed(1)}m`,`${sep.need.toFixed(1)}m 이상 (대각선 ${sep.diag.toFixed(1)}m × 1/3)`,sep.ok?'ok':'bad','코어 A·B 계단이 붙어 있음 → 조닝에서 코어 B 위치 조정',['fire','zoning'],'');
+      add('firecomp','피난·방화','방화구획','건축법 시행령 제46조',`${fs.compartments}개 · 초과 ${fs.compOver}`,'10층 이하 3,000㎡ / 11층 이상 600㎡ (스프링클러)',fs.compOver?'bad':'ok',`구획 경계 문 ${fs.doorChanges}개 60분+ 방화문 지정`,['fire'],''); } }
+  add('stairdim','피난·방화','계단 치수 (단높이·단너비·폭·계단참)','피난·방화규칙 제15조',M.stairBad?`미달 ${M.stairBad}`:'35개 모두 충족','단높이 ≤18 · 단너비 ≥26 · 폭 ≥120cm','ok'.replace('ok',M.stairBad?'bad':'ok'),'계획설계 계단 검사 결과',['plan'],'');
+  const needE=M.height>A('emergencyLiftHeight')?(M.maxFloorArea<=1500?1:1+Math.ceil((M.maxFloorArea-1500)/3000)):0;
+  add('emerglift','피난·방화','비상용 승강기','건축법 제64조',`${M.emerg}대`,needE?`${needE}대 이상 (높이 ${A('emergencyLiftHeight')}m 초과)`:'대상 아님',M.emerg>=needE?'ok':'bad',`최대 층 바닥면적 ${m2(M.maxFloorArea)} ≤ 1,500㎡ → 1대`,['plan'],'승강장(부속실) 겸용 면적 6㎡ 이상 확인');
+  // 5. 승강기
+  const needL=M.units6? 1+Math.floor(Math.max(0,M.units6-1)/A('liftPerUnits')) : 0;
+  add('lifts','승강기','승용 승강기 대수','주택건설기준 등에 관한 규정 제15조 (가정 규칙)',`${M.lifts}대 (비상용 포함)`,`${needL}대 이상 (6층 이상 ${M.units6}세대)`,M.lifts>=needL?'ok':'bad',`1대 + ${A('liftPerUnits')}세대마다 1대 (가정)`,['plan'],'정확한 대수 산정 기준 확인 필요');
+  // 6. 주차
+  add('parking','주차','법정 주차 대수','주차장 조례 (가정)',`${M.stalls}대`,`≥ ${M.reqPark}대`,M.stalls>=M.reqPark?'ok':'bad',`${M.units}세대 × ${A('parkingPerUnit')} + 근생 ${m2(M.retail)} ÷ ${A('retailM2PerStall')}`,['plan','zoning'],'완화 기준 확인');
+  add('extended','주차','확장형 주차 30%','주차장법 시행규칙 제3조',`${M.ext}대 (${fmt(M.ext/M.stalls*100,0)}%)`,`≥ ${A('extendedRate')}%`,M.ext>=M.stalls*A('extendedRate')/100?'ok':'bad','2.6×5.2m',['plan'],'');
+  add('accessible','주차','장애인 전용 주차','장애인등편의법 · 서울시 조례',`${M.acc}대 (${fmt(M.acc/M.stalls*100,1)}%)`,`≥ ${A('accessibleRate')}%`,M.acc>=Math.ceil(M.stalls*A('accessibleRate')/100)?'ok':'bad','3.3×5.0m, EV홀 앞',['plan'],'');
+  const needEV=Math.ceil(M.stalls*A('evChargerRate')/100);
+  add('ev','주차','전기차 충전시설','친환경자동차법 시행령',M.ev?`${M.ev}면`:'지정 없음',`${needEV}면 이상 (${A('evChargerRate')}%)`,M.ev>=needEV?'ok':'bad','주차 구획에 충전 구역 지정 필요',['plan'],'지하 충전구역 방화구획·스프링클러는 소방 페이지와 연동');
+  add('ramp','주차','램프 경사·폭·유효높이','주차장법 시행규칙 제6조',`최대 ${fmt(M.rampMax,1)}% · 유효 ${fmt(M.rampEff,1)}m · 높이 ${fmt(M.headroom,2)}m`,'≤17% · 2차선 6.0m · 2.3m 이상',M.rampMax<=17&&M.rampEff>=6&&M.headroom>=2.3?'ok':'bad','연석 0.3m 양측 제외 폭',['plan'],'');
+  // 7. 주변·환경
+  if(M.railDist!=null) add('rail','주변·환경','철도보호지구','철도안전법 제45조',`철도까지 약 ${fmt(M.railDist,1)}m`,`${A('railZone')}m 이내면 행위 신고·협의`,M.railDist<=A('railZone')?'proc':'na','대지 경계 ↔ 철도 부지 최단거리 (주변 맥락 데이터)',['site'],'지하 3층 굴착 — 철도 운영기관 협의·계측 계획');
+  add('noise','주변·환경','공동주택 소음','주택건설기준 등에 관한 규정 제9조',M.roadDist!=null?`망우로 ${fmt(M.roadDist,1)}m · 철도 ${fmt(M.railDist,0)}m`:'—','실외 65dB 미만 (또는 방음 대책)','chk','대로·철도 인접 → 소음 측정·방음 설계 (창호 등급)',['site'],'창호 차음 등급이 공사비에 반영됨');
+  // 8. 에너지·인증
+  add('zeb','에너지·인증','제로에너지건축물 (ZEB) 인증','녹색건축물 조성 지원법','대상','공동주택 30세대 이상 — 5등급 이상','proc','예비인증 → 본인증',['plan'],'외벽 단열·창호·신재생이 공사비·전용면적에 영향');
+  add('energy','에너지·인증','에너지절약계획서','녹색건축법 제14조',`연면적 ${m2(M.gfa)}`,'연면적 500㎡ 이상','proc','사업계획승인 신청 시 제출',['zoning'],'');
+  add('bf','에너지·인증','장애물 없는 생활환경 (BF) 인증','장애인등편의법 제10조의2',M.pub>0?'공공시설 포함':'—','공공 건축물·공중이용시설 대상 여부','chk','공공시설 운영 주체에 따라 의무 여부 결정',['zoning'],'');
+  add('green','에너지·인증','녹색건축 인증','녹색건축법 제16조','—','공공기관 발주·일정 규모 이상','chk','민간 공동주택은 대상 여부 확인',['zoning'],'');
+  // 9. 심의·영향평가
+  add('dig','심의·영향평가','굴토 심의','서울시 건축 조례 (가정)',`지하 ${M.floorsBelow}층 · 깊이 약 ${fmt(M.depth,1)}m`,`깊이 ${A('digDepth')}m 이상 또는 지하 2층 이상`,M.depth>=A('digDepth')||M.floorsBelow>=2?'proc':'na','흙막이·지하수·인접 건물 계측',['zoning'],'지반조사 자료 확보 필요');
+  add('archreview','심의·영향평가','건축위원회 심의','건축법 제4조 · 서울시 조례',`지상 ${M.floorsAbove}층`,`${A('seoulReviewFloors')}층 이상 → 서울시 심의`,M.floorsAbove>=A('seoulReviewFloors')?'proc':'chk','16층 — 구 건축위원회 대상 여부 확인',['zoning'],'');
+  add('landscapeRev','심의·영향평가','경관 심의','경관법','구역 확인','대상 여부 확인','chk','',['site'],'');
+  add('traffic','심의·영향평가','교통영향평가','도시교통정비 촉진법',`연면적 ${m2(M.gfa)}`,'대상 규모 확인 (서울시 기준)','chk','망우로 진출입 1개소',['zoning'],'');
+  refChecks(M,add,pct,m2);
+  return req; }
+// ---------- 참고 자료(기존 준공안 도서·법규 검토서)에서 온 항목 — legal/상봉동_116-49_reference.json
+const REFNOTE={};
+function refChecks(M,add,pct,m2){ const R=REF&&REF.review, B=REF&&REF.built; const FS=(P.disciplines||{}).fire?.summary||{};
+  const rv=id=>(R&&R.legal.find(x=>x.id===id))||{}, rf=id=>(R&&R.fire.find(x=>x.id===id))||{};
+  // 피난 (모델에서 직접 계산 — fire_model)
+  if(FS.unitLinks!=null) add('unitlink','피난·방화','세대 안 실 → 현관 연결','건축법 시행령 제34조①',FS.unitLinks?`끊김 ${FS.unitLinks}세대`:'모두 연결','모든 실이 문(또는 트인 경계)으로 현관에 이어짐',FS.unitLinks?'bad':'ok','문·트인 경계로 연결 그래프 계산 (창은 출구 아님)',['plan'],FS.unitLinks?`${FS.unitLinkList.join(', ')}호 — 주방·침실2·거실이 현관과 끊김 → 타입 편집에서 실내문 추가`:'', '검토서 F-01','P0');
+  if(FS.corridorMin!=null) add('corridor','피난·방화','중복도 유효너비','피난·방화규칙 제15조의2',`최소 ${FS.corridorMin.toFixed(2)}m · 부족 ${FS.corridorBad}곳`,'양옆 거실 1.8m · 그 밖 1.2m (벽 안쪽 면 기준)',FS.corridorBad?'bad':'ok','벽 중심 간격 − 양쪽 벽 두께/2',['zoning'],'조닝 복도 폭을 2.0m(벽 중심)로 넓히면 해소','검토서 F-03','P0');
+  if(FS.stairEffMin!=null) add('stairwidth','피난·방화','계단 유효너비','피난·방화규칙 제15조',`최소 ${FS.stairEffMin.toFixed(3)}m · 부족 ${FS.stairNarrow}개`,'1.2m 이상 (벽 안쪽 면·손잡이 반영)',FS.stairNarrow?'bad':'ok','계획 계단 폭 − 계단실 벽 두께/2',['zoning'],'계단실 폭 2.8m → 약 3.1m (벽 중심)','검토서 F-07','P1');
+  if(FS.swingBad!=null){ add('swing','피난·방화','피난층 계단문 열림 방향','피난·방화규칙 제9조②',FS.swingBad?`반대 방향 ${FS.swingBad}개`:'피난 방향','피난층: 계단실 → 부속실 쪽으로 열림',FS.swingBad?'bad':'ok','1층 계단문 swingTo',['plan'],'','검토서 F-05','P0'); }
+  { const f1=P.floors.find(f=>f.level===1); const ex=f1&&f1.openings.find(o=>o.kind==='door'&&/출입문 \(망우로/.test(o.type)); add('exit1f','피난·방화','1층 주거 직접 출입구','건축령 제39조 · 피난규칙 제11조',ex?`${ex.type}`:'없음','계단 → 외부가 다른 용도(근생·공공)를 거치지 않음',ex?'chk':'bad','1층 로비 외벽 문',['plan'],'출입문은 있음 — 계단 → 부속실 → 로비 → 출입문 경로의 방화구획·잠금·유효폭 확인 (기존 허가 소방 동의조건: 자동폐쇄 연동 방화문)','검토서 F-04','P0'); }
+  add('smoke','피난·방화','특별피난계단 부속실 제연','건축령 제35조 · NFPC 501A','코어 안 부속실 (외기 없음)','기계 제연 — 차압 40Pa(SP 12.5Pa), 개방력 110N','chk','16층·B3 특별피난계단 대상',['fire','plan'],rf('F-06').note||'','검토서 F-06 · 기존안 계단전실 제연휀룸','P1');
+  add('refuge','피난·방화','대피공간·하향식 피난구','건축령 제46조④⑤ · NFPC 608',FS.unitLinks!=null?'계단 이격 미해결':'—','두 계단을 적법하게 못 쓰면 세대별 대피시설','chk','',['fire','plan'],rf('F-09').note||'','검토서 F-09','P1');
+  // 소방 협의
+  const C=B&&B.fireConsent, T=B&&B.fireTruck;
+  add('fireconsent','소방 협의','건축허가 소방 동의','소방시설법 제6조','관할 소방서','허가 전 동의 · 조건 설계 반영','proc','',['fire'],C?'기존 허가 동의 조건: '+C.conditions.join(' / '):'','');
+  add('firetruck','소방 협의','소방자동차 전용구역','소방기본법 시행령 제7조의12',`${M.units}세대 (100세대 이상)`,'원칙 설치 — 한 대지 한 동·편도 2차선 이상 도로 직접 접함 시 제외','chk','망우로 직접 접함 여부',['site'],T?T.exempt:'','','P1');
+  add('fireroad','소방 협의','소방차 접근·부서 공간','건축령 제41조② · 소방 동의조건',T?T.rows.map(r=>r[0]+' '+r[1]).join(' · '):'—','고가사다리 전개 이격·소방차 부서 공간 확보','chk','',['site'],'전면공지는 보행공간 — 소방차 대기 공간으로 바로 쓸 수 없음','');
+  add('firesys','소방 협의','소방시설 설치 대상',  '소방시설법 시행령 별표 4·5 · NFPC 608',R?`${R.systems.filter(x=>x[3]==='적용'||x[3]==='부분 적용').length}개 설비 적용`:'—','설치 대상 → 면제 → 공동주택 기준','proc','소방·피난 페이지 › 소방시설 탭',['fire'],'지하주차장 스프링클러 습식 원칙 (NFPC 103, 2026.03.01)','검토서 6장');
+  // 주택·사업
+  add('premise','주택·시행지침','사업 전제 (기존 건축물)','건축법 · 관련 협약','기존 건축물 현황 확인','존치·철거·권리관계 정리','chk','',['site'],rv('premise').note||'','','P0');
+  add('housingtype','주택·시행지침','주택 유형·사업계획승인 경로','주택법 제15조 · 시행령 제27조④',`${M.units}세대 · 주택 비율 확인`,'300세대 미만 + 주택 연면적 90% 미만 → 승인 예외 가능','chk','',['zoning'],rv('housingtype').note||'','','P1');
+  if(M.pub>0) add('pubarea','주택·시행지침','공공시설 면적 산정','지구단위계획 시행지침',m2(M.pub),'귀속 연면적 산정 개념 확인','chk','',['zoning'],rv('pubarea').note||'','','P1');
+  // 주차 근거
+  { const U=P.floors.flatMap(f=>f.units); const a=U.filter(u=>u.area<30).length, b=U.length-a; const need=Math.ceil(a*0.5+b*0.6); const needLo=Math.ceil(U.length*0.5);
+    add('parkbasis','주차','주차 원단위 근거 (도시형 기본)','주택건설기준 제27조 · 안심주택 조례 제13조',`${M.stalls}대`,`완화 없을 때 ${needLo}~${need}대 + 비주거`,M.stalls>=needLo?'chk':'bad',`30㎡ 미만 ${a}세대×0.5 + 30~60㎡ ${b}세대×0.6 (모델 면적 = 전용 아님)`,['zoning','plan'],rv('parkbasis').note||'','검토서 7.1','P1');
+    add('family','주차','가족배려 주차 10%','주차장 조례',`지정 없음`,`${Math.ceil(M.stalls*0.1)}면 이상 (30대 이상 주차장)`,'chk','',['plan'],'','검토서 7.1'); }
+  // 중첩 규제·평가
+  const dig=M.depth+1.5; add('undersafe','심의·영향평가','지하안전평가','지하안전법 시행령',`굴착 약 ${fmt(dig,1)}m (지하층 ${fmt(M.depth,1)} + 기초 1.5 가정)`,'10~20m 소규모 · 20m 이상 본평가',dig>=20?'proc':dig>=10?'proc':'na',dig>=20?'지하안전평가':dig>=10?'소규모 지하안전평가':'대상 아님',['zoning'],rv('undersafe').note||'','검토서 7.3','P1');
+  add('aaz','주변·환경','대공방어협조구역','군사기지법','해당 여부 확인 (토지이음)',`대지 표고 + 건물 ${fmt(M.height,1)}m + 옥탑·크레인`,'chk','',['site'],rv('aaz').note||'','검토서 7.3');
+  add('edu','주변·환경','교육환경보호구역','교육환경보호법','토지이음 확인','교육청 경계 확인','chk','',['site'],rv('edu').note||'','');
+}
+function refTab(M){ if(!REF) return '<div class="empty" style="padding:12px">legal/상봉동_116-49_reference.json 을 읽지 못했습니다</div>'; const B=REF.built, R=REF.review;
+  const cur={'규모':`지하 ${M.floorsBelow}층 · 지상 ${M.floorsAbove}층 · ${fmt(M.height,1)}m`,'건축면적 / 건폐율':`${fmt(M.maxCov,1)}㎡ / ${fmt(M.cov,2)}%`,'연면적':`${fmt(M.gfa,0)}㎡ (지상 ${fmt(M.gfaAbove,0)} · 지하 ${fmt(M.gfaBelow,0)})`,'용적률':`${fmt(M.far,2)}%`,'세대':`${M.units}세대`,'공공시설물':`${fmt(M.pub,1)}㎡`,'주차':`${M.stalls}대`,'구조':(P.disciplines?.struct?.summary)?`벽식(${P.disciplines.struct.summary.transferFloor}~) + 저층 라멘, ${P.disciplines.struct.summary.underFloor} 천장 전이보`:'—','공개공지':M.openSpaceZones?`${fmt(M.openSpaceZones,0)}㎡`:'계획 없음','조경':M.landscape?`${fmt(M.landscape,0)}㎡`:'계획 없음'};
+  let h=`<div class="box" style="margin:8px 10px"><b>검토서 결론</b> <span class="law">(${esc(R.date)})</span><div style="margin-top:4px">${esc(R.verdict)}</div><div class="law" style="margin-top:4px">${esc(REF.sources.review.file)}</div></div>`;
+  h+=`<div class="lgrp">기존 준공안 vs 현재 계획 <small>${esc(REF.sources.built.title)}</small></div><table class="rt"><tr><th>항목</th><th>기존 준공안</th><th>현재 계획</th></tr>${B.rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}<div class="law">${esc(r[2])}</div></td><td>${esc(cur[r[0]]||'')}</td></tr>`).join('')}</table>`;
+  h+=`<div class="lgrp">기존 허가 이력</div><table class="rt">${B.permit.rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>`;
+  h+=`<div class="lgrp">기존 허가 관련기관 협의 <small>A11 허가 및 관련기관 조건</small></div><table class="rt">${B.agencies.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td></tr>`).join('')}</table>`;
+  h+=`<div class="lgrp">검토서 법규 항목 (소방 외)</div>${R.legal.map(x=>`<div class="lrow" ${checks.some(c=>c.id===x.id)?`data-check="${x.id}"`:''}><b class="pri ${x.pri}">${x.pri}</b><div><b>${esc(x.title)}</b> <span class="law">${esc(x.state)}</span><div class="law">${esc(x.note)}</div></div></div>`).join('')}`;
+  h+=`<div class="law" style="padding:8px 10px">소방·피난 항목(F-01~F-13)과 소방시설 설치 대상은 소방·피난 페이지에 있습니다.</div>`;
+  return h; }
+// ---------- 판정 + 사람이 정한 값
+const effective=c=>{ const o=L.overrides[c.id]; return o&&o.status?o.status:c.status; };
+function compute(){ const M=metrics(); checks=build(M); checks.forEach(c=>{ if(REFNOTE[c.id]&&!c.ref){ c.ref=REFNOTE[c.id]; } }); const cnt={ok:0,bad:0,chk:0,proc:0,na:0}; checks.forEach(c=>cnt[effective(c)]++);
+  const sum={ok:cnt.ok,bad:cnt.bad,chk:cnt.chk,proc:cnt.proc,na:cnt.na,total:checks.length,at:new Date().toISOString(),zoningUpdated:Z.updated,planGenerated:P.generated,
+    items:checks.filter(c=>['bad','chk','proc'].includes(effective(c))).map(c=>({id:c.id,cat:c.cat,title:c.title,status:effective(c),value:c.value,req:c.req,law:c.law,how:c.how}))};  // 실습: Claude가 읽을 수 있게 부적합·확인 필요·절차 항목도 저장
+  const prev=L.summary||{}; if(['ok','bad','chk','proc','na','zoningUpdated','planGenerated'].some(k=>prev[k]!==sum[k])||JSON.stringify(prev.items||[])!==JSON.stringify(sum.items)){ L.summary=sum; scheduleSave(); }
+  return M; }
+// ---------- 그리기
+const CATS=()=>[...new Set(checks.map(c=>c.cat))];
+function renderNav(){ $('nav').innerHTML='<h2>분야</h2>'+['all',...CATS()].map(k=>{ const list=k==='all'?checks:checks.filter(c=>c.cat===k); const n=s=>list.filter(c=>effective(c)===s).length;
+  return `<div class="cat ${catSel===k?'on':''}" data-c="${esc(k)}"><span>${k==='all'?'전체':esc(k)}</span><span class="dots">${n('bad')?`<i class="dot s-bad">${n('bad')}</i>`:''}${n('chk')?`<i class="dot s-chk">${n('chk')}</i>`:''}${n('proc')?`<i class="dot s-proc">${n('proc')}</i>`:''}</span></div>`; }).join('')+
+  `<h2>데이터 출처</h2><div class="empty" style="font-size:12px;padding:0 4px">조닝 ${new Date(Z.updated).toLocaleString('ko-KR',{hour12:false})}<br>계획설계 ${new Date(P.generated).toLocaleString('ko-KR',{hour12:false})}<br>주변 맥락 ${C&&!C.error?'✓':'없음'}</div>`; }
+function roadmap(){ const has=id=>{ const c=checks.find(x=>x.id===id); return c&&['proc','chk','bad'].includes(effective(c)); };
+  const steps=[['사업 전제 정리','기존 건축물·권리관계',['premise','housingtype']],['사전 검토','지구단위계획·조례 확인',['bline','front','openspace','pubarea']],['건축위원회 심의','층수·규모 기준',['archreview']],['경관 심의','지구단위계획 구역',['landscapeRev']],['굴토 심의','지하 굴착 깊이',['dig']],['교통영향평가','진출입·주차',['traffic','parkbasis']],['지하안전평가','굴착 깊이',['undersafe']],['철도보호지구 행위신고','국가철도공단 · 착공 전',['rail','gtx']],['군·교육청 협의','대공방어·교육환경',['aaz','edu']],['소방 동의','관할 소방서 · 동의조건 설계 반영',['fireconsent','firetruck','fireroad','firesys']],['사업계획승인 (주택법)','에너지절약계획서 · ZEB·BF 예비인증',['housingact','energy','zeb','bf']],['착공 → 사용검사','본인증 · 사용승인',['zeb']]];
+  return `<div class="road">${steps.map(([t,d,ids])=>{ const on=ids.some(has); return `<div class="step ${on?'on':'off'}"><b>${t}</b><small>${d}</small><small>${ids.map(i=>{ const c=checks.find(x=>x.id===i); return c?`<a href="#" data-go="${i}">${esc(c.title)}</a>`:''; }).filter(Boolean).join(' · ')}</small></div>`; }).join('')}</div>`; }
+// ---------- 도면 표시 (항목별 하이라이트)
+const NS='http://www.w3.org/2000/svg';
+let lastM=null, viewFloor=null, viewMode=null, vb=null, vbKey='';
+const ZC={unit:'#cfe0fb',corridor:'#e9ecef',lobby:'#e3e7ea',core:'#d8dcdf',retail:'#f8d6e3',public:'#e2d6f7',community:'#cdeee3',parking:'#f4ead0',aisle:'#efe7d3',ramp:'#f1dcb6',mep:'#e6e6e6'};
+const HC={hi:'#e8590c',ok:'#1f7a4c',bad:'#d92d20',blue:'#1971c2',vio:'#7048e8',grn:'#2f9e44'};
+const PF=id=>P.floors.find(f=>f.id===id), ZF=id=>Z.floors.find(f=>f.id===id);
+function sel_(t){ return document.createElementNS(NS,t); }
+function el(tag,a,p){ const e=sel_(tag); for(const k in a) e.setAttribute(k,a[k]); p&&p.appendChild(e); return e; }
+const pts=a=>a.map(p=>p[0]+','+(-p[1])).join(' ');
+function closestPair(A,B){ let best=[Infinity,null,null]; const seg=(p,a,b)=>{ const dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy; let t=L2?((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L2:0; t=Math.max(0,Math.min(1,t)); const q=[a[0]+t*dx,a[1]+t*dy]; return [Math.hypot(p[0]-q[0],p[1]-q[1]),q]; };
+  const ed=X=>X.map((p,i)=>[p,X[(i+1)%X.length]]); ed(A).forEach(([a,b])=>B.forEach(p=>{ const [d,q]=seg(p,a,b); if(d<best[0]) best=[d,q,p]; })); ed(B).forEach(([a,b])=>A.forEach(p=>{ const [d,q]=seg(p,a,b); if(d<best[0]) best=[d,p,q]; })); return best; }
+function viz(c){ const M=lastM||{}, F1='1F', TYP=P.floors.find(f=>f.id==='4F')?'4F':P.floors.find(f=>f.units.length).id;
+  const zoneFloor=t=>(Z.floors.filter(f=>f.level>0).find(f=>f.zones.some(z=>z.type===t))||{}).id||F1;
+  const roomsOf=(f,fn)=>f.rooms.filter(fn);
+  const V={
+    cov:{view:'site',floor:(()=>{ const a=Z.floors.filter(f=>f.level>0).map(f=>[f.id,polyArea(f.outline)]); return a.sort((x,y)=>y[1]-x[1])[0][0]; })(),cap:`가장 넓은 층 바닥 ${fmt(M.maxCov,1)}㎡ ÷ 대지 ${fmt(M.site,0)}㎡ = ${fmt(M.cov,1)}% (한도 ${A('coverageLimit')}%)`,draw:(g,s,f,zf)=>{ el('polygon',{points:pts(zf.outline),fill:HC.hi,'fill-opacity':.28,stroke:HC.hi,'stroke-width':2*s},g); rampOpen(g,s,zf); }},
+    far:{view:'plan',floor:F1,cap:`지상 주차·램프·차로(빗금)는 용적률 연면적에서 제외 — 지상 ${fmt(M.gfaAbove,0)}㎡ − ${fmt(M.parkAbove,0)}㎡`,draw:(g,s,f)=>roomsOf(f,r=>['parking','aisle','ramp'].includes(r.ztype)).forEach(r=>hatch(g,s,r,'#868e96'))},
+    height:{view:'section',cap:`지상 ${M.floorsAbove}층 높이 ${fmt(M.height,1)}m — 최고높이 ${A('heightLimit')}m`},
+    archreview:{view:'section',cap:`지상 ${M.floorsAbove}층 — 서울시 심의 ${A('seoulReviewFloors')}층 기준`},
+    dig:{view:'section',cap:`지하 ${M.floorsBelow}층 굴착 깊이 약 ${fmt(M.depth,1)}m — 기준 ${A('digDepth')}m`},
+    sunlight:{view:'site',cap:'일반상업지역 — 정북 일조 사선은 전용·일반주거지역에만 적용. 주변 건물 층수는 그림자 영향 검토용'},
+    bline:{view:'site',floor:F1,cap:`1층 외곽선이 건축한계선(망우로 경계에서 3m, 파란 점선)을 넘지 않음 — 최소 v = ${fmt(M.minV,2)}`,draw:(g,s,f,zf)=>{ el('polygon',{points:pts(zf.outline),fill:HC.hi,'fill-opacity':.2,stroke:HC.hi,'stroke-width':2*s},g); const p=zf.outline.reduce((a,q)=>q[1]<a[1]?q:a); el('circle',{cx:p[0],cy:-p[1],r:5*s,fill:HC.hi},g); }},
+    front:{view:'site',floor:F1,cap:'전면공지 3m(빗금) 안으로 램프 차량 진출입이 지나감 — 협의 필요',draw:(g,s,f,zf)=>{ frontBand(g,s); zf.zones.filter(z=>z.type==='ramp').forEach(z=>rect(g,s,z,HC.bad,'램프 진출입')); }},
+    openspace:{view:'site',floor:F1,cap:`대지 안 빈 땅(초록) ${fmt(polyArea(Z.site.uv)-polyArea(ZF(F1).outline),0)}㎡ 중 공개공지로 지정된 곳 없음 — 필요 ${fmt(M.site*A('openSpaceRate')/100,0)}㎡`,draw:(g,s,f,zf)=>openGround(g,s,zf,HC.grn)},
+    landscape:{view:'site',floor:F1,cap:`조경 필요 ${fmt(M.site*A('landscapeRate')/100,0)}㎡ — 대지 안 빈 땅(초록)과 옥상에서 확보`,draw:(g,s,f,zf)=>openGround(g,s,zf,HC.grn)},
+    unitsize:{view:'plan',floor:M.unitMinU?.floor||TYP,cap:`세대 면적 ${fmt(M.unitMin,1)}~${fmt(M.unitMax,1)}㎡ (기준 ${A('unitMin')}~${A('unitMax')}㎡) — 색이 진할수록 넓은 세대`,draw:(g,s,f)=>unitsBy(g,s,f,u=>u.area,u=>`${u.name} ${fmt(u.area,1)}`)},
+    housingact:{view:'plan',floor:TYP,cap:`${M.units}세대 — 층별 세대 배치`,draw:(g,s,f)=>unitsBy(g,s,f,u=>u.area,u=>u.name)},
+    nonres:{view:'plan',floor:F1,cap:`근생(분홍)·공공(보라) ${fmt(M.retail+M.pub,0)}㎡ = 지상 연면적의 ${fmt(M.nonRes,1)}%`,draw:(g,s,f)=>{ roomsOf(f,r=>r.ztype==='retail').forEach(r=>rect(g,s,r,'#d6336c')); roomsOf(f,r=>r.ztype==='public').forEach(r=>rect(g,s,r,HC.vio)); }},
+    public:{view:'plan',floor:zoneFloor('public'),cap:`공공시설 ${fmt(M.pub,1)}㎡`,draw:(g,s,f)=>roomsOf(f,r=>r.ztype==='public').forEach(r=>rect(g,s,r,HC.vio))},
+    bf:{view:'plan',floor:zoneFloor('public'),cap:'공공시설 — BF 인증 대상 여부 확인',draw:(g,s,f)=>roomsOf(f,r=>r.ztype==='public').forEach(r=>rect(g,s,r,HC.vio))},
+    community:{view:'plan',floor:zoneFloor('community'),cap:`주민공동시설 ${fmt(M.community,1)}㎡ (기준 ${A('communityMin')}㎡)`,draw:(g,s,f)=>roomsOf(f,r=>r.ztype==='community').forEach(r=>rect(g,s,r,HC.grn))},
+    daylight:{view:'plan',floor:TYP,cap:'창(파랑)과 채광 확인 대상 세대 — 빨강은 부족, 주황은 트인 실·알코브를 거쳐 충족',draw:(g,s,f)=>{ const iss=P.issues.filter(i=>i.kind==='daylight'&&i.floor===f.id); f.units.forEach(u=>{ const i=iss.find(x=>x.ref===u.name); if(i) u.rooms.forEach(id=>{ const r=f.rooms.find(q=>q.id===id); r&&rect(g,s,r,i.level==='warn'?HC.bad:HC.hi,null,.12); }); }); windows(g,s,f); }},
+    specialstair:{view:'plan',floor:TYP,cap:'특별피난계단(초록)과 부속실(연두) — 코어 A·B',draw:(g,s,f)=>stairs(g,s,f)},
+    stairdim:{view:'plan',floor:TYP,cap:'계단 단높이·단너비·폭·계단참 — 각 계단 옆 수치',draw:(g,s,f)=>stairs(g,s,f,true)},
+    travel:{view:'plan',floor:(()=>{ const w=P.floors.filter(f=>f.fire?.egress?.max!=null).sort((a,b)=>b.fire.egress.max/b.fire.egress.limit-a.fire.egress.max/a.fire.egress.limit)[0]; return w?w.id:TYP; })(),cap:'세대 안 가장 먼 곳 → 복도 → 부속실 → 계단 최장 경로 (소방·피난 계산)',draw:(g,s,f)=>egress(g,s,f)},
+    stairsep:{view:'plan',floor:TYP,cap:'두 계단 출입구 사이 거리(빨강)와 필요 거리 — 원 밖에 다른 계단이 있어야 함',draw:(g,s,f)=>stairSep(g,s,f)},
+    firecomp:{view:'plan',floor:TYP,cap:'방화구획 경계벽(빨강)과 구획별 면적',draw:(g,s,f)=>{ (f.walls||[]).filter(w=>w.fire?.boundary&&!w.fire.party).forEach(w=>el('line',{x1:w.a[0],y1:-w.a[1],x2:w.b[0],y2:-w.b[1],stroke:HC.bad,'stroke-width':Math.max(w.t,3*s)},g)); (f.fire?.compartments||[]).filter(c=>c.kind!=='세대'&&c.area>20).forEach(c=>{ const r=f.rooms.find(x=>x.id===c.rooms[0]); r&&label(g,s,r.x+r.w/2,r.y+r.h/2,`${c.name.replace(/ \(.*/,'')} ${Math.round(c.area)}㎡`); }); }},
+    emerglift:{view:'plan',floor:TYP,cap:'비상용 승강기(빨강)와 승강장 겸용 부속실',draw:(g,s,f)=>lifts(g,s,f,true)},
+    lifts:{view:'plan',floor:TYP,cap:`승강기 ${M.lifts}대 (비상용 포함)`,draw:(g,s,f)=>lifts(g,s,f,false)},
+    parking:{view:'plan',floor:'B1',cap:`주차 ${M.stalls}대 (필요 ${M.reqPark}대) — 층을 바꿔 B2·B3 확인`,draw:(g,s,f)=>stalls(g,s,f,null)},
+    extended:{view:'plan',floor:'B1',cap:`확장형(노랑) ${M.ext}대 = ${fmt(M.ext/M.stalls*100,0)}%`,draw:(g,s,f)=>stalls(g,s,f,'확장형')},
+    accessible:{view:'plan',floor:'B1',cap:`장애인 전용(파랑) ${M.acc}대`,draw:(g,s,f)=>stalls(g,s,f,'장애인')},
+    ev:{view:'plan',floor:'B1',cap:`전기차 충전 구획 지정 없음 — 필요 ${Math.ceil(M.stalls*A('evChargerRate')/100)}면`,draw:(g,s,f)=>stalls(g,s,f,'전기차')},
+    ramp:{view:'plan',floor:'B1',cap:'램프 경사·유효 폭·유효 높이 — 층을 바꿔 1F·B2 확인',draw:(g,s,f)=>ramps(g,s,f)},
+    rail:{view:'site',cap:`철도보호지구 ${A('railZone')}m(갈색 띠) — 대지 경계에서 철도까지 ${fmt(M.railDist,1)}m`,draw:(g,s)=>railZone(g,s)},
+    noise:{view:'site',cap:`망우로 ${fmt(M.roadDist,1)}m · 철도 ${fmt(M.railDist,0)}m — 소음원`,draw:(g,s)=>{ railZone(g,s,true); roadDist(g,s); }},
+    traffic:{view:'site',floor:F1,cap:'망우로 진출입 1개소 (램프)',draw:(g,s,f,zf)=>zf.zones.filter(z=>z.type==='ramp').forEach(z=>rect(g,s,z,HC.bad,'진출입'))},
+    landscapeRev:{view:'site',cap:'주변 건물 스카이라인'},
+    unitlink:{view:'plan',floor:(P.floors.find(f=>f.fire?.unitLinks?.length)||{}).id||TYP,cap:'현관까지 문으로 이어지지 않는 실(빨강) — 세대 안 실내문 추가 필요 (검토서 F-01)',draw:(g,s,f)=>{ (f.fire?.unitLinks||[]).forEach(d=>{ const rs=f.rooms.filter(r=>d.rooms.includes(r.id)); rs.forEach(r=>rect(g,s,r,HC.bad,null,.45)); const ent=f.rooms.find(r=>r.unit===d.unit&&r.name==='현관'); if(ent) rect(g,s,ent,HC.ok,'현관',.35); if(rs[0]) label(g,s,rs[0].x+rs[0].w/2,rs[0].y+rs[0].h/2,d.unit+'호',HC.bad); }); }},
+    corridor:{view:'plan',floor:TYP,cap:'복도 유효너비 = 벽 중심 간격 − 벽 두께 — 빨강은 기준 미달 (양옆 세대 1.8m)',draw:(g,s,f)=>(f.fire?.corridors||[]).forEach(c=>{ const r=f.rooms.find(x=>x.id===c.room); if(r) rect(g,s,r,c.ok?HC.ok:HC.bad,`${c.eff.toFixed(2)}m / ${c.need}m`,.4); })},
+    stairwidth:{view:'plan',floor:TYP,cap:'계단 유효너비 = 계획 폭 − 계단실 벽 두께/2 (기준 1.2m)',draw:(g,s,f)=>{ stairs(g,s,f); (f.fire?.stairWidths||[]).forEach(x=>{ const st=f.stairs.find(t=>t.name===x.stair); if(st) label(g,s,st.x+st.w/2,st.y-0.8,`유효 ${x.eff.toFixed(3)}m`,x.ok?HC.ok:HC.bad); }); }},
+    swing:{view:'plan',floor:'1F',cap:'피난층 계단문 — 빨강은 계단실 안쪽으로 열림 (부속실 쪽으로 열려야 함)',draw:(g,s,f)=>{ stairs(g,s,f); const wb=Object.fromEntries(f.walls.map(w=>[w.id,w])); (f.fire?.stairDoors||[]).forEach(x=>{ const o=f.openings.find(k=>k.id===x.door), w=o&&wb[o.wall]; if(!w) return; const L=w.len||1, ux=(w.b[0]-w.a[0])/L, uy=(w.b[1]-w.a[1])/L, cx=w.a[0]+ux*o.at, cy=w.a[1]+uy*o.at; el('circle',{cx,cy:-cy,r:.9,fill:x.ok?HC.ok:HC.bad,'fill-opacity':.5,stroke:x.ok?HC.ok:HC.bad,'stroke-width':2*s},g); }); }},
+    exit1f:{view:'plan',floor:'1F',cap:'1층: 계단·부속실(초록) → 주거 로비 → 망우로 출입문(주황) — 다른 용도를 거치지 않는지 확인',draw:(g,s,f)=>{ stairs(g,s,f); f.rooms.filter(r=>r.ztype==='lobby'||r.ztype==='corridor').forEach(r=>rect(g,s,r,HC.blue,null,.25)); const wb=Object.fromEntries(f.walls.map(w=>[w.id,w])); f.openings.filter(o=>o.kind==='door'&&/출입문/.test(o.type)).forEach(o=>{ const w=wb[o.wall]; if(!w) return; const L=w.len||1, cx=w.a[0]+(w.b[0]-w.a[0])/L*o.at, cy=w.a[1]+(w.b[1]-w.a[1])/L*o.at; el('circle',{cx,cy:-cy,r:1,fill:HC.hi,'fill-opacity':.6},g); label(g,s,cx,cy-1.6,o.type.replace(/ \(.*/,''),HC.hi); }); }},
+    smoke:{view:'plan',floor:TYP,cap:'특별피난계단 부속실(연두) — 외기에 접하지 않아 기계 제연 필요',draw:(g,s,f)=>stairs(g,s,f)},
+    refuge:{view:'plan',floor:TYP,cap:'세대별 대피공간·하향식 피난구 검토 대상 (4층 이상)',draw:(g,s,f)=>unitsBy(g,s,f,u=>u.area,u=>u.name)},
+    firetruck:{view:'site',floor:F1,cap:'망우로 접면 — 소방차 전용구역 제외 요건 확인',draw:(g,s)=>{ frontBand(g,s); roadDist(g,s); }},
+    fireroad:{view:'site',floor:F1,cap:'소방차 부서 공간 — 전면공지(빗금)는 보행공간',draw:(g,s)=>{ frontBand(g,s); roadDist(g,s); }},
+    parkbasis:{view:'plan',floor:'B1',cap:'주차 대수 — 도시형 기본 기준이면 부족',draw:(g,s,f)=>stalls(g,s,f,null)},
+    family:{view:'plan',floor:'B1',cap:'가족배려 주차 10% — 지정 필요',draw:(g,s,f)=>stalls(g,s,f,null)},
+    undersafe:{view:'section',cap:`지하 굴착 깊이 약 ${fmt(M.depth+1.5,1)}m (기초 1.5m 가정) — 10~20m 소규모 지하안전평가`},
+    aaz:{view:'section',cap:'대공방어협조구역(해당 시) 위탁고도 — 대지 표고 + 건물 + 옥탑·크레인으로 비교'},
+    pubarea:{view:'plan',floor:zoneFloor('public'),cap:'공공시설 — 귀속 면적 산정 개념 대조',draw:(g,s,f)=>roomsOf(f,r=>r.ztype==='public').forEach(r=>rect(g,s,r,HC.vio))},
+  };
+  return V[c.id]||{view:'site',cap:'도면에 표시할 대상이 없는 절차·인증 항목 — 건물 전체 위치'}; }
+// ---- 그리기 도구
+function rect(g,s,r,c,lab,op){ el('rect',{x:r.x,y:-(r.y+r.h),width:r.w,height:r.h,fill:c,'fill-opacity':op??.3,stroke:c,'stroke-width':2*s},g); if(lab) label(g,s,r.x+r.w/2,r.y+r.h/2,lab); }
+function hatch(g,s,r,c){ el('rect',{x:r.x,y:-(r.y+r.h),width:r.w,height:r.h,fill:'url(#hatch)',stroke:c,'stroke-width':1.5*s},g); }
+function label(g,s,x,y,t,c){ el('text',{x,y:-y,'text-anchor':'middle','dominant-baseline':'middle','font-size':11*s,'font-weight':700,fill:c||'var(--ink)',stroke:'var(--panel)','stroke-width':3*s,'paint-order':'stroke','pointer-events':'none'},g).textContent=t; }
+function rampOpen(g,s,zf){ const up=Z.floors.find(x=>x.level===zf.level+1); zf.zones.filter(z=>z.type==='ramp').forEach(z=>{ hatch(g,s,z,'#868e96'); label(g,s,z.x+z.w/2,z.y+z.h/2,'경사로 (제외)'); }); }
+function frontBand(g,s){ const xs=Z.site.uv.map(p=>p[0]); const cp=el('clipPath',{id:'siteClip'},g); el('polygon',{points:pts(Z.site.uv)},cp); el('rect',{x:Math.min(...xs),y:0,width:Math.max(...xs)-Math.min(...xs),height:3,fill:'url(#hatch)',stroke:'none','clip-path':'url(#siteClip)'},g); label(g,s,(Math.min(...xs)+Math.max(...xs))/2+10,-1.5,'전면공지 3m'); }
+function openGround(g,s,zf,c){ el('path',{d:'M'+Z.site.uv.map(p=>p[0]+','+(-p[1])).join('L')+'Z M'+zf.outline.map(p=>p[0]+','+(-p[1])).join('L')+'Z','fill-rule':'evenodd',fill:c,'fill-opacity':.3,stroke:c,'stroke-width':1.5*s},g); }
+function unitsBy(g,s,f,val,lab){ const vs=f.units.map(val), lo=Math.min(...vs), hi=Math.max(...vs); f.units.forEach(u=>{ const t=hi>lo?(val(u)-lo)/(hi-lo):.5; const rs=u.rooms.map(id=>f.rooms.find(r=>r.id===id)).filter(Boolean); rs.forEach(r=>el('rect',{x:r.x,y:-(r.y+r.h),width:r.w,height:r.h,fill:HC.blue,'fill-opacity':.1+.45*t,stroke:'none'},g));
+  const isMin=lastM&&u.area===lastM.unitMin, isMax=lastM&&u.area===lastM.unitMax; const big=rs.reduce((a,r)=>r.w*r.h>a.w*a.h?r:a,rs[0]); if(big) label(g,s,big.x+big.w/2,big.y+big.h/2,lab(u),isMin?HC.bad:isMax?HC.blue:null); }); }
+function windows(g,s,f){ const wb=Object.fromEntries(f.walls.map(w=>[w.id,w])); f.openings.filter(o=>o.kind==='window').forEach(o=>{ const w=wb[o.wall]; if(!w) return; const L=w.len||1, ux=(w.b[0]-w.a[0])/L, uy=(w.b[1]-w.a[1])/L; const a=[w.a[0]+ux*(o.at-o.w/2),w.a[1]+uy*(o.at-o.w/2)], b=[w.a[0]+ux*(o.at+o.w/2),w.a[1]+uy*(o.at+o.w/2)]; el('line',{x1:a[0],y1:-a[1],x2:b[0],y2:-b[1],stroke:HC.blue,'stroke-width':Math.max(.35,4*s)},g); }); }
+function stairs(g,s,f,dims){ f.rooms.filter(r=>r.corekind==='vestibule').forEach(r=>rect(g,s,r,'#69db7c',null,.35)); f.stairs.forEach(st=>{ rect(g,s,st,HC.grn,null,.35); for(let i=1;i<9;i++){ const y=st.y+st.h*i/9; el('line',{x1:st.x,y1:-y,x2:st.x+st.w,y2:-y,stroke:HC.grn,'stroke-width':s},g); }
+  const bad=(st.checks||[]).some(c=>!c.ok); label(g,s,st.x+st.w/2,st.y+st.h+1.2,st.name.replace('특별피난계단','계단'),bad?HC.bad:HC.grn); if(dims) label(g,s,st.x-6.5,st.y+st.h/2,`단 ${(st.riser*100).toFixed(1)}/${(st.tread*100).toFixed(0)}cm · 폭 ${st.flightWidth}m`,bad?HC.bad:null); }); }
+function egress(g,s,f){ const e=f.fire?.egress; if(!e?.worst?.path) return; const p=e.worst.path; el('polyline',{points:pts(p),fill:'none',stroke:'var(--panel)','stroke-width':7*s},g); el('polyline',{points:pts(p),fill:'none',stroke:HC.blue,'stroke-width':3.5*s,'stroke-dasharray':`${8*s} ${3*s}`},g); el('circle',{cx:p[0][0],cy:-p[0][1],r:5*s,fill:HC.blue},g); label(g,s,p[0][0],p[0][1]+1.6,`${e.worst.unit}${/^\d/.test(e.worst.unit)?'호':''} ${e.worst.dist.toFixed(1)}m / ${e.limit}m`,HC.blue); stairs(g,s,f); }
+function stairSep(g,s,f){ stairs(g,s,f); const e=f.fire?.egress, sp=e?.stairSep; if(!sp||f.stairs.length<2) return; const c=f.stairs.map(st=>[st.x+st.w/2,st.y+st.h/2]); el('circle',{cx:c[0][0],cy:-c[0][1],r:sp.need,fill:HC.bad,'fill-opacity':.06,stroke:HC.bad,'stroke-width':1.5*s,'stroke-dasharray':`${6*s} ${4*s}`},g);
+  el('line',{x1:c[0][0],y1:-c[0][1],x2:c[1][0],y2:-c[1][1],stroke:HC.bad,'stroke-width':3*s},g); label(g,s,c[0][0]-6,(c[0][1]+c[1][1])/2,`${sp.dist.toFixed(1)}m`,HC.bad); label(g,s,c[0][0],c[0][1]+sp.need+1.5,`필요 ${sp.need.toFixed(1)}m (대각선 ${sp.diag.toFixed(1)}m × 1/3)`,HC.bad); }
+function lifts(g,s,f,em){ f.rooms.filter(r=>r.corekind==='vestibule'&&/비상/.test(r.name)).forEach(r=>rect(g,s,r,'#ffa94d',em?`승강장 ${(r.w*r.h).toFixed(1)}㎡`:null,.3)); f.elevators.forEach(e=>rect(g,s,e,e.emergency?HC.bad:HC.blue,em&&!e.emergency?null:e.name.replace('승강기','EV'),.4)); }
+function stalls(g,s,f,only){ (f.stalls||[]).forEach(p=>{ const t=p.type, c=t.startsWith('확장형')?'#f59f00':t.startsWith('장애인')?HC.blue:/전기차|EV/.test(t)?HC.grn:'#adb5bd'; const on=!only||t.startsWith(only)||(only==='전기차'&&/EV/.test(t)); el('rect',{x:p.x+.05,y:-(p.y+p.h)+.05,width:p.w-.1,height:p.h-.1,fill:c,'fill-opacity':on?.7:.15,stroke:c,'stroke-opacity':on?1:.6,'stroke-width':(on?1.5:.8)*s},g); if(on&&only) label(g,s,p.x+p.w/2,p.y+p.h/2,p.no.split('-')[1],'#fff'); }); }
+function ramps(g,s,f){ (f.ramps||[]).forEach(r=>{ rect(g,s,r,HC.hi,null,.25); if(r.curb){ const cw=r.curb.width; [[r.x,r.x+cw],[r.x+r.w-cw,r.x+r.w]].forEach(([a,b])=>el('rect',{x:a,y:-(r.y+r.h),width:b-a,height:r.h,fill:'#868e96'},g)); }
+  label(g,s,r.x+r.w/2,r.y+r.h/2,r.slopePct!=null?`${r.slopePct}%`:'',HC.hi); if(r.slopePct!=null) label(g,s,r.x+r.w/2,r.y+r.h/2-1.8,`유효 ${(r.width-(r.curb?2*r.curb.width:0)).toFixed(1)}m${r.headroom!=null?` · 높이 ${r.headroom.toFixed(2)}m`:''}`); }); }
+function railZone(g,s,lite){ if(!C||C.error) return; C.rail.forEach(r=>{ el('polygon',{points:pts(r.pts),fill:'#8b5e34','fill-opacity':lite?.15:.3,stroke:'#8b5e34','stroke-opacity':lite?.06:.1,'stroke-width':2*A('railZone'),'stroke-linejoin':'round'},g); });
+  const near=C.rail.map(r=>closestPair(Z.site.uv,r.pts)).sort((a,b)=>a[0]-b[0])[0]; if(near&&near[1]){ el('line',{x1:near[1][0],y1:-near[1][1],x2:near[2][0],y2:-near[2][1],stroke:'#8b5e34','stroke-width':3*s},g); label(g,s,(near[1][0]+near[2][0])/2,(near[1][1]+near[2][1])/2,`철도 ${near[0].toFixed(1)}m`,'#8b5e34'); } }
+function roadDist(g,s){ const road=C&&!C.error&&(C.roads.find(r=>r.front)||C.roads.find(r=>/대로/.test(r.name))); if(!road) return; const n=closestPair(Z.site.uv,road.pts); el('line',{x1:n[1][0],y1:-n[1][1],x2:n[2][0],y2:-n[2][1],stroke:HC.hi,'stroke-width':3*s},g); label(g,s,n[2][0],n[2][1]-2,`망우로 ${n[0].toFixed(1)}m`,HC.hi); }
+// ---- 장면
+function drawScene(){ const svg=$('lsvg'); if(!svg||!P) return; const c=checks.find(x=>x.id===selId); const v=c?viz(c):{view:'site',cap:'항목을 고르면 해당 부분이 도면에 표시됩니다'};
+  const mode=viewMode||v.view; const fid=viewFloor||v.floor||'1F'; const f=PF(fid), zf=ZF(fid);
+  const key=mode+'|'+(mode==='site'?'':fid); svg.innerHTML=''; const r=svg.getBoundingClientRect(); const fit=b=>{ const k=Math.max(b.w/r.width,b.h/r.height); return {x:b.x-(r.width*k-b.w)/2,y:b.y-(r.height*k-b.h)/2,w:r.width*k,h:r.height*k}; };
+  let box;
+  if(mode==='section'){ const fl=[...P.floors].sort((a,b)=>a.level-b.level); const bot=Math.min(...fl.map(x=>x.elev)), top=Math.max(...fl.map(x=>x.elev+x.height)); box={x:-12,y:-(Math.max(top,A('heightLimit'))+6),w:64,h:Math.max(top,A('heightLimit'))-bot+12}; }
+  else if(mode==='site'){ const sp=Z.site.uv; const xs=sp.map(p=>p[0]), ys=sp.map(p=>-p[1]); const pad=c&&['rail','noise','sunlight','landscapeRev'].includes(c.id)?45:14; box={x:Math.min(...xs)-pad,y:Math.min(...ys)-pad,w:Math.max(...xs)-Math.min(...xs)+2*pad,h:Math.max(...ys)-Math.min(...ys)+2*pad}; }
+  else { const xs=f.outline.map(p=>p[0]), ys=f.outline.map(p=>-p[1]); box={x:Math.min(...xs)-4,y:Math.min(...ys)-4,w:Math.max(...xs)-Math.min(...xs)+8,h:Math.max(...ys)-Math.min(...ys)+8}; }
+  const k2=key+'|'+(c?.id||'')+'|'+Math.round(r.width)+'x'+Math.round(r.height); if(k2!==vbKey||!vb){ vb=fit(box); vbKey=k2; }
+  svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`); const s=vb.w/r.width;
+  const defs=el('defs',{},svg); const pat=el('pattern',{id:'hatch',width:1,height:1,patternUnits:'userSpaceOnUse',patternTransform:'rotate(45)'},defs); el('line',{x1:0,y1:0,x2:0,y2:1,stroke:'#868e96','stroke-width':.25},pat);
+  const g=el('g',{},svg);
+  if(mode==='section') drawSection(g,s,c);
+  else if(mode==='site'){ drawSite(g,s,zf||ZF('1F'),c); v.draw&&v.draw(g,s,f||PF('1F'),zf||ZF('1F')); }
+  else { drawBase(g,s,f); v.draw&&v.draw(g,s,f,zf); }
+  $('lcap').innerHTML=c?`<span class="pill ${ST[effective(c)][1]}">${ST[effective(c)][0]}</span> <b>${esc(c.title)}</b> · ${esc(v.cap||'')}`:esc(v.cap);
+  $('lfloors').innerHTML=['site','section'].map(m=>`<button data-vm="${m}" class="${mode===m?'on':''}">${m==='site'?'배치':'단면'}</button>`).join('')+'<span class="sep"></span>'+[...P.floors].sort((a,b)=>b.level-a.level).map(x=>`<button data-vf="${x.id}" class="${mode==='plan'&&x.id===fid?'on':''}">${x.id}</button>`).join(''); }
+function drawBase(g,s,f){ f.rooms.forEach(r=>el('rect',{x:r.x,y:-(r.y+r.h),width:r.w,height:r.h,fill:ZC[r.kind==='unitroom'?'unit':r.ztype]||'#eee','fill-opacity':.32,stroke:'var(--line)','stroke-width':.6*s},g));
+  f.walls.forEach(w=>el('line',{x1:w.a[0],y1:-w.a[1],x2:w.b[0],y2:-w.b[1],stroke:'#5c656a','stroke-width':Math.max(w.t*.8,1*s),'stroke-opacity':.8},g));
+  el('polygon',{points:pts(Z.site.uv),fill:'none',stroke:'#c6402b','stroke-width':1.2*s,'stroke-dasharray':`${5*s} ${3*s}`},g); }
+function drawSite(g,s,zf,c){ if(C&&!C.error){ C.roads.forEach(r=>el('polygon',{points:pts(r.pts),fill:'#7a8085','fill-opacity':.35,stroke:'none'},g)); C.rail.forEach(r=>el('polygon',{points:pts(r.pts),fill:'#8b8178','fill-opacity':.35,stroke:'none'},g));
+    C.buildings.filter(b=>!b.onSite).forEach(b=>{ el('polygon',{points:pts(b.pts),fill:'var(--muted)','fill-opacity':Math.min(.6,.12+(b.floors||1)*.035),stroke:'var(--muted)','stroke-width':.5*s},g); if(c&&['sunlight','landscapeRev'].includes(c.id)&&b.floors>=3){ const cx=b.pts.reduce((a,p)=>a+p[0],0)/b.pts.length, cy=b.pts.reduce((a,p)=>a+p[1],0)/b.pts.length; label(g,s,cx,cy,b.floors+'F'); } });
+    const road=(C.roads.find(r=>r.front)||C.roads.find(r=>/대로/.test(r.name))); if(road){ const cx=road.pts.reduce((a,p)=>a+p[0],0)/road.pts.length; label(g,s,Math.max(Math.min(cx,40),-10),-6,'망우로','var(--muted)'); } }
+  el('polygon',{points:pts(Z.site.uv),fill:'var(--panel)','fill-opacity':.6,stroke:'#c6402b','stroke-width':2*s,'stroke-dasharray':`${6*s} ${3*s}`},g);
+  const xs=Z.site.uv.map(p=>p[0]); el('line',{x1:Math.min(...xs)-3,y1:0,x2:Math.max(...xs)+3,y2:0,stroke:HC.blue,'stroke-width':1.5*s,'stroke-dasharray':`${4*s} ${3*s}`},g);
+  label(g,s,Math.max(...xs)+3,1.4,'건축한계선 3m',HC.blue);
+  el('polygon',{points:pts(zf.outline),fill:'#adb5bd','fill-opacity':.35,stroke:'var(--ink)','stroke-width':1.2*s},g); }
+function drawSection(g,s,c){ const fl=[...P.floors].sort((a,b)=>a.level-b.level); const W=40;
+  el('line',{x1:-10,y1:0,x2:W+10,y2:0,stroke:'var(--ink)','stroke-width':2*s},g); label(g,s,-6,1.2,'GL');
+  fl.forEach(f=>{ const col=f.level<0?'#ced4da':f.units.length?'#a5c4f3':f.rooms.some(r=>r.ztype==='public')?'#d0bfff':'#fcc2d7'; el('rect',{x:0,y:-(f.elev+f.height),width:W,height:f.height,fill:col,'fill-opacity':.7,stroke:'var(--panel)','stroke-width':1*s},g); label(g,s,W/2,f.elev+f.height/2,`${f.id} · ${f.height}m`); });
+  const H=lastM.height, lim=A('heightLimit'); const top=Math.max(...fl.map(f=>f.elev+f.height));
+  el('line',{x1:-8,y1:-lim,x2:W+8,y2:-lim,stroke:HC.bad,'stroke-width':2*s,'stroke-dasharray':`${6*s} ${4*s}`},g); label(g,s,W+5,lim+1.5,`최고높이 ${lim}m`,HC.bad);
+  el('line',{x1:W+3,y1:0,x2:W+3,y2:-top,stroke:HC.hi,'stroke-width':2*s},g); label(g,s,W+7,top/2,`${H.toFixed(1)}m`,HC.hi);
+  if(lastM.height>A('emergencyLiftHeight')){ el('line',{x1:-4,y1:-31,x2:W,y2:-31,stroke:HC.vio,'stroke-width':1*s,'stroke-dasharray':`${3*s} ${3*s}`},g); label(g,s,-6,31,'31m',HC.vio); }
+  const bot=Math.min(...fl.map(f=>f.elev)); el('line',{x1:-3,y1:0,x2:-3,y2:-bot,stroke:c&&c.id==='dig'?HC.bad:'var(--muted)','stroke-width':2*s},g); label(g,s,-7,bot/2,`${(-bot).toFixed(1)}m`,c&&c.id==='dig'?HC.bad:null); }
+// pan/zoom
+let ldrag=null;
+function bindSvg(){ const svg=$('lsvg'); if(!svg||svg._b) return; svg._b=1;
+  svg.addEventListener('wheel',ev=>{ ev.preventDefault(); const r=svg.getBoundingClientRect(), s=vb.w/r.width; const mx=vb.x+(ev.clientX-r.left)*s, my=vb.y+(ev.clientY-r.top)*s; const k=Math.exp(ev.deltaY*.0015); vb={x:mx-(mx-vb.x)*k,y:my-(my-vb.y)*k,w:vb.w*k,h:vb.h*k}; drawScene(); },{passive:false});
+  svg.addEventListener('pointerdown',ev=>{ ldrag={x:ev.clientX,y:ev.clientY,vb:{...vb}}; svg.setPointerCapture(ev.pointerId); });
+  svg.addEventListener('pointermove',ev=>{ if(!ldrag) return; const s=vb.w/svg.getBoundingClientRect().width; vb={...ldrag.vb,x:ldrag.vb.x-(ev.clientX-ldrag.x)*s,y:ldrag.vb.y-(ev.clientY-ldrag.y)*s}; drawScene(); });
+  svg.addEventListener('pointerup',()=>ldrag=null); svg.addEventListener('contextmenu',e=>e.preventDefault()); }
+addEventListener('resize',()=>{ vbKey=''; drawScene(); });
+// ---------- 화면
+let sideTab='list';
+function renderMain(M){ const cnt=k=>checks.filter(c=>effective(c)===k).length;
+  if(!$('lsvg')) $('main').innerHTML=`<div class="kpis" id="kpis"></div><div class="planbox"><div class="lfloors" id="lfloors"></div><svg id="lsvg"></svg><div class="lcap" id="lcap"></div><button class="btn sm lfit" id="lfit">전체</button></div>`;
+  $('kpis').innerHTML=['bad','chk','proc','ok','na'].map(k=>`<div class="kpi ${stFilter===k?'on':''}" data-st="${k}"><b style="color:var(--${k==='ok'?'ok':k==='bad'?'bad':k==='chk'?'warn':k==='proc'?'proc':'na'})">${cnt(k)}</b><span>${ST[k][0]}</span></div>`).join('');
+  bindSvg(); drawScene(); }
+function sideList(){ const cats=catSel==='all'?CATS():[catSel]; let h='';
+  cats.forEach(cat=>{ const list=checks.filter(c=>c.cat===cat&&(!stFilter||effective(c)===stFilter)); if(!list.length) return;
+    h+=`<div class="lgrp">${esc(cat)} <small>${list.length}</small></div>`+list.map(c=>{ const e=effective(c), o=L.overrides[c.id]; return `<div class="lrow ${c.id===selId?'sel':''}" data-check="${c.id}"><span class="pill ${ST[e][1]}">${ST[e][0]}</span><div>${c.pri?`<b class="pri ${c.pri}">${c.pri}</b> `:''}<b>${esc(c.title)}</b>${o&&o.status?'<span class="ov">수정</span>':''}${o&&o.memo?' 📝':''}<div class="law">${esc(c.value)} · 기준 ${esc(c.req)}</div></div></div>`; }).join(''); });
+  return h||'<div class="empty" style="padding:10px">조건에 맞는 항목이 없습니다</div>'; }
+function renderSide(M){ const c=checks.find(x=>x.id===selId); let h='<div id="lsel">';
+  if(c){ const o=L.overrides[c.id]||{}, e=effective(c);
+    h+=`<div style="font-size:15px;font-weight:800;margin:0 2px 4px">${esc(c.title)} <span class="pill ${ST[e][1]}">${ST[e][0]}</span></div><div class="info">
+      <span>근거</span><div>${esc(c.law)}</div><span>계획값</span><div><b>${esc(c.value)}</b> · 기준 ${esc(c.req)}</div><span>계산</span><div>${esc(c.how)}</div>${c.note?`<span>검토 메모</span><div>${esc(c.note)}</div>`:''}${c.ref?`<span>참고 자료</span><div class="refnote">${c.pri?`<b class="pri ${c.pri}">${c.pri}</b> `:''}${esc(c.ref)}</div>`:''}
+      <span>고치는 곳</span><div>${c.src.map(s=>`<a href="${PAGES[s]}" target="_blank">${{zoning:'조닝 편집기',plan:'계획설계',site:'대지·주변 (허브)',fire:'소방·피난'}[s]} ↗</a>`).join(' · ')}</div></div>
+      <details class="box" ${o.status||o.memo?'open':''}><summary><b style="font-size:12.5px">사람이 정한 판정·메모</b>${o.status?` <span class="law">(자동: ${ST[c.status][0]})</span>`:''}</summary><div class="seg">${['auto','ok','bad','chk','proc','na'].map(k=>`<button data-ov="${k}" class="${(k==='auto'&&!o.status)||o.status===k?'on':''}">${k==='auto'?'자동':ST[k][0]}</button>`).join('')}</div>
+      <textarea id="memo" placeholder="협의 결과·근거 메모 (예: 구청 건축과 사전 협의 — 공개공지 7% 확인)">${esc(o.memo||'')}</textarea>
+      <div style="color:var(--muted);font-size:11.5px;margin-top:4px">${o.at?'마지막 수정 '+new Date(o.at).toLocaleString('ko-KR',{hour12:false}):'자동 판정 그대로'}</div></details>`; }
+  else h+=`<div class="empty">항목을 누르면 도면에 해당 부분이 표시되고, 근거·계산·판정을 볼 수 있습니다.</div>`;
+  h+='</div>';
+  const T=[['list',`검토 항목 ${checks.length}`],['road','인허가 절차'],['ref','근거 자료'],['asm','가정값']];
+  h+=`<div class="card tabcard"><div class="tabs">${T.map(([k,n])=>`<button data-st2="${k}" class="${sideTab===k?'on':''}">${n}</button>`).join('')}</div><div class="tabbody">`;
+  if(sideTab==='list') h+=sideList();
+  if(sideTab==='road') h+=`<div class="law" style="padding:8px 10px">판정에서 '해당 (절차)'가 나온 항목이 단계에 표시됩니다</div><div class="road vert">${roadmap().replace(/^<div class="road">|<\/div>$/g,'')}</div>`;
+  if(sideTab==='ref') h+=refTab(M);
+  if(sideTab==='asm') h+=`<div class="law" style="padding:8px 10px">바꾸면 판정이 다시 계산됩니다</div><div class="asm" style="padding:0 10px 10px">${Object.entries(L.assumptions).map(([k,a])=>`<div class="lb">${esc(a.label)}<small>${esc(a.src)}</small></div><input data-asm="${k}" value="${a.v}" type="number" step="any"><span class="law">${esc(a.unit)}</span>`).join('')}</div>`;
+  h+='</div></div>';
+  const sc=$('side').querySelector('.tabbody')?.scrollTop||0; $('side').innerHTML=h; const tb=$('side').querySelector('.tabbody'); if(tb) tb.scrollTop=sc; }
+function renderAll(){ const M=compute(); lastM=M; renderNav(); renderMain(M); renderSide(M); $('srcInfo').textContent=`항목 ${checks.length} · 조닝·계획설계·주변 맥락에서 자동 계산`; }
+
+// ---------- 이벤트
+document.addEventListener('click',e=>{ const cat=e.target.closest('.cat'); if(cat){ catSel=cat.dataset.c; renderAll(); return; }
+  const k=e.target.closest('.kpi'); if(k){ stFilter=stFilter===k.dataset.st?null:k.dataset.st; renderAll(); return; }
+  const go=e.target.closest('[data-go]'); if(go){ e.preventDefault(); selId=go.dataset.go; catSel='all'; stFilter=null; viewMode=null; viewFloor=null; sideTab='list'; renderAll(); const r=document.querySelector(`.lrow[data-check="${selId}"]`); r&&r.scrollIntoView({block:'center',behavior:'smooth'}); return; }
+  const vm=e.target.closest('[data-vm]'); if(vm){ viewMode=vm.dataset.vm; viewFloor=null; vbKey=''; drawScene(); return; }
+  const vf=e.target.closest('[data-vf]'); if(vf){ viewMode='plan'; viewFloor=vf.dataset.vf; vbKey=''; drawScene(); return; }
+  if(e.target.closest('#lfit')){ vbKey=''; drawScene(); return; }
+  const t2=e.target.closest('[data-st2]'); if(t2){ sideTab=t2.dataset.st2; renderSide(lastM); return; }
+  const row=e.target.closest('.lrow'); if(row&&row.dataset.check&&!e.target.closest('a')){ selId=selId===row.dataset.check?null:row.dataset.check; viewMode=null; viewFloor=null; vbKey=''; renderAll(); return; }
+  const ov=e.target.closest('[data-ov]'); if(ov&&selId){ const o=L.overrides[selId]||{}; o.status=ov.dataset.ov==='auto'?null:ov.dataset.ov; o.at=new Date().toISOString(); L.overrides[selId]=o; if(!o.status&&!o.memo) delete L.overrides[selId]; scheduleSave(); renderAll(); } });
+document.addEventListener('change',e=>{ const a=e.target.closest('[data-asm]'); if(a){ const v=parseFloat(a.value); if(!isFinite(v)) return; L.assumptions[a.dataset.asm].v=v; scheduleSave(); renderAll(); toast('가정값을 바꿔 판정을 다시 계산했습니다'); }
+  if(e.target.id==='memo'&&selId){ const o=L.overrides[selId]||{}; o.memo=e.target.value.trim(); o.at=new Date().toISOString(); L.overrides[selId]=o; if(!o.status&&!o.memo) delete L.overrides[selId]; scheduleSave(); renderAll(); } });
+// ---------- 저장
+let saveTimer=null; function setSave(c,t){ $('save').className='save '+c; $('saveTxt').textContent=t; }
+function scheduleSave(){ setSave('pending','저장 대기…'); clearTimeout(saveTimer); saveTimer=setTimeout(async()=>{ try{ L.updated=new Date().toISOString(); const r=await fetch('/api/legal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(L)}); const j=await r.json(); if(!r.ok||!j.ok) throw new Error(j.error||r.status); setSave('ok','저장됨 '+new Date().toLocaleTimeString('ko-KR',{hour12:false})); }catch(err){ setSave('err','저장 실패 — '+err.message); } },700); }
+let tt; function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('on'),2200); }
+$('themeBtn').onclick=()=>{ const r=document.documentElement; const c=r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); r.dataset.theme=c==='dark'?'light':'dark'; };
+// 공통 요청 바: 표의 행·가정값을 고르면 항목 이름으로 붙임
+window.requestDescribe=el=>{ const r=el.closest('[data-check]'); if(r){ const c=checks.find(x=>x.id===r.dataset.check); if(c) return {label:`법규 · ${c.title}`,checkId:c.id,value:c.value,status:effective(c)}; } const a=el.closest('[data-asm]'); if(a){ const x=L.assumptions[a.dataset.asm]; return {label:`가정값 · ${x.label}`,assumption:a.dataset.asm,value:x.v}; } return null; };
+window.requestFocus=t=>{ if(!t.checkId) return false; selId=t.checkId; catSel='all'; stFilter=null; viewMode=null; viewFloor=null; sideTab='list'; renderAll(); const r=document.querySelector(`.lrow[data-check="${selId}"]`); r&&r.scrollIntoView({block:'center',behavior:'smooth'}); return true; };
+async function load(){ if(!location.protocol.startsWith('http')){ $('main').innerHTML='<div class="empty">로컬 서버 주소(http://localhost:8766/)로 열어 주세요.</div>'; return; }
+  try{ const g=async u=>{ const r=await fetch(u,{cache:'no-store'}); if(!r.ok) throw new Error(u+' '+r.status); return r.json(); };
+    [Z,P,L]=await Promise.all([g('/api/zoning'),g('/api/plan'),g('/api/legal')]); try{ REF=await g(encodeURI('legal/상봉동_116-49_reference.json')); }catch(e){ REF=null; } try{ C=P.contextFile? await g(encodeURI(P.contextFile)) : null; }catch(e){ C={error:String(e)}; }
+    setSave('ok','불러옴'); renderAll(); }
+  catch(e){ $('main').innerHTML=/404/.test(e.message)?`<div class="empty"><b>아직 검토할 계획설계가 없습니다.</b><br>조닝을 마친 뒤 Claude에게 “계획설계 만들어줘”라고 요청하면, 이 페이지에서 판정이 자동으로 나옵니다.</div>`:`<div class="empty">데이터를 불러오지 못했습니다: ${esc(e.message)}<br>로컬 서버를 다시 띄워 주세요.</div>`; } }
+load();
+setInterval(async()=>{ try{ const st=await (await fetch('/api/status',{cache:'no-store'})).json(); if(P&&st.planGenerated&&st.planGenerated!==P.generated){ P=await (await fetch('/api/plan',{cache:'no-store'})).json(); Z=await (await fetch('/api/zoning',{cache:'no-store'})).json(); renderAll(); toast('조닝·계획설계가 바뀌어 판정을 다시 계산했습니다'); } }catch(e){} },8000);
+</script>
+<script src="assets/request-dock.js" data-page="legal" data-title="법규·인허가"></script>
+</body>
+</html>

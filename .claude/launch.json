@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "zoning",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "tools/zoning_server.py"
+      ],
+      "port": 8770
+    }
+  ]
+}

@@ -1,0 +1,1165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>상봉동 116-49 계획설계</title>
+<style>
+:root{
+  --bg:#f4f2ee; --panel:#fff; --ink:#1d2326; --muted:#5f6b70; --line:#d9d5cc; --chip:#eef1f3; --canvas:#fbfaf7;
+  --accent:#1f4fd1; --bad:#d92d20; --warn:#b26a00; --ok:#1f7a4c; --site:#c6402b;
+  --ask1:#ff7a45; --ask2:#e8467c; --askc:#f0507a;
+  --w-ext:#2b343a; --w-core:#4d575e; --w-rc:#6f7a81; --w-part:#9aa4aa; --gap:#fbfaf7;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#15191b; --panel:#1d2225; --ink:#e7ecee; --muted:#9aa6ab; --line:#333b3f; --chip:#262d31; --canvas:#181c1e;
+  --accent:#7aa2ff; --bad:#ff6b5e; --warn:#f0b44c; --ok:#5fd39a; --site:#ff7a63;
+  --w-ext:#d7dee2; --w-core:#b5bec4; --w-rc:#959fa6; --w-part:#6f797f; --gap:#181c1e;}}
+:root[data-theme="dark"]{
+  --bg:#15191b; --panel:#1d2225; --ink:#e7ecee; --muted:#9aa6ab; --line:#333b3f; --chip:#262d31; --canvas:#181c1e;
+  --accent:#7aa2ff; --bad:#ff6b5e; --warn:#f0b44c; --ok:#5fd39a; --site:#ff7a63;
+  --w-ext:#d7dee2; --w-core:#b5bec4; --w-rc:#959fa6; --w-part:#6f797f; --gap:#181c1e;}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:13px/1.45 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Segoe UI",sans-serif;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:170px minmax(0,1fr) 340px;grid-template-rows:auto minmax(0,1fr);height:100vh}
+header{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:15px;margin:0;font-weight:700;white-space:nowrap}
+header a{color:var(--muted);font-size:12px}
+.tabs{display:flex;background:var(--chip);border-radius:9px;padding:3px;gap:2px;margin-left:6px}
+.tabs button{border:none;background:transparent;padding:5px 12px;border-radius:7px;cursor:pointer}
+.tabs button.on{background:var(--panel);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.sp{flex:1}
+.save{font-size:12px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.save i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.save.ok i{background:var(--ok)} .save.pending i{background:var(--warn)} .save.err i{background:var(--bad)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--muted)} .btn.sm{padding:3px 8px;font-size:12px} .btn.danger{color:var(--bad)}
+#floors{border-right:1px solid var(--line);background:var(--panel);overflow:auto;padding:10px 8px}
+#floors h2,aside h2{font-size:12px;color:var(--muted);margin:14px 4px 6px;font-weight:700}
+#floors h2:first-child,aside h2:first-child{margin-top:2px}
+.fl{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:4px;padding:5px 7px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;font-variant-numeric:tabular-nums}
+.fl:hover{background:var(--chip)} .fl.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+.fl span{color:var(--muted);font-size:11px}
+.bd{font-size:10.5px;border-radius:6px;padding:0 5px;background:var(--chip);color:var(--muted)}
+.bd.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.bd.ask{background:var(--askc);color:#fff} .bd.bad{background:var(--bad);color:#fff;font-weight:700}
+.st.bad span{color:var(--bad);font-weight:600}
+.banner{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:8;display:none;align-items:center;gap:10px;background:var(--panel);border:1.5px solid var(--warn);border-radius:12px;padding:8px 12px;box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:13px;max-width:calc(100% - 40px)}
+.banner.on{display:flex} .banner.bad{border-color:var(--bad)}
+.cf{border:1px solid var(--line);border-left:4px solid var(--bad);border-radius:10px;padding:8px 10px;margin:6px 0;display:flex;gap:10px;align-items:center;font-size:12.5px}
+.cf.acked{border-left-color:var(--muted);opacity:.65} .cf .sp{flex:1}
+#center{position:relative;min-width:0;min-height:0;background:var(--canvas)}
+.pane{position:absolute;inset:0;display:none} .pane.on{display:block}
+svg#plan{width:100%;height:100%;display:block;touch-action:none;user-select:none}
+svg#plan.panning{cursor:grabbing}
+.ovl{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;pointer-events:none}
+.ovl>*{pointer-events:auto}
+.chipbtn{border:1.5px solid var(--line);background:var(--panel);border-radius:8px;padding:4px 9px;cursor:pointer;font-size:12px;display:inline-flex;gap:5px;align-items:center}
+.chipbtn.on{border-color:var(--accent)}
+.hint{position:absolute;left:10px;bottom:8px;right:180px;color:var(--muted);font-size:11.5px;pointer-events:none}
+.coord{position:absolute;right:10px;bottom:8px;color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+.north{position:absolute;right:16px;top:12px;width:46px;height:46px}
+#sumPane{overflow:auto;padding:14px 18px}
+table.ut{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+table.ut th,table.ut td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.ut th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--canvas)}
+table.ut tr{cursor:pointer} table.ut tr:hover td{background:var(--chip)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.kpis div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.kpis b{display:block;font-size:18px;font-variant-numeric:tabular-nums} .kpis span{color:var(--muted);font-size:11.5px}
+aside{border-left:1px solid var(--line);background:var(--panel);overflow:auto;padding:10px 14px 24px}
+.empty{color:var(--muted);font-size:12.5px;padding:4px 2px}
+.info{display:grid;grid-template-columns:86px 1fr;gap:4px 8px;font-size:12.5px}
+.info span{color:var(--muted)}
+.st{display:flex;gap:7px;align-items:flex-start;font-size:12px;margin:3px 0;cursor:pointer}
+.st i{flex:none;width:7px;height:7px;border-radius:50%;margin-top:5px;background:var(--ok)}
+.st.warn i{background:var(--warn)} .st.info i{background:var(--muted)} .st.bad i{background:var(--bad)}
+.st:hover span{text-decoration:underline}
+.layers label{display:inline-flex;align-items:center;gap:5px;margin:2px 8px 2px 0;font-size:12px;cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:11.5px;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:6px;border-radius:1px;margin-right:4px;vertical-align:middle}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;text-align:center;padding:20px}
+/* ask */
+.askbtn{position:absolute;z-index:6;display:none;align-items:center;gap:9px;padding:11px 16px 11px 14px;border:none;border-radius:999px;background:linear-gradient(135deg,var(--ask1),var(--ask2));color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 10px 28px rgba(232,70,124,.38),0 2px 6px rgba(0,0,0,.2);transform:translateY(-100%);white-space:nowrap}
+.askbtn.on{display:inline-flex} .askbtn.ghosted{pointer-events:none;opacity:.35}
+.askbtn:hover{filter:brightness(1.07)}
+.askbtn .cnt{background:rgba(255,255,255,.24);border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700}
+.askbtn kbd{background:rgba(255,255,255,.22);border-radius:5px;padding:0 6px;font:inherit;font-size:11px;font-weight:700}
+.askhdr{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:999px;padding:7px 14px;background:linear-gradient(135deg,var(--ask1),var(--ask2));color:#fff;font-weight:800;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(232,70,124,.3)}
+.askhdr b{background:rgba(255,255,255,.25);border-radius:999px;padding:0 8px;font-size:12px}
+.composer{position:absolute;z-index:7;width:390px;max-width:calc(100% - 20px);background:var(--panel);border:1.5px solid var(--askc);border-radius:14px;box-shadow:0 20px 54px rgba(0,0,0,.28);padding:12px 12px 10px;display:none}
+.composer.on{display:block}
+.composer h4{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:6px}
+.spark{color:var(--askc)}
+.askbtn .spark{color:#fff;font-size:17px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;max-height:86px;overflow:auto}
+.chip{display:inline-flex;align-items:center;gap:4px;background:color-mix(in srgb,var(--askc) 11%,var(--chip));border:1px solid color-mix(in srgb,var(--askc) 35%,transparent);border-radius:999px;padding:2px 9px;font-size:11.5px;white-space:nowrap}
+.chip button{border:none;background:none;cursor:pointer;color:var(--muted);padding:0 0 0 2px;font-size:13px;line-height:1}
+.composer textarea{width:100%;min-height:86px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);outline:none}
+.composer textarea:focus{border-color:var(--askc);box-shadow:0 0 0 3px color-mix(in srgb,var(--askc) 18%,transparent)}
+.sugg{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px}
+.sugg button{border:1px dashed var(--line);background:transparent;border-radius:999px;padding:2px 9px;font-size:11.5px;cursor:pointer;color:var(--muted)}
+.sugg button:hover{border-color:var(--askc);color:var(--ink)}
+.row2{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
+.sendbtn{background:linear-gradient(135deg,var(--ask1),var(--ask2));color:#fff;border:none;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer;font-size:13.5px}
+.sendbtn.big{width:100%;padding:11px 14px;font-size:14.5px;border-radius:12px;margin-top:8px;box-shadow:0 6px 18px rgba(232,70,124,.28)}
+.shake{animation:shake .3s} @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+#cmtList{display:flex;flex-direction:column;gap:7px}
+.cm{border:1px solid var(--line);border-left:4px solid var(--askc);border-radius:10px;padding:8px 9px;font-size:12.5px}
+.cm.done{border-left-color:var(--ok);opacity:.75} .cm.flash{box-shadow:0 0 0 3px color-mix(in srgb,var(--askc) 30%,transparent)}
+.cmh{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.cmn{background:var(--askc);color:#fff;border-radius:999px;padding:0 7px;font-weight:800;font-size:11.5px}
+.cm.done .cmn{background:var(--ok)}
+.cmt{color:var(--muted);font-size:11px} .cms{margin-left:auto;font-size:11px;font-weight:700;color:var(--askc)} .cm.done .cms{color:var(--ok)}
+.cmx{white-space:pre-wrap;margin:3px 0 6px} .cmr{background:var(--chip);border-radius:8px;padding:6px 8px;margin:4px 0;font-size:12px}
+.btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.pin3d{position:absolute;z-index:5;transform:translate(-50%,-100%);background:var(--askc);color:#fff;font-weight:800;font-size:11.5px;border-radius:999px 999px 999px 2px;padding:2px 8px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25);white-space:nowrap}
+#pins3d,#labels3d{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lab3d{position:absolute;transform:translate(-50%,-50%);font-size:11px;line-height:1.15;text-align:center;color:#1d2326;background:rgba(255,255,255,.78);border-radius:5px;padding:1px 5px;white-space:nowrap;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.lab3d small{display:block;font-weight:500;color:#5f6b70;font-size:10px}
+.lab3d.unit{background:var(--accent);color:#fff;font-size:11.5px} #pins3d .pin3d{pointer-events:auto}
+.ov3d{position:absolute;left:10px;top:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:5px;z-index:2}
+.ov3d label{display:flex;gap:6px;align-items:center}
+/* svg */
+.rm{stroke:none;cursor:pointer}
+.rm.sel{stroke:var(--askc);stroke-width:3;fill-opacity:.95}
+.rl{fill:var(--ink);pointer-events:none;font-weight:600}
+.rs{fill:var(--muted);pointer-events:none}
+#gLabels .rl,#tgLabels .rl{fill:#1d2326} #gLabels .rs,#tgLabels .rs{fill:#4f5a5f} #tgLabels,#tgEdit{pointer-events:none} #tgWalls rect{cursor:pointer} #tgWalls.off,#tgOps.off,#tgCore.off{pointer-events:none}
+.editbtn{border:none;border-radius:11px;padding:8px 18px;font-size:14.5px;font-weight:800;cursor:pointer;background:var(--accent);color:#fff;box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 35%,transparent)}
+.editbtn:hover{filter:brightness(1.08)} .editbtn.on{background:linear-gradient(135deg,var(--ask1),var(--ask2));box-shadow:0 4px 14px rgba(232,70,124,.35)}
+.tghost{fill:color-mix(in srgb,var(--accent) 22%,transparent);stroke:var(--accent);stroke-width:2.5;stroke-dasharray:6 3}
+.tpal{display:flex;flex-wrap:wrap;gap:5px;padding:6px 14px;border-bottom:1px solid var(--line);background:var(--panel);align-items:center;font-size:12px}
+.tag{border:1.5px solid var(--line);border-radius:999px;padding:2px 10px 2px 7px;font-size:12px;cursor:pointer;display:inline-flex;gap:5px;align-items:center;background:var(--bg);user-select:none}
+.tag i{width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,.25)} .tag:hover{border-color:var(--muted)}
+.tag.on{border-color:var(--askc);box-shadow:0 0 0 3px color-mix(in srgb,var(--askc) 22%,transparent);font-weight:800}
+.trub{fill:color-mix(in srgb,var(--askc) 18%,transparent);stroke:var(--askc);stroke-width:2;stroke-dasharray:5 3}
+.ul{fill:var(--accent);pointer-events:none;font-weight:800}
+.wl{cursor:pointer}
+.wl.sel{fill:var(--askc)!important}
+.whit{stroke:transparent;cursor:pointer;fill:none}
+.gap{fill:#fbfaf7;stroke:none}
+.opn{cursor:pointer}
+.dl{stroke:#e8590c;fill:none}
+.dhover .dl{stroke-width:3px!important} .dhover .dhit{fill:rgba(232,89,12,.14)!important}
+.wn{stroke:#2b7bd6;fill:none}
+.tread{stroke:var(--muted);fill:none}
+.sel-o{stroke:var(--askc)!important;stroke-width:3!important}
+.rubber{fill:color-mix(in srgb,var(--askc) 10%,transparent);stroke:var(--askc);stroke-width:1.4;stroke-dasharray:4 3}
+.site{fill:none;stroke:var(--site);stroke-width:1.4;stroke-dasharray:8 4}
+/* type tab */
+#typePane.on{display:grid;grid-template-columns:230px minmax(0,1fr)}
+.app.typeMode{grid-template-columns:0 minmax(0,1fr) 320px} .app.typeMode #floors{display:none} #center{grid-column:2} aside{grid-column:3}
+.tlist{border-right:1px solid var(--line);overflow:auto;padding:8px 8px 20px;background:var(--panel)}
+.tlist h3{font-size:11.5px;color:var(--muted);margin:12px 4px 4px;font-weight:700;display:flex;gap:6px}
+.tlist h3:first-child{margin-top:2px}
+.ti{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:5px 6px;border-radius:9px;cursor:pointer;border:1.5px solid transparent}
+.ti:hover{background:var(--chip)} .ti.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel))}
+.ti svg{width:44px;height:44px;display:block}
+.ti b{font-size:12.5px} .ti small{display:block;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.ti .n{font-size:11px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.ed{font-size:10px;border-radius:5px;padding:0 5px;background:color-mix(in srgb,var(--askc) 16%,transparent);color:var(--askc);font-weight:700}
+.tmain{display:flex;flex-direction:column;min-width:0;min-height:0}
+.thead{padding:10px 14px 6px;border-bottom:1px solid var(--line);background:var(--panel)}
+.thead h3{margin:0 0 4px;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.thead .meta{color:var(--muted);font-size:12px}
+.insts{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;max-height:54px;overflow:auto}
+.insts button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:1px 7px;font-size:11.5px;cursor:pointer}
+.insts button:hover{border-color:var(--accent)}
+.ttool{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ttool .sepv{width:1px;height:20px;background:var(--line)}
+.ttool input,.ttool select{border:1px solid var(--line);border-radius:7px;padding:3px 7px;background:var(--bg);font-size:12px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.btn:disabled{opacity:.45;cursor:default}
+.dirty{color:var(--warn);font-size:12px;font-weight:700}
+.tstage{position:relative;flex:1;min-height:0}
+#tsvg{width:100%;height:100%;display:block;touch-action:none;user-select:none}
+#tsvg.panning{cursor:grabbing}
+.tline{stroke:var(--accent);stroke-width:3;stroke-linecap:round}
+.dim{fill:var(--muted);font-variant-numeric:tabular-nums}
+.side{fill:var(--accent);font-weight:700}
+@media (max-width:1100px){.app{grid-template-columns:130px minmax(0,1fr) 290px}.hint{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a class="hub-link" href="index.html" title="작업 허브 (전체 워크플로)" style="text-decoration:none;font-size:12px;font-weight:700;border:1px solid currentColor;border-radius:7px;padding:2px 8px;margin-right:8px;color:inherit;opacity:.75;white-space:nowrap">⌂ 허브</a><h1>상봉동 116-49 · 계획설계</h1>
+    <div class="tabs" id="tabs"><button data-t="plan" class="on">평면</button><button data-t="3d">3D</button><button data-t="type">타입</button><button data-t="sum">세대·이슈</button></div>
+    <a href="상봉동_116-49_조닝편집기.html" target="_blank" title="조닝은 별도 페이지에서 수정">조닝 편집기 ↗</a>
+    <span class="sp"></span>
+    <button class="askhdr" id="askHdr" title="선택한 객체에 수정 요청 (C)">💬 수정 요청 <b id="askHdrN">0</b></button>
+    <span class="save" id="save"><i></i><span id="saveTxt">불러오는 중…</span></span>
+    <button class="btn sm" id="themeBtn">◐</button>
+  </header>
+  <nav id="floors"></nav>
+  <main id="center">
+    <div class="pane on" id="planPane">
+      <svg id="plan" xmlns="http://www.w3.org/2000/svg"><g id="gSite"></g><g id="gRooms"></g><g id="gFix"></g><g id="gPark"></g><g id="gWalls"></g><g id="gOps"></g><g id="gCore"></g><g id="gLabels"></g><g id="gSel"></g><g id="gPins"></g></svg>
+      <div class="ovl" id="ovl">
+        <span class="chipbtn" style="cursor:default">선택 대상</span>
+        <button class="chipbtn on" data-f="all">전체</button><button class="chipbtn" data-f="room">실</button><button class="chipbtn" data-f="wall">벽</button><button class="chipbtn" data-f="opening">문·창</button><button class="chipbtn" data-f="core">계단·승강기</button>
+      </div>
+      <svg class="north" id="north" viewBox="-23 -23 46 46"></svg>
+      <div class="hint">클릭=선택 · Shift+클릭=여러 개 · 빈 곳 드래그=범위 선택 · 우클릭/Space+드래그=이동 · 휠=확대 · C=Claude에게 요청 · Esc=선택 해제 · F=화면 맞춤 · PageUp/Down=층 이동</div>
+      <div class="coord" id="coord"></div>
+    </div>
+    <div class="pane" id="v3d">
+      <div class="ov3d">
+        <label><input type="radio" name="v3" value="cur" checked>현재 층 상세</label>
+        <label><input type="radio" name="v3" value="stack">현재 층 + 아래층 매스</label>
+        <label><input type="radio" name="v3" value="all">건물 전체</label>
+        <label style="padding-left:18px"><input type="checkbox" id="cutCur">현재 층에서 자르기 (위층 숨김)</label>
+        <label style="padding-left:18px"><input type="checkbox" id="ctx3d" checked>주변 건물·도로</label>
+        <label><input type="checkbox" id="roof" >천장 열기 (위에서 보기)</label>
+        <label><input type="checkbox" id="lab3d" checked>실 이름 표시</label>
+        <label><input type="checkbox" id="fix3d" checked>가구·설비</label>
+        <span style="color:var(--muted)">클릭=선택 · Shift=여러 개</span>
+      </div>
+      <div id="labels3d"></div><div id="pins3d"></div>
+    </div>
+    <div class="pane" id="typePane">
+      <div class="tlist" id="typeList"></div>
+      <div class="tmain">
+        <div class="thead" id="typeHead"></div>
+        <div class="ttool" id="ttool"></div>
+        <div class="tpal" id="tpal"></div>
+        <div class="tstage" id="tstage"><svg id="tsvg" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="tHatch" width="0.4" height="0.4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="0.4" height="0.4" fill="#fff4f2"/><line x1="0" y1="0" x2="0" y2="0.4" stroke="#d92d20" stroke-width="0.08"/></pattern></defs><g id="tgRooms"></g><g id="tgWalls"></g><g id="tgOps"></g><g id="tgCore"></g><g id="tgLabels"></g><g id="tgEdit"></g><g id="tgPins"></g></svg>
+          <div class="hint" style="right:10px">클릭=실·문·창·벽 선택 · Shift=여러 개 · E=실 편집 켜기/끄기 (편집 중: 문 끌기=문 이동, 실 끌기=이동·맞바꿈, 경계선 끌기=칸막이, 태그=실 배치) · 우클릭/Space 드래그=화면 이동 · 휠=확대 · F=맞춤 · C=Claude에게 요청</div></div>
+      </div>
+    </div>
+    <div class="pane" id="sumPane"></div>
+    <div class="banner" id="banner"></div>
+    <div class="loading" id="loading">계획설계 데이터를 불러오는 중…</div>
+    <button class="askbtn" id="askBtn"><span class="spark">✦</span>Claude에게 수정 요청<span class="cnt">1개</span><kbd>C</kbd></button>
+    <div class="composer" id="composer">
+      <h4><span class="spark">✦</span> Claude에게 수정 요청 <span style="margin-left:auto;color:var(--muted);font-weight:400;font-size:11.5px">Enter 보내기 · Shift+Enter 줄바꿈</span></h4>
+      <div class="chips" id="cmpChips"></div>
+      <textarea id="cmpText" placeholder="무엇을 바꿀까요?&#10;예) 이 문을 반대쪽으로 / 창을 2.4m로 넓혀줘 / 욕실과 수납을 바꿔줘"></textarea>
+      <div class="sugg" id="cmpSugg"></div>
+      <div class="row2"><span style="color:var(--muted);font-size:11.5px" id="cmpNote"></span><span style="display:flex;gap:6px"><button class="btn sm" id="cmpCancel">취소</button><button class="sendbtn" id="cmpSend">요청 남기기 ↵</button></span></div>
+    </div>
+  </main>
+  <aside>
+    <h2 style="display:flex;align-items:center;gap:6px">💬 수정 요청 <span id="cmtCount" style="font-weight:400"></span><button class="btn sm" id="cmtFilter" style="margin-left:auto">완료도 보기</button></h2>
+    <div class="empty" style="margin-bottom:6px">벽·문·창·실·계단·승강기를 선택하고 <b class="spark">✦ Claude에게 수정 요청</b>을 누르세요. 대화창에서 “계획설계 요청 반영해줘”라고 하면 Claude가 반영합니다.</div>
+    <div id="cmtList"></div>
+    <h2 id="selTitle">선택</h2>
+    <div id="selInfo"></div>
+    <h2>이 층 이슈</h2>
+    <div id="floorIssues"></div>
+    <h2>표시</h2>
+    <div class="layers" id="layers"></div>
+    <h2>벽 범례</h2>
+    <div class="legend" id="legend"></div>
+    <h2>생성 정보</h2>
+    <div class="empty" id="genInfo"></div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+const fmt=(v,d=1)=>(+v).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let doc=null, cur=0, tab='plan', sel=[], filter='all', cmtOpenOnly=true;
+const layers={fix:true,labels3d:true,park:true,fill:true,names:true,units:true,walls:true,doors:true,windows:true,core:true};
+const F=()=>doc.floors[cur];
+
+/* ---------- colors ---------- */
+const ROOMC={'거실':'#dbe8fb','거실·주방':'#dbe8fb','거실·침실':'#dbe8fb','침실1':'#e6defb','침실2':'#e6defb','침실(알코브)':'#ece6fb','주방·식당':'#fbefd6','주방':'#fbefd6','욕실':'#d4eff0','현관':'#ebebeb','수납':'#efefef','복도(세대)':'#f2f2f2'};
+const ZONEC={corridor:'#efece5',lobby:'#d6e8de',community:'#cfe8d6',retail:'#f7dcb6',public:'#e6d6f1',parking:'#e3e7ea',aisle:'#efebe2',ramp:'#f6cdc2',mep:'#d8dcd4'};
+const COREC={stair:'#d8dde2',ev:'#c7cdd3',vestibule:'#e3e8ec',shaft:'#d2d4d0'};
+const roomColor=r=> r.kind==='unitroom'? (ROOMC[r.name]||'#f0f0f0') : r.kind==='core'? (COREC[r.corekind]||'#ddd') : (ZONEC[r.ztype]||'#eee');
+const WALLC=k=>({exterior:css('--w-ext'),basement:css('--w-ext'),core:css('--w-core'),core_inner:css('--w-core'),party:css('--w-rc'),unit_corr:css('--w-rc'),fire:css('--w-rc'),partition:css('--w-part'),light:css('--w-part')})[k]||css('--w-part');
+
+/* ---------- load / save ---------- */
+function setSave(c,t){ $('save').className='save '+c; $('saveTxt').textContent=t; }
+async function load(){
+  if(!location.protocol.startsWith('http')){ $('loading').innerHTML='로컬 서버 주소로 열어 주세요.<br><code>http://localhost:8766/상봉동_116-49_계획설계.html</code>'; return; }
+  try{ const r=await fetch('/api/plan',{cache:'no-store'}); if(!r.ok) throw new Error(r.status); doc=await r.json(); }
+  catch(e){ $('loading').innerHTML='계획설계 파일이 없습니다. Claude에게 생성을 요청하세요.<br>('+e.message+')'; return; }
+  $('loading').remove(); doc.comments=doc.comments||[];
+  cur=Math.max(0,doc.floors.findIndex(f=>f.id==='4F'));
+  setSave('ok','불러옴 · '+new Date(doc.generated).toLocaleString('ko-KR',{hour12:false}));
+  $('genInfo').innerHTML=`조닝(${new Date(doc.source.zoningUpdated).toLocaleString('ko-KR',{hour12:false})})으로 생성 · ${new Date(doc.generated).toLocaleString('ko-KR',{hour12:false})}<br>벽 ${doc.floors.reduce((a,f)=>a+f.walls.length,0)} · 문 ${count('door')} · 창 ${count('window')} · 계단 ${doc.floors.reduce((a,f)=>a+f.stairs.length,0)} · 승강기 ${doc.floors.reduce((a,f)=>a+f.elevators.length,0)}<br>타입 ${(doc.types||[]).length}개 (편집 ${(doc.types||[]).filter(t=>t.edited).length}).<br>조닝을 고친 뒤 Claude에게 “계획설계 다시 생성해줘”라고 하면 요청 코멘트·타입 편집은 유지한 채 다시 만듭니다.`;
+  renderLegend(); renderLayers(); restorePending(); renderAll({fit:true}); knownConf=new Set((doc.conflicts||[]).map(c=>c.id)); { const n=(doc.conflicts||[]).filter(c=>!c.acked).length; if(n) showBanner(`⚡ 조닝 변경 충돌 <b>${n}건</b>이 확인되지 않았습니다 <button class="btn sm" id="bnGo">세대·이슈에서 보기</button>`,true), $('bnGo').onclick=()=>{ showBanner(''); setTab('sum'); }; } setTimeout(pollStatus,1500);
+}
+const count=k=>doc.floors.reduce((a,f)=>a+f.openings.filter(o=>o.kind===k).length,0);
+let saveTimer=null;
+async function doSave(){ saveTimer=null;
+  try{ doc.updated=new Date().toISOString(); const r=await fetch('/api/plan/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({comments:doc.comments})}); const j=await r.json(); if(!r.ok||!j.ok) throw new Error(j.error||r.status);
+    setSave('ok','저장됨 '+new Date().toLocaleTimeString('ko-KR',{hour12:false})+' · '+j.path); pendingBackup(false); if(saveFailed){ saveFailed=false; showBanner(''); toast('서버가 다시 연결되어 보관 중이던 요청을 저장했습니다'); }
+    if(j.generated&&j.generated!==doc.generated) toast('계획설계가 새로 생성됐습니다 — 새로고침하면 최신 평면이 보입니다 (요청은 저장됨)'); }
+  catch(e){ setSave('err','저장 실패 — 다시 시도 중'); pendingBackup(true); saveFailed=true;
+    showBanner(`⚠ 로컬 서버에 연결되지 않아 요청을 저장하지 못했습니다. 이 브라우저에 보관하고 5초마다 다시 저장합니다. 서버가 꺼졌다면 Claude에게 “로컬호스트 다시 띄워줘”라고 하세요.`,true);
+    clearTimeout(saveTimer); saveTimer=setTimeout(doSave,5000); } }
+let saveFailed=false; const PKEY='sangbong-plan-pending-comments';
+function pendingBackup(on){ try{ if(on) localStorage.setItem(PKEY,JSON.stringify(doc.comments)); else localStorage.removeItem(PKEY); }catch(e){} }
+function restorePending(){ let saved=null; try{ saved=JSON.parse(localStorage.getItem(PKEY)||'null'); }catch(e){} if(!Array.isArray(saved)) return;
+  const have=new Set(doc.comments.map(c=>c.id)); const add=saved.filter(c=>c&&c.id&&!have.has(c.id)); if(!add.length){ pendingBackup(false); return; }
+  doc.comments.push(...add); renderComments(); scheduleSave(); toast(`저장되지 못했던 요청 ${add.length}개를 복구해 저장합니다`); }
+function scheduleSave(){ setSave('pending','저장 대기…'); clearTimeout(saveTimer); saveTimer=setTimeout(doSave,600); }
+async function flushSave(){ if(saveTimer){ clearTimeout(saveTimer); await doSave(); } }
+
+/* ---------- lookup ---------- */
+const byId=()=>{ const f=F(); if(f._idx) return f._idx; const m={}; ['rooms','walls','openings','stairs','elevators','stalls','ramps','fixtures'].forEach(k=>(f[k]||[]).forEach(o=>m[o.id]=o)); return f._idx=m; };
+function floorIdxOf(fid){ return doc.floors.findIndex(f=>f.id===fid); }
+function objIn(fid,id){ if(fid==='T') return typeRoomObj(id); if(fid==='TV') return typeElemObj(id); const f=doc.floors[floorIdxOf(fid)]; if(!f) return null; if(!f._idx){ const m={}; ['rooms','walls','openings','stairs','elevators','stalls','ramps','fixtures'].forEach(k=>(f[k]||[]).forEach(o=>m[o.id]=o)); f._idx=m; } return f._idx[id]||null; }
+function kindOf(o){ if(!o) return null; if(o.tv) return o.ek; if(o.tkind) return 'troom'; if(o.h3!==undefined&&o.label&&o.room) return 'fixture'; if(o.no&&o.entry) return 'stall'; if(o.mode&&o.axis&&o.dir) return 'ramp'; if(o.kind==='door'||o.kind==='window') return o.kind; if(o.a&&o.b) return 'wall'; if(o.risers) return 'stair'; if(o.door&&o.room) return 'elevator'; return 'room'; }
+function wallPt(w,at){ const dx=w.b[0]-w.a[0], dy=w.b[1]-w.a[1], L=Math.hypot(dx,dy)||1; return [w.a[0]+dx/L*at, w.a[1]+dy/L*at]; }
+function roomName(f,rid){ if(!rid) return '외부'; const r=f._idx[rid]; if(!r) return '?'; return r.unit? `${r.unit} ${r.name}` : r.name; }
+function label(fid,o){ const k=kindOf(o); if(o.tv) return tvLabel(o); if(k==='troom') return `타입 ${o.T.code} · ${o.disp}`; const f=doc.floors[floorIdxOf(fid)];
+  if(k==='room') return `${fid} · ${o.unit?o.unit+' ':''}${o.name}`;
+  if(k==='wall') return `${fid} · 벽 (${roomName(f,o.rooms[0])} | ${roomName(f,o.rooms[1])})`;
+  if(k==='door'||k==='window'){ const w=f._idx[o.wall]; return `${fid} · ${o.type}${o.unit?' ('+o.unit+')':''} ${fmt(o.w,2)}m`; }
+  if(k==='stall') return `${fid} · 주차 ${o.no}`;
+  if(k==='fixture'){ const f=doc.floors[floorIdxOf(fid)]; const r=f&&f._idx&&f._idx[o.room]; return `${fid} · ${r&&r.unit?r.unit+' ':''}${o.label}`; }
+  if(k==='ramp') return `${fid} · 램프 ${o.mode==='down'?'하강':'도착'} ${o.slopePct??''}%`;
+  return `${fid} · ${o.name}`; }
+function snapshot(t){ const o=objIn(t.fid,t.id); if(!o) return null; if(o.tv) return tvSnap(o); if(o.tkind) return {floor:null,kind:'typeRoom',typeKey:o.T.key,typeCode:o.T.code,id:o.id,label:label('T',o),name:o.disp,rect:{t0:o.t0,t1:o.t1,d0:o.d0,d1:o.d1},typeSize:[o.T.W,o.T.D],instances:o.T.instances.map(I=>I.floor+' '+I.name),anchor:null}; const f=doc.floors[floorIdxOf(t.fid)], k=kindOf(o);
+  const s={floor:t.fid,kind:k,id:o.id,label:label(t.fid,o)};
+  if(k==='room') Object.assign(s,{name:o.name,unit:o.unit||null,zoneType:o.ztype,rect:{x:o.x,y:o.y,w:o.w,h:o.h},area:+(o.w*o.h).toFixed(2)});
+  if(k==='wall') Object.assign(s,{wallKind:o.kind,thickness:o.t,a:o.a,b:o.b,length:o.len,rooms:o.rooms.map(r=>roomName(f,r))});
+  if(k==='door'||k==='window'){ const w=f._idx[o.wall]; Object.assign(s,{type:o.type,width:o.w,height:o.h,sill:o.sill,wall:o.wall,at:o.at,pos:wallPt(w,o.at),rooms:w.rooms.map(r=>roomName(f,r))}); }
+  if(k==='stair'||k==='elevator') Object.assign(s,{name:o.name,rect:{x:o.x,y:o.y,w:o.w,h:o.h}});
+  if(k==='fixture') Object.assign(s,{fixture:o.kind,name:o.label,room:roomName(f,o.room),size:[o.w,o.h,o.h3],rect:{x:o.x,y:o.y,w:o.w,h:o.h}});
+  if(k==='stall') Object.assign(s,{no:o.no,row:o.row,stallType:o.type,entrySide:o.entry,rect:{x:o.x,y:o.y,w:o.w,h:o.h}});
+  if(k==='ramp') Object.assign(s,{name:o.name,mode:o.mode,dir:o.dir,slopePct:o.slopePct,run:o.run,drop:o.drop,landing:o.landing,headroom:o.headroom,from:o.fromFloor,to:o.toFloor,rect:{x:o.x,y:o.y,w:o.w,h:o.h}});
+  s.anchor=anchorOf(f,o); return s; }
+function anchorOf(f,o){ const k=kindOf(o); if(k==='wall') return [(o.a[0]+o.b[0])/2,(o.a[1]+o.b[1])/2]; if(k==='door'||k==='window') return wallPt(f._idx[o.wall],o.at); return [o.x+o.w/2,o.y+o.h/2]; }
+
+/* ---------- plan view ---------- */
+const svg=$('plan'); let vb={x:0,y:0,w:100,h:100};
+const box=()=>{const r=$('center').getBoundingClientRect();return{w:Math.max(r.width,50),h:Math.max(r.height,50)};};
+const px=()=>vb.w/box().w;
+function fit(){ const o=F().outline; const us=o.map(p=>p[0]), vs=o.map(p=>p[1]); const pad=5; const x0=Math.min(...us)-pad,x1=Math.max(...us)+pad,y0=-Math.max(...vs)-pad-4,y1=-Math.min(...vs)+pad; const B=box(), r=B.w/B.h; let w=x1-x0,h=y1-y0;
+  if(w/h<r){const nw=h*r;vb={x:x0-(nw-w)/2,y:y0,w:nw,h};}else{const nh=w/r;vb={x:x0,y:y0-(nh-h)/2,w,h:nh};} applyVB(); }
+function applyVB(){ svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`); drawPlan(); }
+function toM(e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(svg.getScreenCTM().inverse());return[q.x,-q.y];}
+function el(tag,a,p){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+var tvDraw=false;
+const isSel=(id,fid=F().id)=>tvDraw? sel.some(s=>s.fid==='TV'&&s.id===tKey+'@'+id) : sel.some(s=>s.fid===fid&&s.id===id);
+const WRANK={exterior:5,basement:5,core:4,core_inner:3,fire:2,party:2,unit_corr:2,light:1,partition:0};
+function wallEnds(f){ if(f._wend) return f._wend; const m={}, E=1e-6; const isH=w=>Math.abs(w.a[1]-w.b[1])<E; const H=f.walls.filter(isH), V=f.walls.filter(w=>!isH(w)); const rank=w=>w.t*10+(WRANK[w.kind]||0)*0.01;
+  const off=(w,P,perp)=>{ let pass=0; const ends=[];
+    perp.forEach(q=>{ const qh=isH(q); const c=qh?q.a[1]:q.a[0], lo=qh?Math.min(q.a[0],q.b[0]):Math.min(q.a[1],q.b[1]), hi=qh?Math.max(q.a[0],q.b[0]):Math.max(q.a[1],q.b[1]); const pc=qh?P[1]:P[0], pl=qh?P[0]:P[1];
+      if(Math.abs(pc-c)>1e-4) return; if(pl>lo+1e-4&&pl<hi-1e-4) pass=Math.max(pass,q.t); else if(Math.abs(pl-lo)<1e-4||Math.abs(pl-hi)<1e-4) ends.push(q); });
+    if(pass) return -pass/2;           // 다른 벽이 지나가는 T자: 그 벽 면에서 멈춤
+    if(!ends.length) return 0;
+    const dom=ends.reduce((a,q)=>rank(q)>rank(a)?q:a); return rank(w)>=rank(dom)? Math.max(...ends.map(q=>q.t))/2 : -dom.t/2; }; // 모서리: 두꺼운 벽이 덮고 얇은 벽은 면에서 멈춤
+  H.forEach(w=>m[w.id]=[off(w,w.a,V),off(w,w.b,V)]); V.forEach(w=>m[w.id]=[off(w,w.a,H),off(w,w.b,H)]); return f._wend=m; }
+function wallPoly(w,f){ const t=w.t/2, h=Math.abs(w.a[1]-w.b[1])<1e-6; const Ee=f?(wallEnds(f)[w.id]||[0,0]):[t,t];
+  if(h){ const [lo,hi]=w.a[0]<=w.b[0]?[w.a[0]-Ee[0],w.b[0]+Ee[1]]:[w.b[0]-Ee[1],w.a[0]+Ee[0]]; return {x:lo,y:-(w.a[1]+t),w:hi-lo,h:2*t}; }
+  { const [lo,hi]=w.a[1]<=w.b[1]?[w.a[1]-Ee[0],w.b[1]+Ee[1]]:[w.b[1]-Ee[1],w.a[1]+Ee[0]]; return {x:w.a[0]-t,y:-hi,w:2*t,h:hi-lo}; } }
+function drawPlan(){
+  if(!doc) return; const f=F(), s=px(); byId();
+  const gs=$('gSite'); gs.innerHTML=''; el('polygon',{points:doc.site.uv.map(p=>p[0]+','+(-p[1])).join(' '),class:'site','vector-effect':'non-scaling-stroke'},gs);
+  // rooms
+  const gr=$('gRooms'); gr.innerHTML='';
+  f.rooms.forEach(r=>{ const e=el('rect',{x:r.x,y:-(r.y+r.h),width:r.w,height:r.h,fill:layers.fill?roomColor(r):'transparent',class:'rm'+(isSel(r.id)?' sel':''),'vector-effect':'non-scaling-stroke','data-id':r.id},gr); });
+  drawPark(f,s); drawFixtures(f,$('gFix'),s);
+  // walls
+  const gw=$('gWalls'); gw.innerHTML='';
+  if(layers.walls) f.walls.forEach(w=>{ const p=wallPoly(w,f); el('rect',{x:p.x,y:p.y,width:p.w,height:p.h,fill:WALLC(w.kind),class:'wl'+(isSel(w.id)?' sel':''),'data-id':w.id},gw);
+    el('line',{x1:w.a[0],y1:-w.a[1],x2:w.b[0],y2:-w.b[1],class:'whit','stroke-width':Math.max(7*s,w.t+0.1),'data-id':w.id},gw); });
+  // openings
+  const go=$('gOps'); go.innerHTML='';
+  f.openings.forEach(o=>{ if(o.kind==='door'&&!layers.doors) return; if(o.kind==='window'&&!layers.windows) return; drawOpening(f,o,go,s); });
+  // core: stairs & elevators
+  const gc=$('gCore'); gc.innerHTML='';
+  if(layers.core){ f.stairs.forEach(st=>drawStair(st,gc,s)); f.elevators.forEach(ev=>drawEV(ev,gc,s)); }
+  // labels
+  const gl=$('gLabels'); gl.innerHTML='';
+  if(layers.names) f.rooms.forEach(r=>{ const m=Math.min(r.w,r.h)/s; if(m<22) return; if(r.kind==='core'&&r.corekind!=='vestibule'&&r.corekind!=='shaft') return; if(layers.park&&['parking','aisle','ramp'].includes(r.ztype)) return;
+    const fs=Math.min(11,Math.max(7.5,m/5))*s; const cx=r.x+r.w/2, cy=-(r.y+r.h/2); const vert=r.h>r.w*1.7&&r.w/s<70;
+    const nm=r.name.replace(' (특피·비상EV 승강장 겸용)',''); const t1=el('text',{x:cx,y:cy,'font-size':fs,class:'rl','text-anchor':'middle',transform:vert?`rotate(-90 ${cx} ${cy})`:''},gl); t1.textContent=nm;
+    if(m>34){ const t2=el('text',{x:cx,y:cy+fs*1.1,'font-size':fs*0.85,class:'rs','text-anchor':'middle',transform:vert?`rotate(-90 ${cx} ${cy})`:''},gl); t2.textContent=fmt(r.w*r.h,1)+'㎡'; } });
+  if(layers.units) f.units.forEach(u=>{ const rs=f.rooms.filter(r=>u.rooms.includes(r.id)); if(!rs.length) return; const x0=Math.min(...rs.map(r=>r.x)), y1=Math.max(...rs.map(r=>r.y+r.h));
+    const t=el('text',{x:x0+0.35,y:-(y1)+12*s,'font-size':10*s,class:'ul'},gl); t.textContent=`${u.name} ${u.unitType} ${fmt(u.area,1)}㎡`; });
+  drawSel(); drawPins(); updateAsk();
+}
+function drawOpening(f,o,g,s,big){ const w=f._idx[o.wall]; if(!w) return; const horiz=w.a[1]===w.b[1]; const c=wallPt(w,o.at); const t=w.t, hw=o.w/2;
+  const dir=horiz?[Math.sign(w.b[0]-w.a[0])||1,0]:[0,Math.sign(w.b[1]-w.a[1])||1]; const nrm=horiz?[0,1]:[1,0];
+  const p0=[c[0]-dir[0]*hw,c[1]-dir[1]*hw], p1=[c[0]+dir[0]*hw,c[1]+dir[1]*hw];
+  const gx=Math.min(p0[0],p1[0])-(horiz?0:t/2+0.02), gy=Math.min(p0[1],p1[1])-(horiz?t/2+0.02:0), gw=horiz?o.w:t+0.04, gh=horiz?t+0.04:o.w;
+  const sel=isSel(o.id); const grp=el('g',{class:'opn','data-id':o.id},g);
+  el('rect',{x:gx,y:-(gy+gh),width:gw,height:gh,class:'gap'},grp);
+  const L=(a,b,cls,sw,extra={})=>el('line',Object.assign({x1:a[0],y1:-a[1],x2:b[0],y2:-b[1],class:cls+(sel?' sel-o':''),'stroke-width':sw,'vector-effect':'non-scaling-stroke'},extra),grp);
+  const jamb=(p)=>L([p[0]-nrm[0]*t/2,p[1]-nrm[1]*t/2],[p[0]+nrm[0]*t/2,p[1]+nrm[1]*t/2],o.kind==='window'?'wn':'dl',1.2);
+  if(o.kind==='window'){ const P=(a,off)=>[p0[0]+dir[0]*a+nrm[0]*off,p0[1]+dir[1]*a+nrm[1]*off]; jamb(p0); jamb(p1); const n=o.panels||2;
+    if(String(o.operation||'').startsWith('미서기')){ const pw=o.w/n; for(let i=0;i<n;i++){ const off=(i%2?1:-1)*t*0.14; L(P(Math.max(0,i*pw-0.04),off),P(Math.min(o.w,(i+1)*pw+0.04),off),'wn',1.6); } L(P(0,-t*0.42),P(o.w,-t*0.42),'wn',0.7); L(P(0,t*0.42),P(o.w,t*0.42),'wn',0.7); }
+    else if(String(o.operation||'').startsWith('커튼월')){ L(P(0,0),P(o.w,0),'wn',1.8); for(let i=1;i<n;i++){ const a=i*o.w/n; L(P(a,-t*0.45),P(a,t*0.45),'wn',1.4); } }
+    else { [-1,0,1].forEach(k=>{ const off=k*t*0.3; L(P(0,off),P(o.w,off),'wn',k?0.8:1.6); }); }
+    if(o.rail){ const out=w.rooms[0]===null?-1:1; const off=out*(t/2+0.12); L(P(0.05,off),P(o.w-0.05,off),'wn',1.6,{'stroke-dasharray':'2 2',stroke:'#1f6fd1'}); } }
+  else if(o.type.includes('승강기')||o.sliding){ [-0.25,0.25].forEach(k=>L([p0[0]+nrm[0]*t*k,p0[1]+nrm[1]*t*k],[c[0]+dir[0]*(k<0?0.1:-0.1)+nrm[0]*t*k,c[1]+dir[1]*(k<0?0.1:-0.1)+nrm[1]*t*k],'dl',1.6)); L(c,p1,'dl',1.6); }
+  else { // swing door: hinge at p0 (양개면 p0·p1 양쪽), leaf toward swing side
+    const side=swingSide(f,w,o); const n2=[nrm[0]*side,nrm[1]*side]; jamb(p0); jamb(p1);
+    if(big) el('path',{d:`M${p0[0]},${-p0[1]} L${p0[0]+n2[0]*o.w},${-(p0[1]+n2[1]*o.w)} L${p1[0]+n2[0]*o.w},${-(p1[1]+n2[1]*o.w)} L${p1[0]},${-p1[1]} Z`,fill:'transparent',class:'dhit'},grp); // 문짝·열림 범위 전체를 잡을 수 있게
+    const leaf=(h,e,lw)=>{ const tip=[h[0]+n2[0]*lw,h[1]+n2[1]*lw]; L(h,tip,'dl',1.6); const d=[e[0]-h[0],e[1]-h[1]]; const sweep=(d[0]*n2[1]-d[1]*n2[0])>0?1:0; // 화면 y축이 뒤집혀 있어 회전 방향도 반대
+      el('path',{d:`M${tip[0]},${-tip[1]} A${lw},${lw} 0 0 ${sweep} ${e[0]},${-e[1]}`,class:'dl'+(sel?' sel-o':''),'stroke-width':0.8,'stroke-dasharray':'3 2','vector-effect':'non-scaling-stroke'},grp); };
+    if(o.leaves===2){ leaf(p0,c,o.w/2); leaf(p1,c,o.w/2); } else if(o.hinge==='end') leaf(p1,p0,o.w); else leaf(p0,p1,o.w); }
+  const m=big?0.3:0.1; el('rect',{x:gx-m,y:-(gy+gh)-m,width:gw+2*m,height:gh+2*m,fill:'transparent',stroke:sel?css('--askc'):'none','stroke-width':2,'vector-effect':'non-scaling-stroke'},grp);
+}
+function swingSide(f,w,o){ // +1 toward rooms[1] (above/right), -1 toward rooms[0]
+  if(o.swingTo!==undefined&&o.swingTo!==null){ if(w.rooms[1]===o.swingTo) return 1; if(w.rooms[0]===o.swingTo) return -1; }
+  if(o.swingTo===null&&o.type.startsWith('세대 현관문')) return w.rooms[1]===null?1:-1;
+  const r0=f._idx[w.rooms[0]], r1=f._idx[w.rooms[1]]; const inner=r=>r&&(['현관','욕실','수납'].includes(r.name)||String(r.name).startsWith('침실')||r.ztype==='mep'||r.corekind==='stair'||r.corekind==='vestibule');
+  if(inner(r1)&&!inner(r0)) return 1; if(inner(r0)&&!inner(r1)) return -1; if(!r0) return 1; if(!r1) return -1; return 1; }
+function drawStair(st,g,s){ const grp=el('g',{class:'opn','data-id':st.id},g); const sel=isSel(st.id); const C=sel?css('--askc'):'#56626a', RC='#b07c2a';
+  el('rect',{x:st.x,y:-(st.y+st.h),width:st.w,height:st.h,fill:'transparent',stroke:C,'stroke-width':sel?3:1,'vector-effect':'non-scaling-stroke'},grp);
+  const Ln=(a,b,c,sw,ex={})=>el('line',Object.assign({x1:a[0],y1:-a[1],x2:b[0],y2:-b[1],stroke:c,'stroke-width':sw,'vector-effect':'non-scaling-stroke'},ex),grp);
+  if(!st.flights){ return; } const v=st.axis==='v';
+  st.flights.forEach((fl,k)=>{ const A0=v?fl.y:fl.x, A1=v?fl.y+fl.h:fl.x+fl.w, Q0=v?fl.x:fl.y, Q1=v?fl.x+fl.w:fl.y+fl.h; const P=(a,q)=>v?[q,a]:[a,q]; const n=fl.risers-1;
+    for(let i=0;i<=n;i++){ const a=A0+(A1-A0)*i/Math.max(1,n); Ln(P(a,Q0),P(a,Q1),C,0.8); }
+    Ln(P(A0,Q0+0.06),P(A1,Q0+0.06),RC,1.3); Ln(P(A0,Q1-0.06),P(A1,Q1-0.06),RC,1.3); // 손잡이
+    const lo=fl.dir>0?A0:A1, hi=fl.dir>0?A1:A0, qm=(Q0+Q1)/2; // 아래쪽 끝 → 위쪽 끝
+    const entryEnd=st.entry==='lo'?Math.min(A0,A1):Math.max(A0,A1), farEnd=st.entry==='lo'?Math.max(A0,A1):Math.min(A0,A1);
+    const from=P(entryEnd+(farEnd-entryEnd)*0.08,qm), to=P(farEnd-(farEnd-entryEnd)*0.08,qm); Ln(from,to,C,1.4); const dv=v?[0,Math.sign(farEnd-entryEnd)]:[Math.sign(farEnd-entryEnd),0], nv=v?[1,0]:[0,1];
+    [1,-1].forEach(kk=>Ln(to,[to[0]-dv[0]*0.35+kk*nv[0]*0.2,to[1]-dv[1]*0.35+kk*nv[1]*0.2],C,1.4));
+    const lab=P(entryEnd+(farEnd-entryEnd)*0.04,qm); el('text',{x:lab[0],y:-lab[1],'font-size':8.5*s,'text-anchor':'middle',fill:C,'font-weight':800},grp).textContent=k===0?'UP':'DN';
+    if(k===0){ const ab=entryEnd+(farEnd-entryEnd)*0.55, zz=0.25; Ln(P(ab-zz,Q0-0.05),P(ab,qm),C,1.2); Ln(P(ab,qm),P(ab-0.1,qm+0.05),C,1.2); Ln(P(ab-0.1,qm+0.05),P(ab+zz,Q1+0.05),C,1.2); } }); // 절단선
+  const f1=st.flights[0], f2=st.flights[1]; const gq=v?[f1.x+f1.w,f2.x]:[f1.y+f1.h,f2.y]; const ga=v?[Math.min(f1.y,f2.y),Math.max(f1.y+f1.h,f2.y+f2.h)]:[Math.min(f1.x,f2.x),Math.max(f1.x+f1.w,f2.x+f2.w)];
+  [gq[0]+0.03,gq[1]-0.03].forEach(q=>Ln(v?[q,ga[0]]:[ga[0],q],v?[q,ga[1]]:[ga[1],q],RC,1.3)); // 가운데 난간
+  (st.landings||[]).forEach(l=>{ if(l.kind==='중간 계단참'){ const cx=l.x+l.w/2, cy=l.y+l.h/2; el('text',{x:cx,y:-cy,'font-size':8*s,'text-anchor':'middle',fill:'#56626a'},grp).textContent=`계단참 +${fmt(l.z,2)}`; } });
+  const ok=(st.checks||[]).every(c=>c.ok); const t=el('text',{x:st.x+st.w/2,y:-(st.y+st.h)+11*s,'font-size':9*s,'text-anchor':'middle',fill:ok?'#1d2326':'#d92d20','font-weight':700},grp);
+  t.textContent=`${st.name.replace('특별피난계단','특피')} ${st.risers}단 ${Math.round(st.riser*1000)}/${Math.round(st.tread*1000)}${ok?'':' ⚠'}`;
+}
+function drawEV(ev,g,s){ const grp=el('g',{class:'opn','data-id':ev.id},g); const sel=isSel(ev.id); const c=sel?css('--askc'):css('--muted');
+  el('rect',{x:ev.x+0.15,y:-(ev.y+ev.h)+0.15,width:ev.w-0.3,height:ev.h-0.3,fill:'transparent',stroke:c,'stroke-width':sel?3:1.2,'vector-effect':'non-scaling-stroke'},grp);
+  el('line',{x1:ev.x+0.15,y1:-(ev.y+0.15),x2:ev.x+ev.w-0.15,y2:-(ev.y+ev.h-0.15),stroke:c,'stroke-width':0.8,'vector-effect':'non-scaling-stroke'},grp);
+  el('line',{x1:ev.x+0.15,y1:-(ev.y+ev.h-0.15),x2:ev.x+ev.w-0.15,y2:-(ev.y+0.15),stroke:c,'stroke-width':0.8,'vector-effect':'non-scaling-stroke'},grp);
+  const t=el('text',{x:ev.x+ev.w/2,y:-(ev.y+ev.h/2)+3*s,'font-size':8.5*s,class:'rl','text-anchor':'middle'},grp); t.textContent=ev.emergency?'비상EV':'EV';
+}
+function drawSel(){ const g=$('gSel'); g.innerHTML=''; }
+function drawPins(){ const gp=$('gPins'); gp.innerHTML=''; const f=F(), s=px(), AC=css('--askc'), OK=css('--ok'); const used={};
+  doc.comments.forEach(c=>{ if(c.status==='done'&&cmtOpenOnly) return; (c.targets||[]).forEach(t=>{ if(t.floor!==f.id||!t.anchor) return; const a=t.anchor; const key=a.map(v=>v.toFixed(1)).join(','); const k=used[key]=(used[key]||0)+1;
+    const g=el('g',{style:'cursor:pointer',transform:`translate(${a[0]+(k-1)*22*s},${-a[1]})`},gp);
+    el('path',{d:`M0,0 L${-5*s},${-9*s} A${11*s},${11*s} 0 1 1 ${5*s},${-9*s} Z`,fill:c.status==='done'?OK:AC,stroke:'#fff','stroke-width':1.5,'vector-effect':'non-scaling-stroke'},g);
+    const tx=el('text',{x:0,y:-14.5*s,'font-size':10.5*s,'text-anchor':'middle',fill:'#fff','font-weight':800},g); tx.textContent=c.n;
+    g.addEventListener('pointerdown',e=>{ e.stopPropagation(); focusComment(c.id); }); }); }); }
+
+/* ---------- selection & interaction ---------- */
+function pickKindOk(k){ return filter==='all' || (filter==='room'&&(k==='room'||k==='troom'||k==='stall'||k==='ramp'||k==='fixture')) || (filter==='wall'&&k==='wall') || (filter==='opening'&&(k==='door'||k==='window')) || (filter==='core'&&(k==='stair'||k==='elevator')); }
+function hitTarget(e){ // find best element under pointer honoring filter & priority
+  const els=document.elementsFromPoint(e.clientX,e.clientY); const order={door:0,window:0,stair:1,elevator:1,stall:1.5,fixture:1.8,wall:2,ramp:2.5,room:3}; let best=null;
+  for(const n of els){ const holder=n.closest&&n.closest('[data-id]'); if(!holder||!svg.contains(holder)) continue; const id=holder.getAttribute('data-id'); const o=byId()[id]; const k=kindOf(o); if(!k||!pickKindOk(k)) continue;
+    if(!best||order[k]<order[best.k]) best={id,k}; }
+  return best; }
+let drag=null, spaceDown=false;
+svg.addEventListener('contextmenu',e=>e.preventDefault());
+svg.addEventListener('pointerdown',e=>{ if(!doc) return; if(e.button===1||e.button===2||spaceDown){ drag={k:'pan',sx:e.clientX,sy:e.clientY,vb:{...vb}}; svg.classList.add('panning'); svg.setPointerCapture(e.pointerId); return; }
+  if(e.button!==0) return; const h=hitTarget(e); const add=e.shiftKey||e.metaKey||e.ctrlKey;
+  if(h){ const t={fid:F().id,id:h.id}; if(add){ const i=sel.findIndex(s=>s.fid===t.fid&&s.id===t.id); i>=0? sel.splice(i,1) : sel.push(t); } else sel=[t]; closeComposer(); renderSel(); return; }
+  drag={k:'box',start:toM(e),sx:e.clientX,sy:e.clientY,add,moved:false}; svg.setPointerCapture(e.pointerId); });
+svg.addEventListener('pointermove',e=>{ if(!doc) return; const m=toM(e); $('coord').textContent=`u ${fmt(m[0],2)} · v ${fmt(m[1],2)} m`; if(!drag) return;
+  if(drag.k==='pan'){ const k=px(); vb.x=drag.vb.x-(e.clientX-drag.sx)*k; vb.y=drag.vb.y-(e.clientY-drag.sy)*k; applyVB(); return; }
+  if(drag.k==='box'){ drag.cur=m; if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>4) drag.moved=true; if(!drag.moved) return; const g=$('gSel'); g.innerHTML='';
+    const x=Math.min(drag.start[0],m[0]), y=Math.min(drag.start[1],m[1]), w=Math.abs(m[0]-drag.start[0]), h=Math.abs(m[1]-drag.start[1]); el('rect',{x,y:-(y+h),width:w,height:h,class:'rubber','vector-effect':'non-scaling-stroke'},g); } });
+function endDrag(){ if(!drag) return; const d=drag; drag=null; svg.classList.remove('panning'); if(d.k==='pan') return;
+  if(!d.moved){ if(!d.add){ sel=[]; closeComposer(); renderSel(); } return; }
+  const x0=Math.min(d.start[0],d.cur[0]), x1=Math.max(d.start[0],d.cur[0]), y0=Math.min(d.start[1],d.cur[1]), y1=Math.max(d.start[1],d.cur[1]); const inB=(x,y)=>x>=x0&&x<=x1&&y>=y0&&y<=y1; const f=F(), found=[];
+  if(pickKindOk('room')) f.rooms.forEach(r=>{ if(inB(r.x,r.y)&&inB(r.x+r.w,r.y+r.h)) found.push(r.id); });
+  if(pickKindOk('wall')) f.walls.forEach(w=>{ if(inB(...w.a)&&inB(...w.b)) found.push(w.id); });
+  f.openings.forEach(o=>{ if(!pickKindOk(o.kind)) return; const p=wallPt(f._idx[o.wall],o.at); if(inB(...p)) found.push(o.id); });
+  if(pickKindOk('stall')) (f.stalls||[]).forEach(q=>{ if(inB(q.x,q.y)&&inB(q.x+q.w,q.y+q.h)) found.push(q.id); });
+  if(pickKindOk('stair')) [...f.stairs,...f.elevators].forEach(q=>{ if(inB(q.x,q.y)&&inB(q.x+q.w,q.y+q.h)) found.push(q.id); });
+  const ts=found.map(id=>({fid:f.id,id})); sel=d.add? [...sel,...ts.filter(t=>!sel.some(s=>s.id===t.id&&s.fid===t.fid))] : ts; renderSel(); if(found.length) toast(`${found.length}개 선택 — C 또는 ✦ 버튼으로 요청`); }
+svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointercancel',endDrag);
+svg.addEventListener('wheel',e=>{ e.preventDefault(); const m=toM(e); const mx=m[0],my=-m[1]; const k=Math.exp(e.deltaY*0.0015); const nw=Math.max(3,Math.min(400,vb.w*k)), f=nw/vb.w; vb={x:mx-(mx-vb.x)*f,y:my-(my-vb.y)*f,w:vb.w*f,h:vb.h*f}; applyVB(); },{passive:false});
+const typing=e=>['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&tab==='type'&&tPlace&&!typing(e)){ tPlace=null; renderTPal(); drawTEdit(); return; }
+  if(e.key==='Escape'){ if($('composer').classList.contains('on')) return closeComposer(); if(typing(e)) return; sel=[]; renderSel(); return; }
+  if(typing(e)) return;
+  if(e.key===' '){ e.preventDefault(); spaceDown=true; svg.style.cursor='grab'; return; }
+  if(e.key==='Shift') $('askBtn').classList.add('ghosted');
+  if(e.key==='c'||e.key==='C'){ e.preventDefault(); openComposer(); return; }
+  if(e.key==='f'||e.key==='F'){ tab==='type'?tfit():fit(); return; }
+  if((e.key==='e'||e.key==='E')&&tab==='type'){ toggleEdit(); return; }
+  if((e.key==='Delete'||e.key==='Backspace')&&tab==='type'&&tEditMode&&tSelIdx().length){ e.preventDefault(); deleteRooms(); return; }
+  if(e.key==='PageUp'){ e.preventDefault(); selectFloor(Math.min(doc.floors.length-1,cur+1)); }
+  if(e.key==='PageDown'){ e.preventDefault(); selectFloor(Math.max(0,cur-1)); } });
+document.addEventListener('keyup',e=>{ if(e.key===' '){ spaceDown=false; svg.style.cursor=''; } if(e.key==='Shift') $('askBtn').classList.remove('ghosted'); });
+document.addEventListener('pointermove',e=>{ $('askBtn').classList.toggle('ghosted',e.shiftKey); },{passive:true});
+$('ovl').addEventListener('click',e=>{ const b=e.target.closest('button[data-f]'); if(!b) return; filter=b.dataset.f; [...$('ovl').querySelectorAll('button')].forEach(x=>x.classList.toggle('on',x===b)); });
+function selectFloor(i){ cur=i; if(tab!=='3d') sel=sel.filter(s=>s.fid===doc.floors[i].id); renderAll(); }
+function renderSel(){ if(tab==='type'){ renderTTool(); drawType(); } else drawPlan(); renderSelInfo(); if(tab==='3d') build3D(); updateAsk(); }
+
+/* ---------- side panels ---------- */
+function renderFloors(){ const list=doc.floors.map((f,i)=>({f,i})).sort((a,b)=>b.f.level-a.f.level);
+  $('floors').innerHTML='<h2>층</h2>'+list.map(({f,i})=>{ const nw=f.issues.filter(x=>x.level!=='info'&&x.level!=='conflict').length, ncf=f.issues.filter(x=>x.level==='conflict').length; const nc=doc.comments.filter(c=>c.status!=='done'&&(c.targets||[]).some(t=>t.floor===f.id)).length;
+    return `<div class="fl ${i===cur?'on':''}" data-i="${i}"><b>${f.id}</b><span>${f.units.length?f.units.length+'세대':f.level<0?'주차':'비주거'}</span><span style="display:flex;gap:3px">${nc?`<span class="bd ask">💬${nc}</span>`:''}${ncf?`<span class="bd bad">⚡${ncf}</span>`:''}${nw?`<span class="bd warn">${nw}</span>`:''}</span></div>`; }).join(''); }
+$('floors').addEventListener('click',e=>{ const d=e.target.closest('.fl'); if(d) selectFloor(+d.dataset.i); });
+function openingRows(o,row){ let h=''; if(o.kind==='window'){ if(o.operation) h+=row('개폐 방식',`${esc(o.operation)} · ${o.panels||1}짝`); if(o.frame) h+=row('창틀·유리',`${esc(o.frame)}<br>${esc(o.glass||'')}`); if(o.rail) h+=row('난간',`<b style="color:#1f6fd1">${esc(o.rail.type)}</b>`); }
+  else { if(o.leaf) h+=row('문짝',`${esc(o.leaf)}${o.fire?` · <b>방화 ${esc(o.fire)}</b>`:''}`); if(o.frame) h+=row('문틀',esc(o.frame)); if(o.swingTo!==undefined) h+=row('열림',o.swingTo?'실 쪽으로 여닫이':o.sliding||String(o.type).includes('승강기')?'미닫이':'—'); if(o.moved) h+=row('위치','타입에서 편집됨'); }
+  return h; }
+function renderSelInfo(){ const infos=sel.map(t=>({t,o:objIn(t.fid,t.id)})).filter(x=>x.o);
+  $('selTitle').textContent=infos.length?`선택 ${infos.length}개`:'선택';
+  if(!infos.length){ $('selInfo').innerHTML='<div class="empty">평면이나 3D에서 객체를 클릭하세요. 위쪽 “선택 대상”으로 벽·문·창만 골라 잡을 수 있습니다.</div>'; return; }
+  let html='';
+  if(infos.length===1){ const {t,o}=infos[0]; const f=doc.floors[floorIdxOf(t.fid)]; const k=kindOf(o);
+    const row=(a,b)=>`<span>${a}</span><div>${b}</div>`;
+    if(o.tv){ html=tvInfo(o,row); } else {
+    if(k==='troom'){ html=row('타입',`<b>${esc(o.T.code)}</b> · ${o.T.instances.length}곳`)+row('실',`<b>${esc(o.disp)}</b>`)+row('크기',`${fmt(o.t1-o.t0,2)} × ${fmt(o.d1-o.d0,2)} m`)+row('면적',`${fmt((o.t1-o.t0)*(o.d1-o.d0),2)} ㎡`)+(o.kind?row('용도',CORE_KINDS[o.kind]||o.kind):''); }
+    if(k==='room'){ const tk=o.type||(f.units.find(u=>u.name===o.unit)||{}).type, TT=tk&&typeBy(tk); if(TT) html+=row('타입',`<a href="#" id="goType" data-k="${esc(tk)}"><b>${esc(TT.code)}</b> 편집 →</a> <span style="color:var(--muted)">(${TT.instances.length}곳 공통)</span>`); const ws=f.walls.filter(w=>w.rooms.includes(o.id)); const ops=f.openings.filter(p=>ws.some(w=>w.id===p.wall)); html=row('실',`<b>${esc(o.name)}</b>`)+(o.unit?row('세대',o.unit+' · '+(f.units.find(u=>u.name===o.unit)||{}).unitType):'')+row('크기',`${fmt(o.w,2)} × ${fmt(o.h,2)} m`)+row('면적',`${fmt(o.w*o.h,2)} ㎡ (벽 중심선 기준)`)+row('문·창',`문 ${ops.filter(p=>p.kind==='door').length} · 창 ${ops.filter(p=>p.kind==='window').length}`); }
+    if(k==='wall'){ html=row('벽',`<b>${esc((doc.wallTypes[o.kind]||{}).label||o.kind)}</b>`)+row('두께',`${fmt(o.t*1000,0)} mm`)+row('길이',`${fmt(o.len,2)} m`)+row('양쪽',`${esc(roomName(f,o.rooms[0]))} | ${esc(roomName(f,o.rooms[1]))}`)+row('개구부',f.openings.filter(p=>p.wall===o.id).map(p=>`${p.type} ${fmt(p.w,2)}`).join('<br>')||'—'); }
+    if(k==='door'||k==='window'){ const w=f._idx[o.wall]; html=openingRows(o,row)+row(k==='door'?'문':'창',`<b>${esc(o.type)}</b>`)+row('폭×높이',`${fmt(o.w,2)} × ${fmt(o.h,2)} m`)+(k==='window'?row('창대 높이',fmt(o.sill,2)+' m'):'')+row('벽',`${esc((doc.wallTypes[w.kind]||{}).label||w.kind)}`)+row('연결',`${esc(roomName(f,w.rooms[0]))} ↔ ${esc(roomName(f,w.rooms[1]))}`); }
+    if(k==='stair'&&o.checks){ html=row('계단',`<b>${esc(o.name)}</b>`)+row('구성',`${o.risers}단 (${o.flights.map(x=>x.risers).join('+')}) · ${o.turns===3?'세 번 꺾기 (중간 계단참 3곳)':'꺾임 계단'}`)+row('단높이·단너비',`${fmt(o.riser*100,1)} cm · ${fmt(o.tread*100,1)} cm`)+row('계단 폭·계단참',`${fmt(o.flightWidth,2)} m · ${fmt(o.landingDepth,2)} m`)+row('중간 계단참',`+${fmt(o.flights[0].z1,2)} m`)+row('손잡이',esc(o.handrail.note))+row('법규 확인',o.checks.map(c=>`${c.ok?'✓':'✗'} ${esc(c.item)} ${esc(c.value)}`).join('<br>')); }
+    else if(k==='stair'){ html=row('계단',`<b>${esc(o.name)}</b>`)+row('계단실',`${fmt(o.w,2)} × ${fmt(o.h,2)} m`)+row('챌판',`${o.risers}단 × ${fmt(o.riser*1000,0)} mm (층고 ${fmt(f.height,2)}m)`)+row('계단 폭',`${fmt(o.flightWidth,2)} m × 2런`); }
+    if(k==='fixture') html=row('가구·설비',`<b>${esc(o.label)}</b>`)+row('실',esc(roomName(f,o.room)))+row('크기',`${fmt(o.w,2)} × ${fmt(o.h,2)} m · 높이 ${fmt(o.h3,2)} m`);
+    if(k==='stall') html=row('주차',`<b>${esc(o.no)}</b>`)+row('구획',`${esc(o.type)} · ${fmt(o.w,2)} × ${fmt(o.h,2)} m`)+row('열',esc(o.row))+row('진입',{S:'남측 차로',N:'북측 차로',W:'서측 차로',E:'동측 차로'}[o.entry]);
+    if(k==='ramp'){ const el0=f.elev; html=row('램프',`<b>${o.mode==='down'?'하강':'도착'} ${esc(o.fromFloor||'')} → ${esc(o.toFloor||'')}</b>`)+row('경사',o.slopePct!=null?`<b>${fmt(o.slopePct,1)}%</b> ${o.slopePct<=17?'(직선램프 17% 이하 ✓)':'<span style="color:var(--bad)">(17% 초과)</span>'}`:'—')+row('경사 길이',o.run?`${fmt(o.run,1)} m · 높이차 ${fmt(o.drop,2)} m`:'—')+row('폭',`${fmt(o.width,1)} m (양방향)`)+(o.landing?row('평탄 구간',`${fmt(o.landing,1)} m`):'')+row('표고',`EL ${fmt(el0+o.relHigh,2)} → ${fmt(el0+o.relLow,2)} m`)+(o.headroom!=null?row('위 램프 아래',`유효높이 최소 ${fmt(o.headroom,2)} m ${o.headroom>=2.3?'✓':'<span style="color:var(--bad)">2.3m 미만</span>'}`):''); }
+    if(k==='elevator'){ html=row('승강기',`<b>${esc(o.name)}</b>`)+row('승강로',`${fmt(o.w,2)} × ${fmt(o.h,2)} m`)+row('문 방향',{E:'동',W:'서',N:'북',S:'남'}[o.door])+row('구분',o.emergency?'비상용 (소방대 전용 겸)':'승객용'); }
+    }
+    html=`<div class="info">${html}</div>`;
+  } else { html=`<div class="chips">${infos.map(({t,o})=>`<span class="chip">${esc(label(t.fid,o))}</span>`).join('')}</div>`; }
+  $('selInfo').innerHTML=html+`<button class="sendbtn big" id="askSide">✦ Claude에게 ${infos.length>1?'선택 '+infos.length+'개':'이 객체'} 수정 요청</button>${tab==='type'?'<div class="empty" style="margin-top:6px">타입 요청은 이 타입을 쓰는 모든 층에 반영됩니다.</div>':''}<div class="btns"><button class="btn sm" id="selClear">선택 해제</button></div>`;
+  if($('goType')) $('goType').onclick=e=>{ e.preventDefault(); openType(e.currentTarget.dataset.k); };
+  $('askSide').onclick=openComposer; $('selClear').onclick=()=>{ sel=[]; renderSel(); }; }
+function renderIssues(){ const f=F(); const list=f.issues;
+  const dlink=k=>{ const d=({fire:['상봉동_116-49_소방피난.html','#e03131','🔥 소방'],mep:['상봉동_116-49_설비.html','#1971c2','🔧 설비'],struct:['상봉동_116-49_구조.html','#d6336c','🏗 구조']})[k]; return d?`<a href="${d[0]}" style="font-weight:700;color:${d[1]};text-decoration:none" title="분야 페이지에서 보기">${d[2]}</a> · `:''; };
+  $('floorIssues').innerHTML= list.length? list.map((x,i)=>`<div class="st ${x.level==='info'?'info':x.level==='conflict'?'bad':'warn'}" data-i="${i}"><i></i><span>${x.level==='conflict'?'⚡ 조닝 충돌 · ':''}${dlink(x.discipline)}${esc(x.msg)}</span></div>`).join('') : '<div class="st"><i></i><span>이 층은 확인할 이슈가 없습니다.</span></div>';
+  $('floorIssues').querySelectorAll('.st[data-i]').forEach(d=>d.onclick=()=>{ const x=list[+d.dataset.i]; const u=f.units.find(u=>u.name===x.ref); if(u){ sel=u.rooms.map(id=>({fid:f.id,id})); } else { const r=f.rooms.find(r=>x.msg.includes(r.name)); sel=r?[{fid:f.id,id:r.id}]:[]; } renderSel(); }); }
+function renderLayers(){ const L=[['fill','실 색'],['names','실 이름'],['units','세대 번호'],['walls','벽'],['doors','문'],['windows','창'],['core','계단·승강기'],['park','주차·램프'],['fix','가구·설비']];
+  $('layers').innerHTML=L.map(([k,t])=>`<label><input type="checkbox" data-l="${k}" ${layers[k]?'checked':''}>${t}</label>`).join('');
+  $('layers').onchange=e=>{ layers[e.target.dataset.l]=e.target.checked; drawPlan(); }; }
+function renderLegend(){ $('legend').innerHTML=Object.entries(doc.wallTypes).map(([k,v])=>`<span><i style="background:${WALLC(k)};height:${Math.max(3,v.t*20)}px"></i>${esc(v.label)}</span>`).join('')+`<span><i style="background:#2b7bd6;height:3px"></i>창</span><span><i style="background:#e8590c;height:3px"></i>문</span><span><i style="background:rgba(201,162,39,.35);height:8px"></i>확장형 주차 2.6×5.2</span><span><i style="background:rgba(31,111,209,.4);height:8px"></i>장애인 주차 3.3×5.0</span><span><i style="background:transparent;border:1px solid #6b7479;height:8px"></i>붙박이 가구·설비</span><span><i style="background:transparent;border:1px dashed #6b7479;height:8px"></i>이동 가구 (침대·소파·식탁)</span>`; }
+
+/* ---------- summary ---------- */
+function renderSummary(){ const rows=[]; let nUnits=0; const types={};
+  doc.floors.filter(f=>f.level>0).forEach(f=>f.units.forEach(u=>{ nUnits++; types[u.unitType]=(types[u.unitType]||0)+1; }));
+  const allIss=doc.floors.flatMap(f=>f.issues.map(x=>({...x,floor:f.id})));
+  const f=F();
+  $('sumPane').innerHTML=`<div class="kpis"><div><b>${nUnits}</b><span>세대 (${Object.entries(types).map(([k,v])=>k+' '+v).join(' · ')})</span></div>
+    <div><b>${doc.floors.reduce((a,f)=>a+f.walls.length,0).toLocaleString()}</b><span>벽 객체</span></div><div><b>${count('door').toLocaleString()}</b><span>문</span></div><div><b>${count('window').toLocaleString()}</b><span>창</span></div>
+    <div><b>${allIss.filter(x=>x.level!=='info').length}</b><span>확인 필요 이슈</span></div></div>
+    ${conflictHTML()}
+    <h3 style="margin:6px 0">${f.id} 세대 계획 (${f.planType||''})</h3>
+    <table class="ut"><thead><tr><th>세대</th><th>타입</th><th>평면 타입</th><th>면적</th><th>실 구성</th><th>이슈</th></tr></thead><tbody>${f.units.map(u=>{ const rs=f.rooms.filter(r=>u.rooms.includes(r.id)); return `<tr data-u="${u.name}"><td><b>${u.name}</b></td><td>${u.unitType}</td><td>${esc((typeBy(u.type)||{}).code||'')}</td><td>${fmt(u.area,1)}㎡</td><td>${rs.map(r=>`${r.name} ${fmt(r.w*r.h,1)}`).join(' · ')}</td><td>${u.issues.map(m=>`<span style="color:${m.startsWith('⚡')?'var(--bad)':'var(--warn)'};${m.startsWith('⚡')?'font-weight:700':''}">${esc(m)}</span>`).join('<br>')}</td></tr>`; }).join('')||'<tr><td colspan="6" class="empty">세대가 없는 층</td></tr>'}</tbody></table>
+    ${scheduleHTML()}
+    <h3 style="margin:16px 0 6px">전체 이슈 (${allIss.length})</h3>${allIss.map(x=>`<div class="st ${x.level==='info'?'info':x.level==='conflict'?'bad':'warn'}"><i></i><span>${x.floor} · ${esc(x.msg)}</span></div>`).join('')}`;
+  bindConflicts($('sumPane'));
+  $('sumPane').querySelectorAll('tr[data-u]').forEach(tr=>tr.onclick=()=>{ const u=f.units.find(u=>u.name===tr.dataset.u); sel=u.rooms.map(id=>({fid:f.id,id})); setTab('plan'); renderSel(); }); }
+
+/* ---------- comments ---------- */
+let askPt=null;
+function updateAsk(){ const n=sel.length, b=$('askBtn'); const open=doc?doc.comments.filter(c=>c.status!=='done').length:0;
+  $('askHdr').innerHTML= n? `✦ 선택 ${n}개 요청하기 <b id="askHdrN">${open}</b>` : `💬 수정 요청 <b id="askHdrN">${open}</b>`;
+  if(!n||tab==='sum'||!doc){ b.classList.remove('on'); askPt=null; return; }
+  const C=$('center').getBoundingClientRect(); let pt=null;
+  if(tab==='plan'){ const here=sel.filter(s=>s.fid===F().id).map(snapshot).filter(Boolean); if(here.length){ const mx=Math.max(...here.map(i=>i.anchor[0])), my=Math.max(...here.map(i=>i.anchor[1])); const p=svg.createSVGPoint(); p.x=mx; p.y=-my; const q=p.matrixTransform(svg.getScreenCTM()); pt=[q.x-C.left+18,q.y-C.top-12]; } }
+  else if(tab==='type'&&tVB){ const rs=tRooms(); const ii=tSelIdx().map(i=>({t1:rs[i].t1,d1:rs[i].d1})).concat(sel.filter(q=>q.fid==='TV').map(q=>objIn('TV',q.id)).filter(Boolean).map(o=>{ const p=tvPos(o); return {t1:p[0]+0.3,d1:p[1]+0.3}; })); if(ii.length){ const p=tsvg.createSVGPoint(); p.x=Math.max(...ii.map(r=>r.t1)); p.y=-Math.max(...ii.map(r=>r.d1)); const q=p.matrixTransform(tsvg.getScreenCTM()); pt=[q.x-C.left+8,q.y-C.top-6]; } }
+  else if(tab==='3d'&&R){ const ps=sel.map(t=>{ const s=snapshot(t); return s? anchor3D(t.fid,s.anchor) : null; }).filter(Boolean).map(v=>{ const q=v.clone().project(R.cam); return [(q.x+1)/2*C.width,(1-q.y)/2*C.height,q.z]; }).filter(q=>q[2]<1); if(ps.length) pt=[Math.max(...ps.map(q=>q[0]))+14,Math.min(...ps.map(q=>q[1]))-8]; }
+  if(!pt) pt=[C.width-300,74]; pt=[Math.max(10,Math.min(C.width-290,pt[0])),Math.max(64,Math.min(C.height-10,pt[1]))]; askPt=pt;
+  b.style.left=pt[0]+'px'; b.style.top=pt[1]+'px'; b.querySelector('.cnt').textContent=n+'개'; b.classList.add('on'); if($('composer').classList.contains('on')) placeComposer(); }
+function placeComposer(){ const C=$('center').getBoundingClientRect(), cm=$('composer'), w=Math.min(390,C.width-20), h=cm.offsetHeight||260; let x=askPt?askPt[0]:C.width-w-10, y=askPt?askPt[1]+8:80; if(x+w>C.width-10) x=C.width-w-10; if(y+h>C.height-10) y=Math.max(10,(askPt?askPt[1]-h-56:10)); cm.style.left=Math.max(10,x)+'px'; cm.style.top=y+'px'; }
+function suggestions(){ const ks=new Set(sel.map(t=>kindOf(objIn(t.fid,t.id)))); const o=[];
+  if(ks.has('door')) o.push('문 열리는 방향 반대로','문 폭을 0.9m로','미닫이로 바꿔줘','위치를 벽 끝 쪽으로');
+  if(ks.has('window')) o.push('창 폭을 넓혀줘','바닥까지 내리는 창으로','창을 없애줘');
+  if(ks.has('wall')) o.push('벽을 0.3m 옮겨줘','벽 없애고 실 합치기','내력벽(RC)으로');
+  if(ks.has('room')) o.push('실 크기 조정','실 용도 바꾸기','붙박이 수납 추가');
+  if(ks.has('stair')||ks.has('elevator')) o.push('위치·크기 검토','법규 검토만');
+  if(ks.has('troom')) o.push('이 실을 넓혀줘','실 용도 바꾸기','문 위치 바꿔줘','붙박이 수납 추가');
+  if(!ks.has('troom')) o.push('같은 타입 세대 모두 적용','위·아래 층도 똑같이'); return o; }
+function openComposer(){ if(!sel.length){ toast('먼저 객체를 선택하세요 (Shift+클릭으로 여러 개)'); return; } if(tab==='sum') setTab('plan');
+  const infos=sel.map(t=>({t,s:snapshot(t)})).filter(x=>x.s); $('cmpChips').innerHTML=infos.map(({s},k)=>`<span class="chip">${esc(s.label)}<button data-rm="${k}">×</button></span>`).join('');
+  $('cmpSugg').innerHTML=suggestions().map(s=>`<button>${esc(s)}</button>`).join(''); $('cmpNote').textContent=infos.length+'개 객체';
+  $('composer').classList.add('on'); updateAsk(); placeComposer(); setTimeout(()=>$('cmpText').focus(),0); }
+function closeComposer(){ $('composer').classList.remove('on'); }
+$('cmpChips').addEventListener('click',e=>{ const b=e.target.closest('button[data-rm]'); if(!b) return; sel.splice(+b.dataset.rm,1); if(!sel.length){ closeComposer(); renderSel(); return; } renderSel(); openComposer(); });
+$('cmpSugg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const ta=$('cmpText'); ta.value=(ta.value.trim()?ta.value.trim()+'\n':'')+b.textContent; ta.focus(); });
+$('cmpText').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); submitComment(); } });
+$('cmpSend').onclick=submitComment; $('cmpCancel').onclick=closeComposer; $('askBtn').onclick=openComposer;
+$('askHdr').onclick=()=>{ if(sel.length) openComposer(); else { document.querySelector('aside').scrollTo({top:0,behavior:'smooth'}); toast('객체를 선택한 뒤 누르면 요청을 남길 수 있습니다'); } };
+function submitComment(){ const text=$('cmpText').value.trim(); if(!text){ const c=$('composer'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); return; }
+  const targets=sel.map(snapshot).filter(Boolean); if(!targets.length) return; const n=doc.comments.reduce((m,c)=>Math.max(m,c.n||0),0)+1;
+  doc.comments.push({id:'p'+Date.now().toString(36),n,text,status:'open',created:new Date().toISOString(),view:tab==='3d'?'3d':tab==='type'?'type':'2d',author:'사용자',targets});
+  $('cmpText').value=''; closeComposer(); sel=[]; scheduleSave(); renderAll(); toast(`요청 #${n} 저장됨 — 대화창에서 “계획설계 요청 반영해줘”라고 하면 Claude가 처리합니다`); }
+function renderComments(){ const list=doc.comments.slice().sort((a,b)=>(a.status==='done')-(b.status==='done')||b.n-a.n); const open=list.filter(c=>c.status!=='done').length;
+  $('cmtCount').textContent=`열림 ${open} · 전체 ${list.length}`; $('cmtFilter').textContent=cmtOpenOnly?'완료도 보기':'열린 것만'; const shown=cmtOpenOnly?list.filter(c=>c.status!=='done'):list;
+  $('cmtList').innerHTML=shown.length? shown.map(c=>`<div class="cm ${c.status==='done'?'done':''}" data-id="${c.id}"><div class="cmh"><span class="cmn">#${c.n}</span><span class="cmt">${new Date(c.created).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})} · ${c.view==='3d'?'3D':c.view==='type'?'타입':'평면'}</span><span class="cms">${c.status==='done'?'반영됨':'대기 중'}</span></div><div class="cmx">${esc(c.text)}</div><div class="chips">${(c.targets||[]).map(t=>`<span class="chip">${esc(t.label)}</span>`).join('')}</div>${c.reply?`<div class="cmr"><b class="spark">✦ Claude</b> ${esc(c.reply)}</div>`:''}<div class="btns"><button class="btn sm" data-a="go">위치 보기</button><button class="btn sm" data-a="done">${c.status==='done'?'다시 열기':'완료 처리'}</button><button class="btn sm danger" data-a="del">삭제</button></div></div>`).join('') : `<div class="empty">${list.length?'열린 요청이 없습니다.':'아직 요청이 없습니다.'}</div>`; }
+$('cmtFilter').onclick=()=>{ cmtOpenOnly=!cmtOpenOnly; renderComments(); drawPlan(); if(tab==='3d') build3D(); };
+$('cmtList').addEventListener('click',e=>{ const b=e.target.closest('button[data-a]'), card=e.target.closest('.cm'); if(!b||!card) return; const c=doc.comments.find(x=>x.id===card.dataset.id); if(!c) return;
+  if(b.dataset.a==='go') focusComment(c.id,true);
+  if(b.dataset.a==='done'){ c.status=c.status==='done'?'open':'done'; c.reopened=c.status==='open'||undefined; if(c.status==='done') c.resolvedAt=new Date().toISOString(); scheduleSave(); renderAll(); }
+  if(b.dataset.a==='del'){ if(!confirm(`요청 #${c.n}을 삭제할까요?`)) return; doc.comments=doc.comments.filter(x=>x.id!==c.id); scheduleSave(); renderAll(); } });
+function focusComment(id,fromList){ const c=doc.comments.find(x=>x.id===id); if(!c) return;
+  const tt=(c.targets||[]).filter(t=>t.kind==='typeRoom'||t.kind==='typeElement'); if(tt.length){ if(!typeBy(tt[0].typeKey)){ toast('이 요청의 타입이 지금 계획에는 없습니다'); return; } if(tt[0].typeKey!==tKey){ if(tDraft&&!confirm('적용하지 않은 편집을 버릴까요?')) return; tDraft=null; tKey=tt[0].typeKey; tVF=null; tVB=null; } sel=tt.map(t=>t.kind==='typeRoom'?{fid:'T',id:t.id}:{fid:'TV',id:t.typeKey+'@'+t.id}); if(tab!=='type') setTab('type'); else renderTypeTab(true); renderComments();
+    const card=document.querySelector(`.cm[data-id="${id}"]`); if(card){ card.classList.add('flash'); setTimeout(()=>card.classList.remove('flash'),1600); } return; }
+  const ts=(c.targets||[]).map(t=>({fid:t.floor,id:t.id})).filter(t=>objIn(t.fid,t.id));
+  if(ts.length&&tab!=='3d'){ const fi=floorIdxOf(ts[0].fid); if(fi>=0) cur=fi; } sel=ts; if(tab==='sum') setTab('plan'); renderAll();
+  const card=document.querySelector(`.cm[data-id="${id}"]`); if(card){ card.classList.add('flash'); if(!fromList) card.scrollIntoView({block:'nearest',behavior:'smooth'}); setTimeout(()=>card.classList.remove('flash'),1600); } }
+
+/* ---------- 3D ---------- */
+let R=null;
+function init3D(){ if(R||!window.THREE) return; const host=$('v3d'); const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(2,devicePixelRatio)); host.insertBefore(renderer.domElement,host.firstChild);
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(css('--canvas')||'#fbfaf7'); const cam=new THREE.PerspectiveCamera(38,1,0.2,2000); const ctl=new THREE.OrbitControls(cam,renderer.domElement);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x9aa09a,0.8)); const dl=new THREE.DirectionalLight(0xffffff,0.55); dl.position.set(-40,80,60); scene.add(dl);
+  const grp=new THREE.Group(); scene.add(grp); R={renderer,scene,cam,ctl,grp,pick:[],pins:[]};
+  const ray=new THREE.Raycaster(); let down=null;
+  renderer.domElement.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
+  renderer.domElement.addEventListener('pointerup',e=>{ if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>4) return; down=null; const r=renderer.domElement.getBoundingClientRect(); ray.setFromCamera({x:(e.clientX-r.left)/r.width*2-1,y:-(e.clientY-r.top)/r.height*2+1},cam);
+    if(document.querySelector('input[name=v3]:checked').value==='all'){ const h=ray.intersectObjects(R.pick,false)[0]; if(h&&h.object.userData.floorOnly){ const fi=floorIdxOf(h.object.userData.fid); if(fi>=0&&fi!==cur){ cur=fi; renderFloors(); renderIssues(); build3D(); toast(`${h.object.userData.fid} 선택 — 더블클릭하면 이 층 상세 보기`); } } return; }
+    const hit=ray.intersectObjects(R.pick,false).find(h=>pickKindOk(kindOf(objIn(h.object.userData.fid,h.object.userData.id)))); const add=e.shiftKey||e.metaKey||e.ctrlKey;
+    if(hit){ const t={fid:hit.object.userData.fid,id:hit.object.userData.id}; if(add){ const i=sel.findIndex(s=>s.fid===t.fid&&s.id===t.id); i>=0?sel.splice(i,1):sel.push(t); } else sel=[t]; } else if(!add) sel=[];
+    closeComposer(); renderSelInfo(); build3D(); updateAsk(); });
+  renderer.domElement.addEventListener('dblclick',()=>{ if(document.querySelector('input[name=v3]:checked').value!=='all') return; document.querySelector('input[name=v3][value=cur]').checked=true; build3D(); focus3D(); });
+  (function loop(){ requestAnimationFrame(loop); if(tab!=='3d') return; ctl.update(); renderer.render(scene,cam); positionPins(); positionLabels3D(); if(sel.length) updateAsk(); })();
+  const f=F(); const c=[(Math.min(...f.outline.map(p=>p[0]))+Math.max(...f.outline.map(p=>p[0])))/2,(Math.min(...f.outline.map(p=>p[1]))+Math.max(...f.outline.map(p=>p[1])))/2];
+  cam.position.set(c[0]-30,f.elev+38,-c[1]+42); ctl.target.set(c[0],f.elev+1,-c[1]); }
+function anchor3D(fid,a){ const f=doc.floors[floorIdxOf(fid)]; return new THREE.Vector3(a[0],f.elev+f.height*0.5,-a[1]); }
+function build3D(){ if(!R) return; const {grp}=R; while(grp.children.length){ const c=grp.children.pop(); c.geometry&&c.geometry.dispose(); } R.pick=[];
+  const mode=document.querySelector('input[name=v3]:checked').value, f=F(); const AC=new THREE.Color(css('--askc')||'#f0507a');
+  const M={}; const mat=(c,o={})=>{ const k=c+JSON.stringify(o); return M[k]||(M[k]=new THREE.MeshLambertMaterial(Object.assign({color:new THREE.Color(c)},o))); };
+  if(mode==='all'){ buildWhole(mat); buildPins(); buildLabels3D(); return; }
+  const selMat=new THREE.MeshLambertMaterial({color:AC,emissive:AC,emissiveIntensity:0.35});
+  const boxAt=(x0,x1,y0,y1,z0,z1,m,ud)=>{ const g=new THREE.BoxGeometry(Math.max(0.01,x1-x0),Math.max(0.01,z1-z0),Math.max(0.01,y1-y0)); const me=new THREE.Mesh(g,m); me.position.set((x0+x1)/2,(z0+z1)/2,-(y0+y1)/2); if(ud){ me.userData=ud; R.pick.push(me);} grp.add(me); return me; };
+  if(mode==='stack') doc.floors.filter(g=>g.level<f.level&&g.level>=Math.max(-3,f.level-4)).forEach(g=>{ const s=new THREE.Shape(); g.outline.forEach((p,i)=>i?s.lineTo(p[0],p[1]):s.moveTo(p[0],p[1])); const geo=new THREE.ExtrudeGeometry(s,{depth:g.height-0.05,bevelEnabled:false}); geo.rotateX(-Math.PI/2); geo.translate(0,g.elev,0); grp.add(new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:0xd6dadc,transparent:true,opacity:0.35}))); });
+  const H=f.height, z0=f.elev, slab=0.2, top=z0+H-0.25; byId();
+  // slab
+  const s=new THREE.Shape(); slabOutline(f).forEach((p,i)=>i?s.lineTo(p[0],p[1]):s.moveTo(p[0],p[1]));
+  const rampHoles=(f.ramps||[]).filter(Rp=>Rp.mode==='down'&&Rp.run).map(Rp=>{ const v=Rp.axis==='v', c0=v?Rp.y:Rp.x, c1=v?Rp.y+Rp.h:Rp.x+Rp.w; const a=Math.max(c0,Math.min(Rp.sStart,Rp.sEnd)), b=Math.min(c1,Math.max(Rp.sStart,Rp.sEnd)); return v?{x0:Rp.x,x1:Rp.x+Rp.w,y0:a,y1:b,zone:Rp.zone}:{x0:a,x1:b,y0:Rp.y,y1:Rp.y+Rp.h,zone:Rp.zone}; }).filter(h=>h.x1-h.x0>0.1&&h.y1-h.y0>0.1);
+  rampHoles.forEach(h=>{ const p=new THREE.Path(); p.moveTo(h.x0,h.y0); p.lineTo(h.x0,h.y1); p.lineTo(h.x1,h.y1); p.lineTo(h.x1,h.y0); p.lineTo(h.x0,h.y0); s.holes.push(p); });
+  const sg=new THREE.ExtrudeGeometry(s,{depth:slab,bevelEnabled:false}); sg.rotateX(-Math.PI/2); sg.translate(0,z0-slab,0); grp.add(new THREE.Mesh(sg,mat('#c9cdcf')));
+  // room floors (pickable)
+  f.rooms.forEach(r=>{ const m=isSel(r.id)? selMat : mat(roomColor(r)); const h=rampHoles.find(q=>q.zone===r.zone);
+    if(h){ // 램프 구역: 경사 구간은 비우고 평탄 구간만 바닥
+      [[r.x,h.x0,r.y,r.y+r.h],[h.x1,r.x+r.w,r.y,r.y+r.h],[h.x0,h.x1,r.y,h.y0],[h.x0,h.x1,h.y1,r.y+r.h]].forEach(([a,b,c,d])=>{ if(b-a>0.05&&d-c>0.05) boxAt(a+0.02,b-0.02,c+0.02,d-0.02,z0,z0+0.03,m,{fid:f.id,id:r.id}); }); return; }
+    boxAt(r.x+0.02,r.x+r.w-0.02,r.y+0.02,r.y+r.h-0.02,z0,z0+0.03,m,{fid:f.id,id:r.id}); });
+  // walls with openings
+  const wcol={exterior:'#e9e6df',basement:'#cfcac0',core:'#b9bec2',core_inner:'#c6cacd',party:'#dedbd4',unit_corr:'#dedbd4',fire:'#d5d2cb',partition:'#f2f0eb',light:'#ecebe6'};
+  f.walls.forEach(w=>{ const horiz=w.a[1]===w.b[1]; const L=w.len, t=w.t; const ops=f.openings.filter(o=>o.wall===w.id).sort((a,b)=>a.at-b.at); const m=isSel(w.id)? selMat : mat(wcol[w.kind]||'#e5e5e5'); const ud={fid:f.id,id:w.id};
+    const sgn=horiz? Math.sign(w.b[0]-w.a[0])||1 : Math.sign(w.b[1]-w.a[1])||1;
+    const piece=(s0,s1,h0,h1,mm,u)=>{ if(s1-s0<0.005||h1-h0<0.005) return; const a=s0*sgn, b=s1*sgn; if(horiz) boxAt(w.a[0]+Math.min(a,b),w.a[0]+Math.max(a,b),w.a[1]-t/2,w.a[1]+t/2,z0+h0,z0+h1,mm,u); else boxAt(w.a[0]-t/2,w.a[0]+t/2,w.a[1]+Math.min(a,b),w.a[1]+Math.max(a,b),z0+h0,z0+h1,mm,u); };
+    const E=wallEnds(f)[w.id]||[0,0]; let p=-E[0]; // 모서리: 평면과 같은 규칙으로 벽 끝을 늘이거나 줄임
+    ops.forEach(o=>{ const a=o.at-o.w/2, b=o.at+o.w/2; piece(p,a,0,top-z0,m,ud); const sill=o.kind==='window'?o.sill:0; const hh=o.kind==='window'?o.h:Math.min(o.h,top-z0-0.05);
+      piece(a,b,0,sill,m,ud); piece(a,b,sill+hh,top-z0,m,ud);
+      open3D(f,w,o,a,b,sill,hh,z0,horiz,sgn,boxAt,mat,selMat,grp);
+      p=b; }); piece(p,L+E[1],0,top-z0,m,ud); });
+  build3DPark(f,boxAt,mat,selMat,z0,grp);
+  // stairs & elevators
+  f.stairs.forEach(st=>stair3D(f,st,z0,boxAt,mat,selMat,grp));
+  if(layers.fix) (f.fixtures||[]).forEach(x=>fixture3D(f,x,z0,boxAt,mat,selMat));
+  f.elevators.forEach(ev=>{ const m=isSel(ev.id)?selMat:mat('#7d868c',{transparent:true,opacity:0.55}); boxAt(ev.x+0.15,ev.x+ev.w-0.15,ev.y+0.15,ev.y+ev.h-0.15,z0,z0+2.3,m,{fid:f.id,id:ev.id}); });
+  if(!$('roof').checked){ /* nothing: no ceiling drawn by default */ }
+  buildPins(); buildLabels3D(); }
+function buildPins(){ if(!R) return; const host=$('pins3d'); host.innerHTML=''; R.pins=[];
+  doc.comments.forEach(c=>{ if(c.status==='done'&&cmtOpenOnly) return; const t=(c.targets||[])[0]; if(!t||!t.anchor) return; if(t.floor!==F().id && document.querySelector('input[name=v3]:checked').value==='cur') return;
+    const d=document.createElement('div'); d.className='pin3d'; d.textContent='#'+c.n+(c.targets.length>1?' +'+(c.targets.length-1):''); d.title=c.text; d.onclick=()=>focusComment(c.id); host.appendChild(d); R.pins.push({d,v:anchor3D(t.floor,t.anchor)}); }); positionPins(); }
+function positionPins(){ if(!R) return; const C=$('center').getBoundingClientRect(); R.pins.forEach(({d,v})=>{ const q=v.clone().project(R.cam); if(q.z>1){ d.style.display='none'; return; } d.style.display=''; d.style.left=((q.x+1)/2*C.width)+'px'; d.style.top=((1-q.y)/2*C.height)+'px'; }); }
+function resize3D(){ if(!R) return; const r=$('center').getBoundingClientRect(); R.renderer.setSize(r.width,r.height); R.cam.aspect=r.width/r.height; R.cam.updateProjectionMatrix(); }
+document.querySelectorAll('input[name=v3]').forEach(i=>i.onchange=()=>{ build3D(); if(i.value==='all'&&i.checked){ fitWhole(); loadContext(); } else if(i.checked) focus3D(); }); $('ctx3d').onchange=()=>{ if(document.querySelector('input[name=v3]:checked').value!=='all') document.querySelector('input[name=v3][value=all]').checked=true; build3D(); if($('ctx3d').checked) fitWhole(true); };
+$('cutCur').onchange=()=>{ if(document.querySelector('input[name=v3]:checked').value!=='all') document.querySelector('input[name=v3][value=all]').checked=true; build3D(); }; $('roof').onchange=build3D; $('lab3d').onchange=()=>{ layers.labels3d=$('lab3d').checked; buildLabels3D(); }; $('fix3d').onchange=()=>{ layers.fix=$('fix3d').checked; build3D(); drawPlan(); };
+
+/* ---------- misc ---------- */
+function setTab(t){ if(tab==='type'&&t!=='type'&&tDraft&&!confirm('타입 편집을 적용하지 않았습니다. 버리고 나갈까요?')) return; if(tab==='type'&&t!=='type'){ tDraft=null; tVF=null; }
+  if((tab==='type')!==(t==='type')) sel=sel.filter(s=>(s.fid==='T'||s.fid==='TV')===(t==='type'));
+  tab=t; [...$('tabs').children].forEach(b=>b.classList.toggle('on',b.dataset.t===t)); $('planPane').classList.toggle('on',t==='plan'); $('v3d').classList.toggle('on',t==='3d'); $('sumPane').classList.toggle('on',t==='sum'); $('typePane').classList.toggle('on',t==='type'); document.querySelector('.app').classList.toggle('typeMode',t==='type');
+  if(t==='type') renderTypeTab(true); else renderSelInfo();
+  if(t==='3d'){ if(!window.THREE){ toast('3D 라이브러리를 불러오지 못했습니다 (인터넷 확인)'); return; } init3D(); resize3D(); build3D(); } if(t==='sum') renderSummary(); if(t==='plan') drawPlan(); closeComposer(); updateAsk(); }
+$('tabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setTab(b.dataset.t); });
+function renderAll(o={}){ if(!doc) return; renderFloors(); renderComments(); renderSelInfo(); renderIssues(); drawNorth(); if(o.fit) fit(); else drawPlan(); if(tab==='3d') build3D(); if(tab==='sum') renderSummary(); if(tab==='type') renderTypeTab(); updateConflictBadge(); updateAsk(); }
+function drawNorth(){ const fr=doc.frame, u=fr.uAxisDisplay, v=fr.vAxisDisplay; const a=Math.atan2(-u[1],-v[1])*180/Math.PI; $('north').innerHTML=`<circle r="21" fill="var(--panel)" stroke="var(--line)"/><g transform="rotate(${a})"><path d="M0,-16 L6,8 L0,4 L-6,8Z" fill="var(--ink)"/><text y="-17" font-size="9" text-anchor="middle" fill="var(--ink)" font-weight="700">N</text></g>`; }
+let tt; function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('on'),2400); }
+$('themeBtn').onclick=()=>{ const r=document.documentElement; const c=r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); r.dataset.theme=c==='dark'?'light':'dark'; renderLegend(); renderAll(); if(R) R.scene.background=new THREE.Color(css('--canvas')); };
+window.addEventListener('resize',()=>{ if(tab==='type'&&doc) tfit(); if(tab==='plan'&&doc){ const B=box(), r=B.w/B.h, cy=vb.y+vb.h/2; vb.h=vb.w/r; vb.y=cy-vb.h/2; applyVB(); } resize3D(); updateAsk(); });
+/* ---------- types (타입 탭) ---------- */
+let tKey=null, tDraft=null, tVB=null, tDrag=null, tHover=null, tVF=null, tBusy=false;
+const typeBy=k=>(doc&&doc.types||[]).find(t=>t.key===k);
+const r3=v=>Math.round(v*1000)/1000, snap=v=>Math.round(v/0.05)*0.05;
+const GROUP_ORDER=['원룸','1.5룸','투룸','쓰리룸','코어','근생','공공','커뮤니티','로비','설비'];
+const UNIT_NAMES=['현관','욕실','욕실2','주방','주방·식당','거실','거실·주방','거실·침실','침실1','침실2','침실3','침실(알코브)','드레스룸','수납','다용도실','복도(세대)'];
+const CORE_KINDS={stair:'계단실',ev:'승강기',vestibule:'부속실',shaft:'샤프트'};
+const tsvg=$('tsvg');
+function dispName(T,r){ return r.name==='*'? ((T.instances[0]||{}).name||'주 공간') : r.name; }
+function tRooms(){ const T=typeBy(tKey); return tDraft||(T?T.rooms:[]); }
+function tRoomColor(T,r){ if(T.cat==='unit') return ROOMC[r.name]||'#f0f0f0'; if(T.cat==='core') return COREC[r.kind]||'#ddd'; return r.name==='*'? (ZONEC[T.ztype]||'#eee') : '#f1eee8'; }
+function typeRoomObj(id){ const h=id.lastIndexOf('#'); if(h<0) return null; const key=id.slice(0,h), i=+id.slice(h+1); const T=typeBy(key); if(!T) return null; const rs=(key===tKey&&tDraft)?tDraft:T.rooms; const r=rs[i]; if(!r) return null; return Object.assign({},r,{tkind:true,id,T,i,disp:dispName(T,r)}); }
+const tSelIdx=()=>sel.filter(s=>s.fid==='T'&&s.id.slice(0,s.id.lastIndexOf('#'))===tKey).map(s=>+s.id.slice(s.id.lastIndexOf('#')+1)).filter(i=>tRooms()[i]);
+const nCmt=t=>doc.comments.filter(c=>c.status!=='done'&&(c.targets||[]).some(x=>x.typeKey===t.key)).length;
+function thumb(t){ const s=40/Math.max(t.W,t.D), ox=(40-t.W*s)/2, oy=(40-t.D*s)/2; return `<svg viewBox="-2 -2 44 44">${t.rooms.map(r=>`<rect x="${ox+r.t0*s}" y="${oy+(t.D-r.d1)*s}" width="${(r.t1-r.t0)*s}" height="${(r.d1-r.d0)*s}" fill="${tRoomColor(t,r)}" stroke="#8a949a" stroke-width="0.5"/>`).join('')}</svg>`; }
+function renderTypeList(){ const ts=doc.types||[]; if(!ts.length){ $('typeList').innerHTML='<div class="empty">타입 정보가 없습니다. 계획설계를 다시 생성하세요.</div>'; return; }
+  const groups={}; ts.forEach(t=>(groups[t.group]=groups[t.group]||[]).push(t)); const ord=g=>{ const i=GROUP_ORDER.indexOf(g); return i<0?99:i; };
+  $('typeList').innerHTML=Object.keys(groups).sort((a,b)=>ord(a)-ord(b)).map(g=>{ const L=groups[g]; const n=L.reduce((a,t)=>a+t.instances.length,0);
+    return `<h3>${L[0].cat==='unit'?'세대 · ':''}${esc(g)} <span style="font-weight:400">${L.length}타입 · ${n}곳</span></h3>`+L.map(t=>{ const warn=(t.issues||[]).filter(m=>!m.startsWith('[참고]')).length, nc=nCmt(t);
+      return `<div class="ti ${t.key===tKey?'on':''}" data-k="${esc(t.key)}">${thumb(t)}<div><b>${esc(t.code)}</b> ${t.edited?'<span class="ed">편집됨</span>':''}<small>${fmt(t.W,2)}×${fmt(t.D,2)}m · ${fmt(t.W*t.D,1)}㎡</small></div><span class="n">×${t.instances.length}${warn?'<br><span class="bd warn">!</span>':''}${nc?`<br><span class="bd ask">💬${nc}</span>`:''}</span></div>`; }).join(''); }).join(''); }
+$('typeList').addEventListener('click',e=>{ const d=e.target.closest('.ti'); if(d) openType(d.dataset.k); });
+function openType(key,keepSel){ if(tDraft&&key!==tKey&&!confirm('적용하지 않은 편집이 있습니다. 버리고 다른 타입을 볼까요?')) return; if(key!==tKey){ tDraft=null; tDoorDraft=null; tKey=key; tVF=null; tVB=null; tPrev=null; draftChanged(); } if(!keepSel) sel=[]; if(tab!=='type') setTab('type'); else renderTypeTab(true); }
+function renderTypeHead(){ const T=typeBy(tKey); if(!T){ $('typeHead').innerHTML='<div class="empty">왼쪽에서 타입을 고르세요.</div>'; return; }
+  const floors=[...new Set(T.instances.map(i=>i.floor))]; const iss=(T.issues||[]);
+  const note=T.cat==='unit'?'아래 = 현관(공용 복도) 쪽, 위 = 창(외벽) 쪽. 좌우가 뒤집힌 세대(⇋)도 같은 타입으로 묶어, 현관이 항상 왼쪽에 오게 그렸습니다.':T.cat==='core'?'평면과 같은 방향 (위 = 북측). 실 크기·이름·용도를 바꾸면 이 코어가 있는 모든 층에 들어갑니다.':'평면과 같은 방향. 실을 나누면 같은 크기의 구역 모두에 똑같이 들어갑니다 (화장실·창고 등).';
+  $('typeHead').innerHTML=`<h3>${esc(T.code)} ${T.unitType?`<span class="bd">${esc(T.unitType)}</span>`:''} ${T.edited?'<span class="ed">편집됨</span>':''}<span class="meta">${fmt(T.W,2)} × ${fmt(T.D,2)} m · ${fmt(T.W*T.D,2)}㎡ · ${floors.length}개 층 ${T.instances.length}곳에서 사용</span></h3>
+    <div class="meta">${note}${iss.length?' · <span style="color:var(--warn)">'+iss.map(m=>esc(m.replace('[참고] ',''))).join(' / ')+'</span>':''}</div>
+    <div class="insts">${T.instances.map((I,k)=>`<button data-k="${k}" title="평면에서 보기">${esc(I.floor)} ${esc(I.name)}${I.mirror?' ⇋':''}</button>`).join('')}</div>`;
+  $('typeHead').querySelectorAll('.insts button').forEach(b=>b.onclick=()=>{ const I=T.instances[+b.dataset.k]; const fi=floorIdxOf(I.floor); if(fi<0) return; cur=fi; const f=doc.floors[fi]; setTab('plan'); sel=f.rooms.filter(r=>r.zone===I.zone).map(r=>({fid:f.id,id:r.id})); renderAll(); }); }
+function mergeRect(a,b){ if(!a||!b) return null; const e=1e-6;
+  if(Math.abs(a.t0-b.t0)<e&&Math.abs(a.t1-b.t1)<e&&(Math.abs(a.d1-b.d0)<e||Math.abs(b.d1-a.d0)<e)) return {t0:a.t0,t1:a.t1,d0:Math.min(a.d0,b.d0),d1:Math.max(a.d1,b.d1)};
+  if(Math.abs(a.d0-b.d0)<e&&Math.abs(a.d1-b.d1)<e&&(Math.abs(a.t1-b.t0)<e||Math.abs(b.t1-a.t0)<e)) return {t0:Math.min(a.t0,b.t0),t1:Math.max(a.t1,b.t1),d0:a.d0,d1:a.d1};
+  return null; }
+function tEdit(fn){ const T=typeBy(tKey); const d=JSON.parse(JSON.stringify(tDraft||T.rooms)); if(fn(d)===false) return; if(!tDraft) tDoorDraft=JSON.parse(JSON.stringify(T.doors||{})); tDraft=d; draftChanged(); renderTypeTab(); }
+let tVer=0, tPrev=null, tPrevTimer=null, tEditMode=false, tDoorDraft=null;
+function draftChanged(){ tVer++; clearTimeout(tPrevTimer); if(!tDraft||!tCheck().ok) return; const ver=tVer, key=tKey, rooms=tDraft.map(r=>Object.assign({},r));
+  tPrevTimer=setTimeout(async()=>{ try{ const r=await fetch('/api/plan/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,rooms,doors:tDoorDraft||(typeBy(key)||{}).doors||{}})}); const j=await r.json(); if(!j.ok) throw new Error(j.error);
+    if(key!==tKey) return; const vf=virtFloor(typeBy(key),j.floor); tPrev={key,ver,vf,issues:j.issues||[]}; if(ver===tVer&&!tDrag){ drawType(); renderPrevIssues(); } }catch(e){ console.warn('preview',e); } },140); }
+function renderPrevIssues(){ const el2=$('tPrevIss'); if(!el2) return; const c=tCheck(); if(!c.ok){ el2.innerHTML=`<b style="color:var(--bad)">⚠ ${c.text} — 정리해야 적용됩니다</b>`; return; } const iss=tDraft&&tPrev&&tPrev.ver===tVer?tPrev.issues:[]; el2.innerHTML=iss.length?'⚠ '+iss.map(esc).join(' / '):''; }
+function renderTTool(){ const T=typeBy(tKey); if(!T){ $('ttool').innerHTML=''; return; } const rs=tRooms(), ts=tSelIdx(); const one=ts.length===1?rs[ts[0]]:null;
+  const names=T.cat==='unit'?UNIT_NAMES:T.cat==='core'?['특별피난계단','승강기','비상용 승강기','부속실','EPS·TPS','PS·AD','PS','창고']:['*','화장실','창고','사무실','탕비실','주방','홀','기계실','전기실'];
+  const ne=sel.filter(q=>q.fid==='TV').length; let h=`<button class="editbtn ${tEditMode?'on':''}" id="tEditBtn" title="실 이동·칸막이·실 배치 (E)">${tEditMode?'✓ 실 편집 중':'✏️ 실 편집'}</button><b style="font-size:12.5px">${ts.length||ne?[ts.length?`실 ${ts.length}`:'',ne?`문·창·벽 ${ne}`:''].filter(Boolean).join(' · ')+' 선택':'실을 선택하세요'}</b>`;
+  if(tEditMode){ h+=`<input id="tName" list="tNames" placeholder="실 이름 (Enter)" value="${one?esc(one.name):''}" ${ts.length?'':'disabled'} style="width:140px"><datalist id="tNames">${names.map(n=>`<option value="${esc(n)}">${n==='*'?'구역 이름 그대로 (주 공간)':''}</option>`).join('')}</datalist>`;
+  if(T.cat==='core') h+=`<select id="tKind" ${ts.length?'':'disabled'} title="코어 실 용도">${Object.entries(CORE_KINDS).map(([k,v])=>`<option value="${k}" ${one&&one.kind===k?'selected':''}>${v}</option>`).join('')}</select>`;
+  h+=`<button class="btn sm" id="tSplitV" ${one?'':'disabled'}>⇹ 좌우로 나누기</button><button class="btn sm" id="tSplitH" ${one?'':'disabled'}>⇅ 위아래로 나누기</button><button class="btn sm" id="tMerge" ${ts.length===2&&mergeRect(rs[ts[0]],rs[ts[1]])?'':'disabled'} title="맞닿은 두 실 선택">합치기</button><button class="btn sm danger" id="tDel" ${ts.length?'':'disabled'} title="선택한 실 지우기 (Delete)">🗑 실 삭제</button>`; } else h+=`<span style="color:var(--muted);font-size:12px">← 실 편집을 켜면 실을 끌어 옮기고, 경계선을 움직이고, 태그로 실을 배치할 수 있습니다</span>`;
+  h+=`<span class="sepv"></span>`;
+  h+= tDraft? `<span class="dirty">● 적용 전</span><button class="btn sm primary" id="tApply" ${tCheck().ok?'':'disabled title="빈 공간·겹침을 정리해야 적용할 수 있습니다"'}>${T.instances.length}곳에 적용</button><button class="btn sm" id="tUndo">편집 취소</button>${tDoorDraft&&Object.keys(tDoorDraft).length?`<span style="font-size:12px;color:#e8590c;font-weight:700">문 위치 편집 ${Object.keys(tDoorDraft).length}</span>`:''}<span id="tPrevIss" style="color:var(--warn);font-size:12px"></span>` : '';
+  if(T.edited&&!tDraft) h+=`<button class="btn sm danger" id="tReset">자동 계획안으로 되돌리기</button>`;
+  h+=`<button class="btn sm" id="tAll" style="margin-left:auto" title="모든 실 선택 → ✦ 요청">타입 전체 선택</button>`;
+  $('ttool').innerHTML=h;
+  const nm=$('tName'); if(nm){ const go=()=>{ const v=nm.value.trim(); if(!v||ts.every(i=>rs[i].name===v)) return; tEdit(d=>{ ts.forEach(i=>d[i].name=v); }); }; nm.onchange=go; nm.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); go(); } }; }
+  const kd=$('tKind'); if(kd) kd.onchange=()=>tEdit(d=>{ ts.forEach(i=>{ d[i].kind=kd.value; if(kd.value==='ev'&&!d[i].door) d[i].door='E'; }); });
+  const split=o=>{ const r=rs[ts[0]]; const [a,b]=o==='v'?[r.t0,r.t1]:[r.d0,r.d1]; const m=r3(snap((a+b)/2)); if(m-a<0.6||b-m<0.6){ toast('너무 좁아 나눌 수 없습니다 (최소 0.6m)'); return; }
+    tEdit(d=>{ const q=d[ts[0]], nr=Object.assign({},q); delete nr.door; delete nr.emergency; nr.name=T.cat==='unit'?'수납':T.cat==='core'?'PS':'창고'; if(T.cat==='core') nr.kind='shaft';
+      if(o==='v'){ nr.t0=m; q.t1=m; } else { nr.d0=m; q.d1=m; } d.push(nr); sel=[{fid:'T',id:tKey+'#'+(d.length-1)}]; }); };
+  if($('tSplitV')) $('tSplitV').onclick=()=>split('v'); if($('tSplitH')) $('tSplitH').onclick=()=>split('h');
+  if($('tMerge')) $('tMerge').onclick=()=>tEdit(d=>{ const [i,j]=ts; const m=mergeRect(d[i],d[j]); if(!m) return false; const A=(r)=>(r.t1-r.t0)*(r.d1-r.d0); const keep=A(d[i])>=A(d[j])?i:j, drop=keep===i?j:i; Object.assign(d[keep],m); d.splice(drop,1); sel=[{fid:'T',id:tKey+'#'+(keep>drop?keep-1:keep)}]; });
+  if($('tApply')) $('tApply').onclick=()=>applyType(false); if($('tUndo')) $('tUndo').onclick=()=>{ tDraft=null; tDoorDraft=null; tVF=null; tPrev=null; draftChanged(); sel=[]; renderTypeTab(); };
+  if($('tReset')) $('tReset').onclick=()=>{ if(confirm(`${T.code}의 편집을 지우고 자동 계획안으로 되돌릴까요? (${T.instances.length}곳)`)) applyType(true); };
+  $('tEditBtn').onclick=()=>toggleEdit(); renderPrevIssues(); if($('tDel')) $('tDel').onclick=deleteRooms;
+  $('tAll').onclick=()=>{ sel=tRooms().map((r,i)=>({fid:'T',id:tKey+'#'+i})); renderTypeTab(); }; }
+async function applyType(reset){ reset=reset===true; if(!reset&&!tCheck().ok){ toast('빈 공간·겹침을 먼저 정리하세요: '+tCheck().text); return; } const T=typeBy(tKey); if(!T||tBusy||(!reset&&!tDraft)) return; tBusy=true; const b=$('tApply'); if(b){ b.disabled=true; b.textContent='다시 계산 중…'; } setSave('pending','타입 적용 중…');
+  try{ await flushSave(); const rooms=reset?null:tDraft.map(r=>{ const o={name:r.name,t0:r3(r.t0),t1:r3(r.t1),d0:r3(r.d0),d1:r3(r.d1)}; if(r.kind) o.kind=r.kind; if(r.door) o.door=r.door; if(r.emergency) o.emergency=true; return o; });
+    const r=await fetch('/api/plan/typeedit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:T.key,rooms,doors:reset?null:(tDoorDraft||T.doors||{})})}); const j=await r.json(); if(!r.ok||!j.ok) throw new Error(j.error||r.status);
+    tDraft=null; tDoorDraft=null; tVF=null; tPrev=null; draftChanged(); await reloadDoc(); setSave('ok','적용됨 '+new Date().toLocaleTimeString('ko-KR',{hour12:false})); toast(reset?`${T.code}을 자동 계획안으로 되돌렸습니다`:`${T.code} 수정을 ${T.instances.length}곳에 반영했습니다 (벽·문·창 다시 계산)`); }
+  catch(e){ setSave('err','적용 실패 — '+e.message); toast('적용 실패: '+e.message); }
+  finally{ tBusy=false; renderTypeTab(); } }
+async function reloadDoc(){ const fid=F().id; const r=await fetch('/api/plan',{cache:'no-store'}); if(!r.ok) throw new Error('다시 불러오기 실패'); doc=await r.json(); doc.comments=doc.comments||[]; const i=floorIdxOf(fid); cur=i<0?0:i; renderAll(); }
+function virtFloor(T,src){ const I=T.instances[0]; if(!I) return null; const f=src||doc.floors[floorIdxOf(I.floor)]; if(!f) return null; if(!src) objIn(f.id,'');
+  const P=(x,y)=>{ let tt,d; if(I.back==='S'){tt=x-I.x0;d=I.y1-y;} else if(I.back==='N'){tt=x-I.x0;d=y-I.y0;} else if(I.back==='W'){tt=y-I.y0;d=I.x1-x;} else {tt=y-I.y0;d=x-I.x0;} return [r3(I.mirror?I.W-tt:tt),r3(d)]; };
+  const RR=o=>{ const a=P(o.x,o.y), b=P(o.x+o.w,o.y+o.h); return Object.assign({},o,{x:Math.min(a[0],b[0]),y:Math.min(a[1],b[1]),w:r3(Math.abs(b[0]-a[0])),h:r3(Math.abs(b[1]-a[1]))}); };
+  const rooms=f.rooms.filter(r=>r.zone===I.zone).map(RR); const ids=new Set(rooms.map(r=>r.id));
+  const walls=f.walls.filter(w=>ids.has(w.rooms[0])||ids.has(w.rooms[1])).map(w=>{ const a=P(...w.a), b=P(...w.b); const hf=Math.abs(w.a[1]-w.b[1])<1e-6; const mf=[(w.a[0]+w.b[0])/2,(w.a[1]+w.b[1])/2]; const pp=P(mf[0]+(hf?0:0.05),mf[1]+(hf?0.05:0)); const hc=Math.abs(a[1]-b[1])<1e-6; const mc=[(a[0]+b[0])/2,(a[1]+b[1])/2];
+    const plus=hc?pp[1]>mc[1]:pp[0]>mc[0]; return Object.assign({},w,{a,b,rooms:plus?w.rooms:[w.rooms[1],w.rooms[0]]}); }); const wids=new Set(walls.map(w=>w.id));
+  const vf={id:f.id,rooms,walls,fixtures:(f.fixtures||[]).filter(x=>ids.has(x.room)).map(x=>{ const q=RR(x); const sm=v=>{ const a=P(x.x+x.w/2,x.y+x.h/2); return a; }; return q; }),openings:f.openings.filter(o=>wids.has(o.wall)),stairs:f.stairs.filter(s=>ids.has(s.room)).map(s=>{ const q=RR(s); q.axis=q.h>=q.w?'v':'u'; return q; }),elevators:f.elevators.filter(e=>ids.has(e.room)).map(RR)};
+  const m={}; [...rooms,...walls].forEach(o=>m[o.id]=o); f.rooms.forEach(r=>{ if(!m[r.id]) m[r.id]=r; }); vf._idx=m; return vf; }
+function tbox(){ const r=$('tstage').getBoundingClientRect(); return {w:Math.max(50,r.width),h:Math.max(50,r.height)}; }
+const tpx=()=>tVB.w/tbox().w;
+function tfit(){ const T=typeBy(tKey); if(!T) return; const pad=Math.max(T.W,T.D)*0.16+1.6; const x0=-pad,x1=T.W+pad,y0=-T.D-pad,y1=pad; const B=tbox(), r=B.w/B.h; let w=x1-x0,h=y1-y0;
+  if(w/h<r){ const nw=h*r; tVB={x:x0-(nw-w)/2,y:y0,w:nw,h}; } else { const nh=w/r; tVB={x:x0,y:y0-(nh-h)/2,w,h:nh}; } drawType(); }
+function tToM(e){ const pt=tsvg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY; const q=pt.matrixTransform(tsvg.getScreenCTM().inverse()); return [q.x,-q.y]; }
+function renderTypeTab(fitView){ if(!doc) return; if(tKey&&!typeBy(tKey)){ tKey=null; tDraft=null; } if(!tKey&&doc.types&&doc.types.length) tKey=doc.types[0].key;
+  renderTypeList(); renderTypeHead(); renderTTool(); renderTPal(); if(fitView||!tVB) tfit(); else drawType(); renderSelInfo(); updateAsk();
+  const on=$('typeList').querySelector('.ti.on'); if(on&&fitView) on.scrollIntoView({block:'nearest'}); }
+function lineSet(rs,o,c,lo,hi){ let a=lo,b=hi,ch=true,set=[]; while(ch){ ch=false; set=[]; rs.forEach((r,i)=>{ const [s0,s1,e0,e1]=o==='v'?[r.t0,r.t1,r.d0,r.d1]:[r.d0,r.d1,r.t0,r.t1]; const side=Math.abs(s0-c)<1e-6?0:Math.abs(s1-c)<1e-6?1:-1; if(side<0) return;
+  if(Math.min(e1,b)-Math.max(e0,a)>1e-6){ set.push({i,side}); if(e0<a-1e-6){a=e0;ch=true;} if(e1>b+1e-6){b=e1;ch=true;} } }); } return {set,a,b}; }
+function nearLine(p){ const T=typeBy(tKey); if(!T) return null; const tol=7*tpx(); let best=null;
+  tRooms().forEach(r=>[['v',r.t0,r.d0,r.d1],['v',r.t1,r.d0,r.d1],['h',r.d0,r.t0,r.t1],['h',r.d1,r.t0,r.t1]].forEach(([o,c,lo,hi])=>{ const E=o==='v'?T.W:T.D; if(c<1e-6||Math.abs(c-E)<1e-6) return;
+    const [pc,pl]=o==='v'?[p[0],p[1]]:[p[1],p[0]]; if(pl<lo||pl>hi) return; const dd=Math.abs(pc-c); if(dd<tol&&(!best||dd<best.dd)) best={o,c,lo,hi,dd}; })); return best; }
+function roomAt(p){ return tRooms().findIndex(r=>p[0]>=r.t0&&p[0]<=r.t1&&p[1]>=r.d0&&p[1]<=r.d1); }
+function drawType(){ ['tgRooms','tgWalls','tgOps','tgCore','tgLabels','tgEdit','tgPins'].forEach(g=>$(g).innerHTML=''); const T=typeBy(tKey); if(!T||!tVB) return;
+  tsvg.setAttribute('viewBox',`${tVB.x} ${tVB.y} ${tVB.w} ${tVB.h}`); const s=tpx(), rs=tRooms(), ts=new Set(tSelIdx());
+  rs.forEach((r,i)=>el('rect',{x:r.t0,y:-r.d1,width:r.t1-r.t0,height:r.d1-r.d0,fill:layers.fill?tRoomColor(T,r):'transparent',class:'rm'+(ts.has(i)?' sel':''),'vector-effect':'non-scaling-stroke','data-i':i},$('tgRooms')));
+  const chk=tCheck(); const pv=tDraft&&chk.ok?(tPrev&&tPrev.key===tKey?tPrev.vf:null):null; if(!tDraft&&!tVF) tVF=virtFloor(T);
+  if(!tDraft||pv){ const f=tDraft?pv:tVF;
+    if(f){ tvDraw=!tDraft; try{ f.walls.forEach(w=>{ const p=wallPoly(w,f); el('rect',{x:p.x,y:p.y,width:p.w,height:p.h,fill:WALLC(w.kind),class:'wl'+(isSel(w.id)?' sel':''),'data-id':w.id},$('tgWalls')); });
+      f.openings.forEach(o=>drawOpening(f,o,$('tgOps'),s,o.kind==='door')); f.stairs.forEach(st=>drawStair(st,$('tgCore'),s)); f.elevators.forEach(ev=>drawEV(ev,$('tgCore'),s)); if(f.fixtures) drawFixtures(f,$('tgCore'),s,true); } finally{ tvDraw=false; } } }
+  if(tDraft&&(!pv||tPrev.ver!==tVer)){ rs.forEach(r=>el('rect',{x:r.t0,y:-r.d1,width:r.t1-r.t0,height:r.d1-r.d0,fill:'none',stroke:css('--w-part'),'stroke-width':1.5,'vector-effect':'non-scaling-stroke'},$('tgWalls')));
+    if(!pv) el('rect',{x:0,y:-T.D,width:T.W,height:T.D,fill:'none',stroke:css('--w-ext'),'stroke-width':4,'vector-effect':'non-scaling-stroke'},$('tgWalls')); }
+  if(!chk.ok){ const ge=$('tgWalls'); chk.gaps.forEach(c=>el('rect',{x:c.t0,y:-c.d1,width:c.t1-c.t0,height:c.d1-c.d0,fill:'url(#tHatch)',stroke:'none'},ge)); chk.over.forEach(c=>el('rect',{x:c.t0,y:-c.d1,width:c.t1-c.t0,height:c.d1-c.d0,fill:'rgba(217,45,32,.35)',stroke:'#d92d20','stroke-width':1,'vector-effect':'non-scaling-stroke'},ge)); }
+  const gl=$('tgLabels');
+  rs.forEach((r,i)=>{ const w=r.t1-r.t0, h=r.d1-r.d0, m=Math.min(w,h)/s; if(m<18) return; const fs=Math.min(13,Math.max(8,m/5.5))*s, cx=(r.t0+r.t1)/2, cy=-(r.d0+r.d1)/2; const vert=h>w*1.8&&w/s<80; const tr=vert?`rotate(-90 ${cx} ${cy})`:'';
+    const nm=dispName(T,r).replace(' (특피·비상EV 승강장 겸용)',''); el('text',{x:cx,y:cy-fs*0.2,'font-size':fs,class:'rl','text-anchor':'middle',transform:tr},gl).textContent=nm;
+    if(m>30){ el('text',{x:cx,y:cy+fs*0.95,'font-size':fs*0.8,class:'rs','text-anchor':'middle',transform:tr},gl).textContent=`${fmt(w,2)}×${fmt(h,2)} · ${fmt(w*h,1)}㎡`; } });
+  const ds=10*s; el('text',{x:T.W/2,y:2.2*ds,'font-size':ds*1.1,class:'dim','text-anchor':'middle'},gl).textContent=`${fmt(T.W,2)} m`;
+  el('text',{x:-1.6*ds,y:-T.D/2,'font-size':ds*1.1,class:'dim','text-anchor':'middle',transform:`rotate(-90 ${-1.6*ds} ${-T.D/2})`},gl).textContent=`${fmt(T.D,2)} m`;
+  if(T.cat==='unit'){ el('text',{x:T.W/2,y:-T.D-1.2*ds,'font-size':ds*1.15,class:'side','text-anchor':'middle'},gl).textContent='▲ 창 · 외벽 쪽'; el('text',{x:T.W/2,y:3.6*ds,'font-size':ds*1.05,class:'side','text-anchor':'middle'},gl).textContent='▼ 현관 · 공용 복도 쪽'; }
+  else { el('text',{x:T.W/2,y:-T.D-1.2*ds,'font-size':ds,class:'dim','text-anchor':'middle'},gl).textContent='▲ 북측 (v+)'; }
+  ['tgWalls','tgOps','tgCore'].forEach(g=>$(g).classList.toggle('off',!!tPlace)); drawTEdit(); drawTPins(); }
+function drawTEdit(){ const g=$('tgEdit'); g.innerHTML='';
+  if(tDrag&&tDrag.k==='door'&&tDrag.B){ const B=tDrag.B, w=B.w, L=w.len, ux=(w.b[0]-w.a[0])/L, uy=(w.b[1]-w.a[1])/L, h=tDrag.o.w/2, s=tpx();
+    el('line',{x1:B.q[0]-ux*h,y1:-(B.q[1]-uy*h),x2:B.q[0]+ux*h,y2:-(B.q[1]+uy*h),stroke:'#e8590c','stroke-width':9,'stroke-linecap':'butt',opacity:.85,'vector-effect':'non-scaling-stroke'},g);
+    el('text',{x:B.q[0]+8*s,y:-B.q[1]-8*s,'font-size':12*s,fill:'#e8590c','font-weight':800},g).textContent=`${tDrag.o.type.replace(' (방화 갑종)','')} 이동`; return; }
+  if(tDrag&&tDrag.k==='move'){ const r=tRooms()[tDrag.i], R=tDrag.R, s=tpx(); el('rect',{x:r.t0,y:-r.d1,width:r.t1-r.t0,height:r.d1-r.d0,fill:'none',stroke:css('--accent'),'stroke-width':1.5,'stroke-dasharray':'3 3','vector-effect':'non-scaling-stroke'},g);
+    if(R){ el('rect',{x:R.t0,y:-R.d1,width:R.t1-R.t0,height:R.d1-R.d0,class:'tghost','vector-effect':'non-scaling-stroke'},g); el('text',{x:(R.t0+R.t1)/2,y:-(R.d0+R.d1)/2,'font-size':13*s,'text-anchor':'middle',fill:css('--accent'),'font-weight':800},g).textContent=`${dispName(typeBy(tKey),r)} → t ${fmt(R.t0,2)} · d ${fmt(R.d0,2)}${R.swap?' (맞바꿈)':''}`; } return; }
+  if(tDrag&&tDrag.k==='draw'&&tDrag.moved){ const R=drawRect(tDrag), s=tpx(); el('rect',{x:R.t0,y:-R.d1,width:R.t1-R.t0,height:R.d1-R.d0,class:'trub','vector-effect':'non-scaling-stroke'},g);
+    el('text',{x:(R.t0+R.t1)/2,y:-(R.d0+R.d1)/2,'font-size':13*s,'text-anchor':'middle',fill:css('--askc'),'font-weight':800},g).textContent=`${tPlace} ${fmt(R.t1-R.t0,2)}×${fmt(R.d1-R.d0,2)}`; return; } const L=tDrag&&tDrag.k==='line'?{o:tDrag.o,c:tDrag.c??tDrag.c0,a:tDrag.a,b:tDrag.b}:tHover?(()=>{ const q=lineSet(tRooms(),tHover.o,tHover.c,tHover.lo,tHover.hi); return {o:tHover.o,c:tHover.c,a:q.a,b:q.b}; })():null; if(!L) return;
+  const s=tpx(); if(L.o==='v') el('line',{x1:L.c,y1:-L.a,x2:L.c,y2:-L.b,class:'tline','vector-effect':'non-scaling-stroke'},g); else el('line',{x1:L.a,y1:-L.c,x2:L.b,y2:-L.c,class:'tline','vector-effect':'non-scaling-stroke'},g);
+  if(tDrag&&tDrag.k==='line'){ const tx=L.o==='v'?[L.c+6*s,-(L.a+L.b)/2]:[(L.a+L.b)/2,-L.c-6*s]; el('text',{x:tx[0],y:tx[1],'font-size':12*s,fill:css('--accent'),'font-weight':800},g).textContent=`${L.o==='v'?'t':'d'} = ${fmt(L.c,2)} m`; } }
+function drawTPins(){ const gp=$('tgPins'); const s=tpx(), AC=css('--askc'), OK=css('--ok'); const rs=tRooms();
+  doc.comments.forEach(c=>{ if(c.status==='done'&&cmtOpenOnly) return; (c.targets||[]).forEach(t=>{ if(t.typeKey!==tKey) return; let pos;
+    if(t.kind==='typeElement'){ if(!t.pos) return; pos=[t.pos[0],-t.pos[1]]; } else { const r=rs[+String(t.id).slice(String(t.id).lastIndexOf('#')+1)]; if(!r) return; pos=[(r.t0+r.t1)/2,-(r.d0+r.d1)/2-0.4]; }
+    const g=el('g',{style:'cursor:pointer',transform:`translate(${pos[0]},${pos[1]})`},gp);
+    el('path',{d:`M0,0 L${-5*s},${-9*s} A${11*s},${11*s} 0 1 1 ${5*s},${-9*s} Z`,fill:c.status==='done'?OK:AC,stroke:'#fff','stroke-width':1.5,'vector-effect':'non-scaling-stroke'},g);
+    el('text',{x:0,y:-14.5*s,'font-size':10.5*s,'text-anchor':'middle',fill:'#fff','font-weight':800},g).textContent=c.n; g.addEventListener('pointerdown',e=>{ e.stopPropagation(); focusComment(c.id); }); }); }); }
+tsvg.addEventListener('contextmenu',e=>e.preventDefault());
+tsvg.addEventListener('pointerdown',e=>{ if(!typeBy(tKey)) return;
+  if(e.button===1||e.button===2||spaceDown){ tDrag={k:'pan',sx:e.clientX,sy:e.clientY,vb:Object.assign({},tVB)}; tsvg.classList.add('panning'); tsvg.setPointerCapture(e.pointerId); return; }
+  if(e.button!==0) return; const p=tToM(e);
+  const ev={clientX:e.clientX,clientY:e.clientY,shiftKey:e.shiftKey,metaKey:e.metaKey,ctrlKey:e.ctrlKey};
+  if(!tEditMode){ tPick(ev); return; }
+  if(tPlace){ tDrag={k:'draw',p0:snapPt(p),p1:snapPt(p),moved:false}; tsvg.setPointerCapture(e.pointerId); return; }
+  const dh=doorAt(e); if(dh){ tDrag=Object.assign({k:'door',ev,sx:e.clientX,sy:e.clientY,moved:false},dh); tsvg.setPointerCapture(e.pointerId); return; }
+  const L=nearLine(p);
+  if(!L){ const i=roomAt(p); if(i>=0&&!ev.shiftKey){ const r=tRooms()[i]; tDrag={k:'press',i,ev,p0:p,off:[p[0]-r.t0,p[1]-r.d0],sx:e.clientX,sy:e.clientY}; tsvg.setPointerCapture(e.pointerId); return; } }
+  if(L){ const rs=tRooms(); const q=lineSet(rs,L.o,L.c,L.lo,L.hi); tDrag={k:'line',o:L.o,c0:L.c,set:q.set,a:q.a,b:q.b,base:JSON.parse(JSON.stringify(rs)),moved:false,ev}; tsvg.setPointerCapture(e.pointerId); return; }
+  tPick(ev); });
+function tPick(e){ const p=tToM(e), add=e.shiftKey||e.metaKey||e.ctrlKey; let t=null;
+  if(!tDraft){ const order={door:0,window:0,stair:1,elevator:1,wall:2}; let best=null;
+    for(const n of document.elementsFromPoint(e.clientX,e.clientY)){ const h=n.closest&&n.closest('[data-id]'); if(!h||!tsvg.contains(h)) continue; const o=objIn('TV',tKey+'@'+h.getAttribute('data-id')); if(!o||!pickKindOk(o.ek)||order[o.ek]==null) continue; if(!best||order[o.ek]<order[best.ek]) best=o; }
+    if(best) t={fid:'TV',id:best.id}; }
+  if(!t&&pickKindOk('troom')){ const i=roomAt(p); if(i>=0) t={fid:'T',id:tKey+'#'+i}; }
+  if(t){ if(add){ const j=sel.findIndex(q=>q.fid===t.fid&&q.id===t.id); j>=0?sel.splice(j,1):sel.push(t); } else sel=[t]; } else if(!add) sel=[];
+  closeComposer(); renderTTool(); drawType(); renderSelInfo(); updateAsk(); }
+tsvg.addEventListener('pointermove',e=>{ if(!typeBy(tKey)||!tVB) return; const p=tToM(e); $('coord').textContent=`t ${fmt(p[0],2)} · d ${fmt(p[1],2)} m`;
+  if(!tDrag&&tEditMode&&!tPlace){ const dh=doorAt(e); $('tgOps').querySelectorAll('.dhover').forEach(x=>x.classList.remove('dhover')); if(dh){ const g=$('tgOps').querySelector(`[data-id="${dh.o.id}"]`); if(g) g.classList.add('dhover'); tsvg.style.cursor='grab'; if(tHover){ tHover=null; drawTEdit(); } return; } }
+  if(!tDrag){ const L=tEditMode&&!tPlace?nearLine(p):null; const ch=(L&&L.o+L.c)!==(tHover&&tHover.o+tHover.c); tHover=L; tsvg.style.cursor=L?(L.o==='v'?'col-resize':'row-resize'):''; if(ch) drawTEdit(); return; }
+  if(tDrag.k==='pan'){ const k=tpx(); tVB.x=tDrag.vb.x-(e.clientX-tDrag.sx)*k; tVB.y=tDrag.vb.y-(e.clientY-tDrag.sy)*k; drawType(); updateAsk(); return; }
+  if(tDrag.k==='door'){ if(!tDrag.moved&&Math.hypot(e.clientX-tDrag.sx,e.clientY-tDrag.sy)<5) return; tDrag.moved=true; tDrag.B=doorTarget(tDrag,p); drawTEdit(); return; }
+  if(tDrag.k==='press'){ if(Math.hypot(e.clientX-tDrag.sx,e.clientY-tDrag.sy)<5) return; tDrag.k='move'; tsvg.style.cursor='move'; }
+  if(tDrag.k==='move'){ tDrag.R=moveTarget(tDrag,p); drawTEdit(); return; }
+  if(tDrag.k==='draw'){ tDrag.p1=snapPt(p); if(Math.abs(tDrag.p1[0]-tDrag.p0[0])>=0.1||Math.abs(tDrag.p1[1]-tDrag.p0[1])>=0.1) tDrag.moved=true; drawTEdit(); return; }
+  if(tDrag.k==='line'){ let c=snap(tDrag.o==='v'?p[0]:p[1]); let lo=-1e9,hi=1e9;
+    tDrag.set.forEach(({i,side})=>{ const r=tDrag.base[i]; const [s0,s1]=tDrag.o==='v'?[r.t0,r.t1]:[r.d0,r.d1]; if(side===0) hi=Math.min(hi,s1-0.6); else lo=Math.max(lo,s0+0.6); });
+    c=r3(Math.max(lo,Math.min(hi,c))); if(c===tDrag.c||(!tDrag.moved&&Math.abs(c-tDrag.c0)<1e-6)) return; tDrag.moved=true; tDrag.c=c;
+    const d=JSON.parse(JSON.stringify(tDrag.base)); tDrag.set.forEach(({i,side})=>{ const r=d[i]; if(tDrag.o==='v'){ if(side===0) r.t0=c; else r.t1=c; } else { if(side===0) r.d0=c; else r.d1=c; } }); tDraft=d; draftChanged(); drawType(); } });
+function tEnd(){ if(!tDrag) return; const d=tDrag; tDrag=null; tsvg.classList.remove('panning');
+  if(d.k==='draw'){ if(d.moved) carve(drawRect(d),tPlace); else if(!fillGap(d.p0,tPlace)) { const i=roomAt(d.p0); if(i>=0){ const T=typeBy(tKey); tEdit(q=>{ Object.assign(q[i],{name:tPlace},kindFor(T,tPlace)); sel=[{fid:'T',id:tKey+'#'+i}]; }); toast(`이름을 ‘${tPlace}’(으)로 바꿨습니다`); } } return; }
+  if(d.k==='line'&&!d.moved){ tPick(d.ev); return; }
+  if(d.k==='press'){ tPick(d.ev); return; }
+  if(d.k==='door'){ if(!d.moved){ tPick(d.ev); return; } if(d.B) moveDoor(d); else drawType(); return; }
+  if(d.k==='move'){ tsvg.style.cursor=''; if(d.R) moveRoom(d.i,d.R); else drawType(); return; }
+  if(d.k==='line'&&d.moved){ renderTTool(); renderSelInfo(); toast('칸막이 이동 — “적용”을 누르면 같은 타입 모든 곳의 벽·문·창을 다시 계산합니다'); } drawType(); updateAsk(); }
+tsvg.addEventListener('pointerup',tEnd); tsvg.addEventListener('pointercancel',tEnd);
+tsvg.addEventListener('pointerleave',()=>{ if(!tDrag&&tHover){ tHover=null; drawTEdit(); } });
+tsvg.addEventListener('wheel',e=>{ if(!tVB) return; e.preventDefault(); const m=tToM(e); const mx=m[0],my=-m[1]; const k=Math.exp(e.deltaY*0.0015); const nw=Math.max(2,Math.min(200,tVB.w*k)), f=nw/tVB.w; tVB={x:mx-(mx-tVB.x)*f,y:my-(my-tVB.y)*f,w:tVB.w*f,h:tVB.h*f}; drawType(); updateAsk(); },{passive:false});
+window.addEventListener('beforeunload',e=>{ if(tDraft){ e.preventDefault(); e.returnValue=''; } });
+
+
+/* ---------- type elements (문·창·벽 선택) & room-tag palette ---------- */
+let tPlace=null;
+function typeElemObj(id){ const h=id.lastIndexOf('@'); if(h<0) return null; const key=id.slice(0,h), eid=id.slice(h+1); const T=typeBy(key); if(!T) return null;
+  const vf=(key===tKey&&tVF)||virtFloor(T); if(!vf) return null; const o=vf.openings.find(x=>x.id===eid)||vf.walls.find(x=>x.id===eid)||vf.stairs.find(x=>x.id===eid)||vf.elevators.find(x=>x.id===eid); if(!o) return null;
+  return Object.assign({},o,{tv:true,T,vf,ek:kindOf(o),id:key+'@'+eid,eid}); }
+function tvRoom(o,rid){ if(!rid) return '외부'; const r=o.vf._idx[rid]; if(!r) return '?'; const I=o.T.instances[0]; if(r.zone===I.zone) return r.name; if(r.ztype==='unit') return '옆 세대'; return r.name; }
+function tvPos(o){ if(o.ek==='door'||o.ek==='window'){ const w=o.vf.walls.find(x=>x.id===o.wall); return w?wallPt(w,o.at):[0,0]; } if(o.ek==='wall') return [(o.a[0]+o.b[0])/2,(o.a[1]+o.b[1])/2]; return [o.x+o.w/2,o.y+o.h/2]; }
+function tvRooms(o){ const w=o.ek==='wall'?o:o.vf.walls.find(x=>x.id===o.wall); return w?w.rooms.map(r=>tvRoom(o,r)):[]; }
+function tvLabel(o){ const c=`타입 ${o.T.code}`, rr=tvRooms(o);
+  if(o.ek==='door'||o.ek==='window') return `${c} · ${o.type} ${fmt(o.w,2)}m (${rr.join('↔')})`;
+  if(o.ek==='wall') return `${c} · 벽 ${fmt(o.len,2)}m (${rr.join(' | ')})`; return `${c} · ${o.name}`; }
+function tvSnap(o){ const p=tvPos(o); const s={floor:null,kind:'typeElement',elementKind:o.ek,typeKey:o.T.key,typeCode:o.T.code,id:o.eid,repFloor:o.vf.id,repUnit:(o.T.instances[0]||{}).name,label:tvLabel(o),pos:[+p[0].toFixed(3),+p[1].toFixed(3)],instances:o.T.instances.length,anchor:null};
+  if(o.ek==='door'||o.ek==='window') Object.assign(s,{type:o.type,width:o.w,height:o.h,sill:o.sill,rooms:tvRooms(o)});
+  if(o.ek==='wall') Object.assign(s,{wallKind:o.kind,thickness:o.t,length:o.len,a:o.a,b:o.b,rooms:tvRooms(o)});
+  if(o.ek==='stair'||o.ek==='elevator') Object.assign(s,{name:o.name,rect:{t0:o.x,t1:o.x+o.w,d0:o.y,d1:o.y+o.h}}); return s; }
+function tvInfo(o,row){ const p=tvPos(o); let h=row('타입',`<b>${esc(o.T.code)}</b> · ${o.T.instances.length}곳 공통`);
+  if(o.ek==='door'||o.ek==='window'){ const w=o.vf.walls.find(x=>x.id===o.wall); h+=openingRows(o,row)+row(o.ek==='door'?'문':'창',`<b>${esc(o.type)}</b>`)+row('폭×높이',`${fmt(o.w,2)} × ${fmt(o.h,2)} m`)+(o.ek==='window'?row('창대 높이',fmt(o.sill,2)+' m'):'')+row('벽',esc((doc.wallTypes[w.kind]||{}).label||w.kind))+row('연결',esc(tvRooms(o).join(' ↔ '))); }
+  if(o.ek==='wall') h+=row('벽',`<b>${esc((doc.wallTypes[o.kind]||{}).label||o.kind)}</b>`)+row('두께·길이',`${fmt(o.t*1000,0)} mm · ${fmt(o.len,2)} m`)+row('양쪽',esc(tvRooms(o).join(' | ')))+row('개구부',o.vf.openings.filter(q=>q.wall===o.eid).map(q=>`${esc(q.type)} ${fmt(q.w,2)}`).join('<br>')||'—');
+  if(o.ek==='stair'||o.ek==='elevator') h+=row(o.ek==='stair'?'계단':'승강기',`<b>${esc(o.name)}</b>`)+row('크기',`${fmt(o.w,2)} × ${fmt(o.h,2)} m`);
+  return h+row('위치',`t ${fmt(p[0],2)} · d ${fmt(p[1],2)} m (대표 ${esc(o.vf.id)} ${esc((o.T.instances[0]||{}).name||'')})`); }
+function paletteNames(T){ return T.cat==='unit'?UNIT_NAMES:T.cat==='core'?['특별피난계단','승강기','비상용 승강기','부속실','EPS·TPS','PS·AD','PS','창고']:['*','화장실','창고','사무실','탕비실','주방','홀','기계실','전기실']; }
+function kindFor(T,name){ if(T.cat!=='core') return {}; if(name.includes('계단')) return {kind:'stair'}; if(name.includes('승강기')) return name.includes('비상')?{kind:'ev',door:'E',emergency:true}:{kind:'ev',door:'E'}; if(name.includes('부속실')) return {kind:'vestibule'}; return {kind:'shaft'}; }
+function toggleEdit(on){ tEditMode=on===undefined?!tEditMode:on; if(!tEditMode){ tPlace=null; tHover=null; tsvg.style.cursor=''; } renderTTool(); renderTPal(); drawType(); toast(tEditMode?'실 편집 켜짐 — 문 끌기=문 이동 · 실 끌기=이동(같은 크기 실 위면 맞바꿈) · 경계선 끌기=칸막이 · Delete=실 삭제 · 태그=배치·빈 곳 채우기':'실 편집 꺼짐 — 클릭은 선택(코멘트)만 합니다'); }
+function renderTPal(){ const T=typeBy(tKey); $('tpal').style.display=tEditMode&&T?'':'none'; if(!T||!tEditMode){ $('tpal').innerHTML=''; return; }
+  $('tpal').innerHTML=`<b style="margin-right:2px">실 배치</b>`+paletteNames(T).map(n=>{ const r=Object.assign({name:n},kindFor(T,n)); return `<span class="tag ${tPlace===n?'on':''}" data-n="${esc(n)}"><i style="background:${tRoomColor(T,r)}"></i>${n==='*'?'주 공간':esc(n)}</span>`; }).join('')+
+    `<span style="color:var(--muted);margin-left:6px">${tPlace?`<b style="color:var(--askc)">‘${esc(tPlace==='*'?'주 공간':tPlace)}’</b> 드래그=그 자리에 배치 · 빈 공간 클릭=채우기 · 실 클릭=이름만 바꾸기 · Esc=끝`:'태그를 누른 뒤 평면에서 드래그하면 그 자리에 실이 들어갑니다'}</span>`; }
+$('tpal').addEventListener('click',e=>{ const t=e.target.closest('.tag'); if(!t) return; tPlace=tPlace===t.dataset.n?null:t.dataset.n; renderTPal(); drawType(); tsvg.style.cursor=tPlace?'crosshair':''; });
+function snapPt(p){ const T=typeBy(tKey), tol=8*tpx(), rs=tRooms(); const ts=[0,T.W,...rs.flatMap(r=>[r.t0,r.t1])], ds=[0,T.D,...rs.flatMap(r=>[r.d0,r.d1])];
+  const sn=(v,arr,max)=>{ let b=null; arr.forEach(a=>{ if(Math.abs(a-v)<tol&&(b===null||Math.abs(a-v)<Math.abs(b-v))) b=a; }); return r3(Math.max(0,Math.min(max,b!==null?b:snap(v)))); };
+  return [sn(p[0],ts,T.W),sn(p[1],ds,T.D)]; }
+function drawRect(d){ return {t0:Math.min(d.p0[0],d.p1[0]),t1:Math.max(d.p0[0],d.p1[0]),d0:Math.min(d.p0[1],d.p1[1]),d1:Math.max(d.p0[1],d.p1[1])}; }
+function carve(R,name){ const T=typeBy(tKey); if(R.t1-R.t0<0.6||R.d1-R.d0<0.6){ toast('0.6m보다 작게는 배치할 수 없습니다'); drawTEdit(); return; }
+  tEdit(d=>{ const out=[]; d.forEach(r=>{ const a0=Math.max(r.t0,R.t0), a1=Math.min(r.t1,R.t1), b0=Math.max(r.d0,R.d0), b1=Math.min(r.d1,R.d1); if(a1-a0<1e-6||b1-b0<1e-6){ out.push(r); return; }
+      const P=(t0,t1,d0,d1)=>{ if(t1-t0>1e-6&&d1-d0>1e-6) out.push(Object.assign({},r,{t0:r3(t0),t1:r3(t1),d0:r3(d0),d1:r3(d1)})); };
+      P(r.t0,a0,r.d0,r.d1); P(a1,r.t1,r.d0,r.d1); P(a0,a1,r.d0,b0); P(a0,a1,b1,r.d1); });
+    mergeSame(out); out.push(Object.assign({name},kindFor(T,name),{t0:r3(R.t0),t1:r3(R.t1),d0:r3(R.d0),d1:r3(R.d1)})); d.length=0; out.forEach(x=>d.push(x)); sel=[{fid:'T',id:tKey+'#'+(d.length-1)}]; });
+  const thin=tDraft.filter(r=>Math.min(r.t1-r.t0,r.d1-r.d0)<0.6).length;
+  toast(thin?`‘${name==='*'?'주 공간':name}’ 배치 — 0.6m보다 좁은 조각 ${thin}개가 생겼습니다. 옆 실과 합치거나 경계선을 옮기세요`:`‘${name==='*'?'주 공간':name}’ 배치 — “적용”을 누르면 같은 타입 전체에 반영됩니다`); }
+
+
+/* ---------- 실 이동 ---------- */
+function subRect(r,R){ const a0=Math.max(r.t0,R.t0),a1=Math.min(r.t1,R.t1),b0=Math.max(r.d0,R.d0),b1=Math.min(r.d1,R.d1); if(a1-a0<1e-6||b1-b0<1e-6) return [r]; const out=[];
+  const P=(t0,t1,d0,d1)=>{ if(t1-t0>1e-6&&d1-d0>1e-6) out.push(Object.assign({},r,{t0:r3(t0),t1:r3(t1),d0:r3(d0),d1:r3(d1)})); }; P(r.t0,a0,r.d0,r.d1); P(a1,r.t1,r.d0,r.d1); P(a0,a1,r.d0,b0); P(a0,a1,b1,r.d1); return out; }
+const ovA=(r,R)=>Math.max(0,Math.min(r.t1,R.t1)-Math.max(r.t0,R.t0))*Math.max(0,Math.min(r.d1,R.d1)-Math.max(r.d0,R.d0));
+function mergeSame(d){ let ch=true; while(ch){ ch=false; for(let i=0;i<d.length&&!ch;i++) for(let j=i+1;j<d.length&&!ch;j++){ if(d[i].name!==d[j].name||(d[i].kind||'')!==(d[j].kind||'')) continue; const m=mergeRect(d[i],d[j]); if(m){ Object.assign(d[i],m); d.splice(j,1); ch=true; } } } return d; }
+function moveTarget(dr,p){ const T=typeBy(tKey), rs=tRooms(), r=rs[dr.i], w=r.t1-r.t0, h=r.d1-r.d0, tol=8*tpx();
+  // 같은 크기 실 위면 맞바꿈
+  const hit=rs.findIndex((q,k)=>k!==dr.i&&p[0]>=q.t0&&p[0]<=q.t1&&p[1]>=q.d0&&p[1]<=q.d1&&Math.abs((q.t1-q.t0)-w)<1e-6&&Math.abs((q.d1-q.d0)-h)<1e-6);
+  if(hit>=0){ const q=rs[hit]; return {t0:q.t0,t1:q.t1,d0:q.d0,d1:q.d1,swap:true}; }
+  const ts=[0,T.W,...rs.filter((q,k)=>k!==dr.i).flatMap(q=>[q.t0,q.t1])], ds=[0,T.D,...rs.filter((q,k)=>k!==dr.i).flatMap(q=>[q.d0,q.d1])];
+  const sn=(v,len,arr,max)=>{ let best=null; arr.forEach(a=>{ [a,a-len].forEach(c=>{ if(Math.abs(c-v)<tol&&(best===null||Math.abs(c-v)<Math.abs(best-v))) best=c; }); }); const x=best!==null?best:snap(v); return r3(Math.max(0,Math.min(max-len,x))); };
+  const t0=sn(p[0]-dr.off[0],w,ts,T.W), d0=sn(p[1]-dr.off[1],h,ds,T.D); if(Math.abs(t0-r.t0)<1e-6&&Math.abs(d0-r.d0)<1e-6) return null;
+  return {t0,t1:r3(t0+w),d0,d1:r3(d0+h)}; }
+function moveRoom(i,R){ const nm=dispName(typeBy(tKey),tRooms()[i]); let msg='';
+  tEdit(d=>{ const mv=d[i];
+    if(R.swap){ const k=d.findIndex((q,j)=>j!==i&&Math.abs(q.t0-R.t0)<1e-6&&Math.abs(q.d0-R.d0)<1e-6&&Math.abs(q.t1-R.t1)<1e-6&&Math.abs(q.d1-R.d1)<1e-6); if(k<0) return false;
+      const o=d[k]; const old={t0:mv.t0,t1:mv.t1,d0:mv.d0,d1:mv.d1}; Object.assign(mv,{t0:o.t0,t1:o.t1,d0:o.d0,d1:o.d1}); Object.assign(o,old); msg=`‘${nm}’과 ‘${dispName(typeBy(tKey),o)}’ 자리를 맞바꿨습니다`; sel=[{fid:'T',id:tKey+'#'+i}]; return; }
+    Object.assign(mv,{t0:R.t0,t1:R.t1,d0:R.d0,d1:R.d1}); sel=[{fid:'T',id:tKey+'#'+i}]; msg=`‘${nm}’을 옮겼습니다`; });
+  if(msg){ const c=tCheck(); toast(msg+(c.ok?'':` — ${c.text} · 빈 곳은 태그를 누르고 클릭해 채우고, 겹친 실은 옮기거나 지우세요`)); } }
+function tCheck(){ const T=typeBy(tKey), rs=tRooms(); if(!T||!tDraft) return {ok:true,gaps:[],over:[],text:''};
+  const xs=[...new Set([0,T.W,...rs.flatMap(r=>[r.t0,r.t1])].map(r3))].filter(v=>v>=0&&v<=T.W).sort((a,b)=>a-b), ys=[...new Set([0,T.D,...rs.flatMap(r=>[r.d0,r.d1])].map(r3))].filter(v=>v>=0&&v<=T.D).sort((a,b)=>a-b);
+  const gaps=[],over=[]; for(let i=0;i<xs.length-1;i++) for(let j=0;j<ys.length-1;j++){ const c={t0:xs[i],t1:xs[i+1],d0:ys[j],d1:ys[j+1]}; if(c.t1-c.t0<1e-6||c.d1-c.d0<1e-6) continue; const cx=(c.t0+c.t1)/2, cy=(c.d0+c.d1)/2;
+    const n=rs.filter(r=>cx>r.t0&&cx<r.t1&&cy>r.d0&&cy<r.d1).length; if(!n) gaps.push(c); else if(n>1) over.push(c); }
+  const A=L=>L.reduce((a,c)=>a+(c.t1-c.t0)*(c.d1-c.d0),0); const ga=A(gaps), oa=A(over);
+  return {ok:!gaps.length&&!over.length,gaps,over,text:[ga?`빈 공간 ${fmt(ga,2)}㎡`:'',oa?`겹침 ${fmt(oa,2)}㎡`:''].filter(Boolean).join(' · ')}; }
+function fillGap(p,name){ const c=tCheck(); const at=c.gaps.findIndex(g=>p[0]>=g.t0&&p[0]<=g.t1&&p[1]>=g.d0&&p[1]<=g.d1); if(at<0) return false;
+  const adj=(a,b)=>(Math.abs(a.t1-b.t0)<1e-6||Math.abs(b.t1-a.t0)<1e-6)&&Math.min(a.d1,b.d1)-Math.max(a.d0,b.d0)>1e-6||(Math.abs(a.d1-b.d0)<1e-6||Math.abs(b.d1-a.d0)<1e-6)&&Math.min(a.t1,b.t1)-Math.max(a.t0,b.t0)>1e-6;
+  const seen=new Set([at]), q=[at]; while(q.length){ const k=q.pop(); c.gaps.forEach((g,j)=>{ if(!seen.has(j)&&adj(c.gaps[k],g)){ seen.add(j); q.push(j); } }); }
+  const T=typeBy(tKey); tEdit(d=>{ const add=[...seen].map(j=>Object.assign({name},kindFor(T,name),c.gaps[j])); mergeSame(add); add.forEach(x=>d.push(x)); sel=[{fid:'T',id:tKey+'#'+(d.length-1)}]; });
+  toast(`빈 공간을 ‘${name==='*'?'주 공간':name}’(으)로 채웠습니다`); return true; }
+function deleteRooms(){ const ts=tSelIdx(); if(!ts.length){ toast('지울 실을 먼저 선택하세요'); return; } const T=typeBy(tKey); const names=ts.map(i=>dispName(T,tRooms()[i]));
+  tEdit(d=>{ ts.sort((a,b)=>b-a).forEach(i=>d.splice(i,1)); sel=[]; }); toast(`${names.join(', ')} 삭제 — 빈 공간은 태그를 누르고 클릭해 채우거나, 옆 실 경계선을 끌어 메우세요`); }
+
+
+/* ---------- 문 이동 ---------- */
+function curVF(){ return tDraft? (tPrev&&tPrev.key===tKey&&tCheck().ok? tPrev.vf:null) : (tVF||(tVF=virtFloor(typeBy(tKey)))); }
+function doorAt(e){ const vf=curVF(); if(!vf) return null; for(const n of document.elementsFromPoint(e.clientX,e.clientY)){ const h=n.closest&&n.closest('#tgOps [data-id]'); if(!h) continue; const o=vf.openings.find(x=>x.id===h.getAttribute('data-id')); if(o&&o.kind==='door'&&!o.type.includes('승강기')&&o.owner) return {o,vf}; } return null; }
+function ownerName(vf,o){ const r=vf._idx[o.owner]; if(!r) return null; return (r.kind==='zone'&&!r.sub)?'*':r.name; }
+function doorTarget(dr,p){ const {o,vf}=dr, own=o.owner, I=typeBy(tKey).instances[0]; const cw=vf.walls.find(w=>w.id===o.wall); if(!cw) return null;
+  const other=w=>{ const x=w.rooms.find(r=>r!==own); return x? vf._idx[x]:null; };
+  const cat=q=>q==null?'ext':['corridor','lobby','parking','aisle','ramp'].includes(q.ztype)?'circ':(q.zone===I.zone?'in':'out'); const want=cat(other(cw)); let best=null;
+  vf.walls.forEach(w=>{ if(!w.rooms.includes(own)||w.rooms.includes(null)||w.len<o.w+0.2||cat(other(w))!==want) return; const L=w.len, ux=(w.b[0]-w.a[0])/L, uy=(w.b[1]-w.a[1])/L;
+    const at=Math.min(Math.max(snap((p[0]-w.a[0])*ux+(p[1]-w.a[1])*uy),o.w/2+0.05),L-o.w/2-0.05); const q=[w.a[0]+ux*at,w.a[1]+uy*at]; const dd=Math.hypot(q[0]-p[0],q[1]-p[1]); if(!best||dd<best.dd) best={w,at,q,dd}; });
+  return best; }
+function moveDoor(d){ const T=typeBy(tKey), name=ownerName(d.vf,d.o); if(!name){ toast('이 문은 옮길 수 없습니다'); drawType(); return; }
+  if(!tDraft){ tDraft=JSON.parse(JSON.stringify(T.rooms)); tDoorDraft=JSON.parse(JSON.stringify(T.doors||{})); }
+  tDoorDraft=tDoorDraft||{}; tDoorDraft[name]={pos:[r3(d.B.q[0]),r3(d.B.q[1])]}; draftChanged(); renderTypeTab();
+  toast(`‘${name==='*'?'주 공간':name}’ 문을 옮겼습니다 — “적용”을 누르면 ${T.instances.length}곳에 반영됩니다`); }
+
+/* ---------- 조닝 변경 충돌 알림 ---------- */
+function scheduleHTML(){ const g={}; doc.floors.forEach(f=>f.openings.forEach(o=>{ const k=[o.kind,o.type,fmt(o.w,2),fmt(o.h,2),o.kind==='window'?fmt(o.sill,2):'',o.operation||o.leaf||'',o.panels||o.leaves||'',o.rail?'난간':'',o.fire?'방화':''].join('|'); (g[k]=g[k]||{n:0,fl:new Set()}).n++; g[k].fl.add(f.id); }));
+  const rows=Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0],'ko')||b[1].n-a[1].n); const nd=rows.filter(r=>r[0].startsWith('door')).length, nw=rows.length-nd; let wi=0, di=0;
+  return `<h3 style="margin:16px 0 6px">창호·문 일람표 <span style="font-weight:400;color:var(--muted)">문 ${nd}종 · 창 ${nw}종 (폭·높이·방식이 같은 것끼리)</span></h3><div style="max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:8px"><table class="ut"><thead><tr><th>기호</th><th>종류</th><th>폭×높이</th><th>창대</th><th>방식</th><th>비고</th><th>수량</th><th>층</th></tr></thead><tbody>${rows.map(([k,v])=>{ const [kind,type,w,h,sill,op,pn,rail,fire]=k.split('|'); const code=kind==='door'?'D'+String(++di).padStart(2,'0'):'W'+String(++wi).padStart(2,'0'); const fls=[...v.fl];
+    return `<tr><td><b>${code}</b></td><td>${esc(type)}</td><td>${w} × ${h}</td><td>${sill}</td><td>${esc(op)}${pn?` · ${pn}${kind==='door'?'짝':'짝'}`:''}</td><td>${[rail&&'추락방지 난간',fire&&'방화'].filter(Boolean).join(', ')}</td><td style="text-align:right">${v.n}</td><td style="color:var(--muted)">${fls.length>3?fls[0]+' 외 '+(fls.length-1):fls.join(', ')}</td></tr>`; }).join('')}</tbody></table></div>`; }
+function conflictHTML(){ const cs=(doc.conflicts||[]).slice().sort((a,b)=>a.acked-b.acked); if(!cs.length) return '<div class="st"><i></i><span>조닝 변경으로 생긴 충돌이 없습니다.</span></div>';
+  const open=cs.filter(c=>!c.acked).length;
+  return `<h3 style="margin:4px 0 4px;color:var(--bad)">⚡ 조닝 변경 충돌 ${open}건${cs.length>open?` <span style="color:var(--muted);font-weight:400">(확인함 ${cs.length-open})</span>`:''}</h3>`+cs.map(c=>`<div class="cf ${c.acked?'acked':''}" data-c="${esc(c.id)}"><span>${c.floor?`<b>${esc(c.floor)}</b> · `:''}${esc(c.msg)}</span><span class="sp"></span>${c.floor||c.typeKey||c.editedKey||c.comment?'<button class="btn sm" data-a="go">위치 보기</button>':''}<button class="btn sm" data-a="ack">${c.acked?'다시 알림':'확인함'}</button></div>`).join(''); }
+function bindConflicts(root){ root.querySelectorAll('.cf').forEach(d=>d.onclick=async e=>{ const b=e.target.closest('button[data-a]'); if(!b) return; const c=(doc.conflicts||[]).find(x=>x.id===d.dataset.c); if(!c) return;
+  if(b.dataset.a==='ack'){ try{ const r=await fetch('/api/plan/ack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,ack:!c.acked})}); const j=await r.json(); if(!j.ok) throw new Error(j.error); await reloadDoc(); }catch(err){ toast('저장 실패: '+err.message); } return; }
+  if(c.comment){ focusComment(c.comment,true); return; }
+  if(c.floor){ const fi=floorIdxOf(c.floor); if(fi>=0){ cur=fi; const f=doc.floors[fi]; const u=f.units.find(u=>u.name===c.unit); setTab('plan'); sel=u?u.rooms.map(id=>({fid:f.id,id})):[]; renderAll(); return; } }
+  const k=c.typeKey&&typeBy(c.typeKey)?c.typeKey:null; if(k) openType(k); else toast('편집 내용만 남아 있고 지금 평면에는 쓰이지 않습니다'); }); }
+function updateConflictBadge(){ if(!doc) return; const n=(doc.conflicts||[]).filter(c=>!c.acked).length; const b=$('tabs').querySelector('[data-t=sum]'); b.innerHTML='세대·이슈'+(n?` <span class="bd bad">⚡${n}</span>`:''); }
+let knownConf=null;
+function showBanner(html,bad){ const b=$('banner'); if(!html){ b.classList.remove('on'); return; } b.innerHTML=html; b.classList.add('on'); b.classList.toggle('bad',!!bad); }
+async function pollStatus(){ if(!doc) return; try{ const st=await (await fetch('/api/status',{cache:'no-store'})).json();
+    if(st.regenerating){ showBanner('⏳ 조닝 변경을 계획설계에 반영하는 중…'); return; }
+    if(st.planGenerated&&st.planGenerated!==doc.generated){
+      if(tDraft){ showBanner('조닝이 바뀌어 계획설계가 새로 생성됐습니다. 지금 편집 중인 타입을 적용하거나 취소하면 새 평면을 불러옵니다.',true); return; }
+      await reloadDoc(); const fresh=(doc.conflicts||[]).filter(c=>!c.acked&&!(knownConf||new Set()).has(c.id)); knownConf=new Set((doc.conflicts||[]).map(c=>c.id));
+      if(fresh.length){ showBanner(`⚡ 조닝 변경으로 충돌 <b>${fresh.length}건</b>이 생겼습니다 <button class="btn sm" id="bnGo">세대·이슈에서 보기</button><button class="btn sm" id="bnX">닫기</button>`,true); $('bnGo').onclick=()=>{ showBanner(''); setTab('sum'); }; $('bnX').onclick=()=>showBanner('');
+        toast(`조닝 변경 반영 — 충돌 ${fresh.length}건`); try{ if(window.Notification&&Notification.permission==='granted') new Notification('계획설계: 조닝 변경 충돌 '+fresh.length+'건',{body:fresh.map(c=>c.msg).slice(0,3).join('\n')}); }catch(e){} }
+      else { showBanner(''); toast('조닝 변경을 계획설계에 반영했습니다 (충돌 없음)'); } return; }
+    if(st.zoningUpdated&&doc.source&&st.zoningUpdated!==doc.source.zoningUpdated){ showBanner('조닝이 계획설계보다 새롭습니다 <button class="btn sm primary" id="bnRegen">계획설계 다시 생성</button>'); $('bnRegen').onclick=async()=>{ showBanner('⏳ 다시 생성 중…'); await fetch('/api/plan/regen',{method:'POST'}); pollStatus(); }; return; }
+    if(!$('banner').classList.contains('bad')) showBanner('');
+  }catch(e){ showBanner('⚠ 로컬 서버(계획설계 저장·재생성)에 연결되지 않습니다. Claude에게 “로컬호스트 다시 띄워줘”라고 하세요. 지금 남기는 요청은 브라우저에 보관했다가 연결되면 저장합니다.',true); } }
+setInterval(pollStatus,6000);
+
+
+/* ---------- 주차·램프 ---------- */
+const rampRel=(Rp,c)=>Rp.relHigh+(Rp.relLow-Rp.relHigh)*Math.min(1,Math.max(0,(c-Rp.sStart)*Rp.sgn/Rp.run));
+function drawPark(f,s){ const g=$('gPark'); g.innerHTML=''; if(!layers.park) return; const LC='#4f5a5f';
+  const L=(a,b,c,sw,extra={},p=g)=>el('line',Object.assign({x1:a[0],y1:-a[1],x2:b[0],y2:-b[1],stroke:c,'stroke-width':sw,'vector-effect':'non-scaling-stroke'},extra),p);
+  f.rooms.filter(r=>r.ztype==='aisle').forEach(r=>{ const v=r.h>r.w; const a=v?[r.x+r.w/2,r.y+0.5]:[r.x+0.5,r.y+r.h/2], b=v?[r.x+r.w/2,r.y+r.h-0.5]:[r.x+r.w-0.5,r.y+r.h/2];
+    L(a,b,'#c9a227',1.4,{'stroke-dasharray':'8 6'}); const m=[(a[0]+b[0])/2,(a[1]+b[1])/2]; const tx=m[0]+(v?0.7:0), ty=-(m[1]+(v?0:0.7));
+    el('text',{x:tx,y:ty,'font-size':9*s,fill:'#8a6d00','font-weight':700,'text-anchor':'middle',transform:v?`rotate(-90 ${tx} ${ty})`:''},g).textContent='⇄ 차로 6.0m 양방향'; });
+  (f.stalls||[]).forEach(p=>{ const acc=p.type.startsWith('장애인'), ext=p.type.startsWith('확장형'); const sel=isSel(p.id), c=sel?css('--askc'):acc?'#1f6fd1':LC, sw=sel?2.5:acc?1.8:1.1; const grp=el('g',{class:'opn','data-id':p.id},g);
+    el('rect',{x:p.x,y:-(p.y+p.h),width:p.w,height:p.h,fill:sel?'rgba(240,80,122,.12)':acc?'rgba(31,111,209,.13)':ext?'rgba(201,162,39,.10)':'transparent'},grp);
+    const x0=p.x,x1=p.x+p.w,y0=p.y,y1=p.y+p.h; const segs={S:[[x0,y0],[x1,y0]],N:[[x0,y1],[x1,y1]],W:[[x0,y0],[x0,y1]],E:[[x1,y0],[x1,y1]]};
+    Object.entries(segs).forEach(([k,[a,b]])=>{ if(k!==p.entry) L(a,b,c,sw,{},grp); });
+    const back={S:'N',N:'S',W:'E',E:'W'}[p.entry], off=0.6;
+    const st=back==='N'?[[x0+0.4,y1-off],[x1-0.4,y1-off]]:back==='S'?[[x0+0.4,y0+off],[x1-0.4,y0+off]]:back==='E'?[[x1-off,y0+0.4],[x1-off,y1-0.4]]:[[x0+off,y0+0.4],[x0+off,y1-0.4]];
+    L(st[0],st[1],c,2.2,{},grp); const cx=p.x+p.w/2, cy=p.y+p.h/2, vert=p.h>p.w;
+    if(2.5/s>16){ el('text',{x:cx,y:-cy,'font-size':Math.min(10,2.5/s/3.2)*s,'text-anchor':'middle','dominant-baseline':'middle',fill:c,'font-weight':700,transform:vert?'':`rotate(-90 ${cx} ${-cy})`},grp).textContent=(acc?'♿ ':'')+p.no.split('-')[1]+(ext?' 확':''); } });
+  (f.ramps||[]).forEach(Rp=>{ if(Rp.run==null) return; const sel=isSel(Rp.id); const grp=el('g',{class:'opn','data-id':Rp.id},g); const v=Rp.axis==='v';
+    const c0=v?Rp.y:Rp.x, c1=v?Rp.y+Rp.h:Rp.x+Rp.w, q0=v?Rp.x:Rp.y, q1=v?Rp.x+Rp.w:Rp.y+Rp.h; const P=(c,q)=>v?[q,c]:[c,q]; const RC='#c0532f', TC='#7a2e16';
+    el('rect',{x:Rp.x,y:-(Rp.y+Rp.h),width:Rp.w,height:Rp.h,fill:sel?'rgba(240,80,122,.14)':'transparent',stroke:sel?css('--askc'):RC,'stroke-width':sel?3:1.5,'vector-effect':'non-scaling-stroke'},grp);
+    const sa=Math.max(c0,Math.min(Rp.sStart,Rp.sEnd)), sb=Math.min(c1,Math.max(Rp.sStart,Rp.sEnd));
+    for(let c=sa;c<=sb+1e-6;c+=0.6) L(P(c,q0+0.3),P(c,q1-0.3),RC,0.6,{opacity:.5},grp);
+    [q0+0.3,q1-0.3].forEach(q=>L(P(c0,q),P(c1,q),RC,1.2,{},grp)); { const p=P((c0+c1)/2+1.2,q0+0.15); el('text',{x:p[0],y:-p[1],'font-size':7.5*s,'text-anchor':'middle',fill:TC,transform:v?`rotate(-90 ${p[0]} ${-p[1]})`:''},grp).textContent='연석 300'; }
+    if(Rp.landing>0){ const la=Rp.sgn>0?c0:Rp.sStart, lb=Rp.sgn>0?Rp.sStart:c1; const m=P((la+lb)/2,(q0+q1)/2); el('text',{x:m[0],y:-m[1],'font-size':10*s,'text-anchor':'middle',fill:TC,'font-weight':700},grp).textContent=`평탄 ${fmt(Rp.landing,1)}m`; }
+    const qa=(q0+q1)/2, hiC=Rp.sgn>0?sa:sb, loC=Rp.sgn>0?sb:sa; const A=P(hiC+Rp.sgn*0.8,qa), B=P(loC-Rp.sgn*0.8,qa); L(A,B,RC,2.4,{},grp);
+    const dv=v?[0,Rp.sgn]:[Rp.sgn,0], nv=v?[1,0]:[0,1], hs=0.8; [1,-1].forEach(k=>L(B,[B[0]-dv[0]*hs+k*nv[0]*hs*0.6,B[1]-dv[1]*hs+k*nv[1]*hs*0.6],RC,2.4,{},grp));
+    const mid=P((sa+sb)/2,qa-(q1-q0)*0.24); const txt=Rp.mode==='down'?`DN ${fmt(Rp.slopePct,1)}% → ${Rp.toFloor}`:`UP ${fmt(Rp.slopePct,1)}% → ${Rp.fromFloor}`;
+    el('text',{x:mid[0],y:-mid[1],'font-size':11*s,'text-anchor':'middle',fill:TC,'font-weight':800,transform:v?`rotate(-90 ${mid[0]} ${-mid[1]})`:''},grp).textContent=txt;
+    [[sa,Rp.sgn],[sb,-Rp.sgn]].forEach(([c,k])=>{ const p=P(c+k*0.5,q1-0.3); el('text',{x:p[0],y:-p[1],'font-size':8.5*s,'text-anchor':'end',fill:TC,'font-weight':600},grp).textContent=`EL ${fmt(f.elev+rampRel(Rp,c),2)}`; });
+    if(Rp.mode==='down'&&f.level>=1){ const ce=Rp.sgn>0?c0:c1; const p=P(ce-Rp.sgn*0.6,(q0+q1)/2); el('text',{x:p[0],y:-p[1],'font-size':10*s,'text-anchor':'middle',fill:'#7a2e16','font-weight':800},grp).textContent='▲ 차량 출입구 (망우로)'; }
+    if(Rp.headroom!=null){ const p=P(Rp.headroomAt,q0+0.3); el('text',{x:p[0],y:-p[1],'font-size':8.5*s,fill:Rp.headroom>=2.3?'#1f7a4c':'#d92d20','font-weight':700},grp).textContent=`↑ 위 램프 아래 유효 ${fmt(Rp.headroom,2)}m`; } }); }
+function build3DPark(f,boxAt,mat,selMat,z0,grp){ if(!layers.park) return;
+  (f.stalls||[]).forEach(p=>{ const m=isSel(p.id)?selMat:mat('#ffffff'); const t=0.08, h0=z0+0.031, h1=z0+0.045; const x0=p.x,x1=p.x+p.w,y0=p.y,y1=p.y+p.h;
+    if(p.entry!=='S') boxAt(x0,x1,y0,y0+t,h0,h1,m); if(p.entry!=='N') boxAt(x0,x1,y1-t,y1,h0,h1,m); if(p.entry!=='W') boxAt(x0,x0+t,y0,y1,h0,h1,m); if(p.entry!=='E') boxAt(x1-t,x1,y0,y1,h0,h1,m);
+    boxAt(x0+0.15,x1-0.15,y0+0.15,y1-0.15,z0+0.03,z0+0.034,isSel(p.id)?selMat:mat('#b9c1c6'),{fid:f.id,id:p.id}); });
+  (f.ramps||[]).forEach(Rp=>{ if(Rp.run==null) return; const v=Rp.axis==='v'; const m=isSel(Rp.id)?selMat:mat('#d9a28a'); const qm=v?Rp.x+Rp.w/2:Rp.y+Rp.h/2, qw=v?Rp.w:Rp.h;
+    const at=(c,e)=>v?new THREE.Vector3(qm,e,-c):new THREE.Vector3(c,e,-qm); const H=at(Rp.sStart,z0+Rp.relHigh), Lo=at(Rp.sEnd,z0+Rp.relLow); const d=Lo.clone().sub(H), len=d.length();
+    const me=new THREE.Mesh(new THREE.BoxGeometry(v?qw:len,0.25,v?len:qw),m); me.position.copy(H.clone().add(Lo).multiplyScalar(0.5)); me.position.y-=0.13;
+    me.quaternion.setFromUnitVectors(v?new THREE.Vector3(0,0,Math.sign(-(Rp.sEnd-Rp.sStart))||1):new THREE.Vector3(Math.sign(Rp.sEnd-Rp.sStart)||1,0,0),d.clone().normalize());
+    me.userData={fid:f.id,id:Rp.id}; R.pick.push(me); grp.add(me);
+    const cm=mat('#e8e2d6'); [qm-qw/2+0.15,qm+qw/2-0.15].forEach(qc=>{ const at2=(c,e)=>v?new THREE.Vector3(qc,e,-c):new THREE.Vector3(c,e,-qc); slab3D(grp,cm,at2(Rp.sStart,z0+Rp.relHigh+0.075),at2(Rp.sEnd,z0+Rp.relLow+0.075),0.3,0.15,null,v); }); }); }
+
+
+/* ---------- 가구·설비 (평면) ---------- */
+function fxSide(f,x){ const r=(f._idx&&f._idx[x.room])||(f.rooms||[]).find(q=>q.id===x.room); if(!r) return x.side||'S'; const e=2e-3;
+  const S=Math.abs(x.y-r.y)<e, N=Math.abs(x.y+x.h-(r.y+r.h))<e, W=Math.abs(x.x-r.x)<e, E=Math.abs(x.x+x.w-(r.x+r.w))<e;
+  const pref=x.w>=x.h?['S','N','W','E']:['W','E','S','N']; const has={S,N,W,E}; return pref.find(k=>has[k])||x.side||'S'; }
+function drawFixtures(f,g,s,keep){ if(!keep) g.innerHTML=''; if(!layers.fix) return; const FC='#6b7479';
+  (f.fixtures||[]).forEach(x=>{ const sd=fxSide(f,x); const Lw=(sd==='S'||sd==='N')?x.w:x.h, Dp=(sd==='S'||sd==='N')?x.h:x.w; const sel=isSel(x.id);
+    const pt=(u,d)=>sd==='S'?[x.x+u,x.y+d]:sd==='N'?[x.x+u,x.y+x.h-d]:sd==='W'?[x.x+d,x.y+u]:[x.x+x.w-d,x.y+u];
+    const grp=el('g',{class:'opn','data-id':x.id},g); const C=sel?css('--askc'):FC, sw=sel?2:0.9;
+    const poly=(pts,fill='none',ex={})=>el('polygon',Object.assign({points:pts.map(p=>p[0]+','+(-p[1])).join(' '),fill,stroke:C,'stroke-width':sw,'vector-effect':'non-scaling-stroke'},ex),grp);
+    const box=(u0,u1,d0,d1,fill='none',ex={})=>poly([pt(u0,d0),pt(u1,d0),pt(u1,d1),pt(u0,d1)],fill,ex);
+    const ln=(a,b,ex={})=>el('line',Object.assign({x1:a[0],y1:-a[1],x2:b[0],y2:-b[1],stroke:C,'stroke-width':sw,'vector-effect':'non-scaling-stroke'},ex),grp);
+    const ell=(u,d,ru,rd)=>{ const c=pt(u,d); const rx=(sd==='S'||sd==='N')?ru:rd, ry=(sd==='S'||sd==='N')?rd:ru; el('ellipse',{cx:c[0],cy:-c[1],rx,ry,fill:'none',stroke:C,'stroke-width':sw,'vector-effect':'non-scaling-stroke'},grp); };
+    const mv=!!x.movable; box(0,Lw,0,Dp,mv?'rgba(255,255,255,.55)':'rgba(255,255,255,.75)',mv?{'stroke-dasharray':'4 2'}:{});
+    if(x.kind==='toilet'){ box(0.03,Lw-0.03,0,0.2); ell(Lw/2,0.2+(Dp-0.2)/2,Lw/2-0.06,(Dp-0.2)/2-0.03); }
+    else if(x.kind==='basin'){ ell(Lw/2,Dp/2+0.02,Lw/2-0.1,Dp/2-0.1); }
+    else if(x.kind==='shower'){ ln(pt(0,0),pt(Lw,Dp),{opacity:.6}); ln(pt(Lw,0),pt(0,Dp),{opacity:.6}); ell(Lw/2,Dp/2,0.05,0.05); }
+    else if(x.kind==='counter'){ box(0.25,Math.min(0.85,Lw-0.2),0.08,Dp-0.1); [[0.25,0.15],[0.25,0.42],[0.55,0.15],[0.55,0.42]].forEach(([du,dd])=>{ if(Lw>1.6) ell(Lw-0.85+du,dd+0.02,0.09,0.09); }); }
+    else if(x.kind==='fridge'){ ln(pt(0,0),pt(Lw,Dp)); el('text',{x:pt(Lw/2,Dp/2)[0],y:-pt(Lw/2,Dp/2)[1],'font-size':Math.min(9,Lw/s/4)*s,'text-anchor':'middle','dominant-baseline':'middle',fill:C},grp).textContent='REF'; }
+    else if(x.kind==='shoe'){ ln(pt(0,Dp),pt(Lw,0),{opacity:.6}); }
+    else if(x.kind==='wardrobe'||x.kind==='shelf'){ ln(pt(0.05,Dp/2),pt(Lw-0.05,Dp/2),{'stroke-dasharray':'4 2'}); for(let u=0.25;u<Lw-0.1;u+=0.3) ln(pt(u,Dp/2-0.12),pt(u,Dp/2+0.12),{opacity:.6}); }
+    else if(x.kind==='washer'){ ell(Lw/2,Dp/2,Lw/2-0.12,Dp/2-0.12); }
+    else if(x.kind==='bed_d'||x.kind==='bed_s'){ const n=x.kind==='bed_d'?2:1, pw=(Lw-0.2)/n; for(let i=0;i<n;i++) box(0.1+i*pw+0.04,0.1+(i+1)*pw-0.04,0.08,0.42); ln(pt(0,0.6),pt(Lw,0.6),{opacity:.6}); ln(pt(0,0.6),pt(Lw*0.35,Dp),{opacity:.35}); }
+    else if(x.kind==='sofa'||x.kind==='sofa_s'){ box(0,Lw,0,0.22); box(0,0.2,0.22,Dp); box(Lw-0.2,Lw,0.22,Dp); for(let u=0.2+(Lw-0.4)/ (x.kind==='sofa'?3:2);u<Lw-0.25;u+=(Lw-0.4)/(x.kind==='sofa'?3:2)) ln(pt(u,0.22),pt(u,Dp)); }
+    else if(x.kind==='tv'){ box(0.25,Lw-0.25,0.05,0.12,'#56626a'); }
+    else if(x.kind==='table'||x.kind==='table_s'){ const ch=0.42, longSide=x.chairs==='long'; const per=x.kind==='table'?2:1; // 의자: 긴 변 양쪽
+      const W=x.w, H=x.h; for(let k=0;k<per;k++){ if(longSide){ const cx=x.x+W*(k+0.5)/per; [[x.y-0.05-ch,x.y-0.05],[x.y+H+0.05,x.y+H+0.05+ch]].forEach(([y0,y1])=>el('rect',{x:cx-ch/2,y:-y1,width:ch,height:ch,fill:'none',stroke:C,'stroke-width':sw,'stroke-dasharray':'3 2','vector-effect':'non-scaling-stroke'},grp)); }
+        else { const cy=x.y+H*(k+0.5)/per; [[x.x-0.05-ch,x.x-0.05],[x.x+W+0.05,x.x+W+0.05+ch]].forEach(([x0,x1])=>el('rect',{x:x0,y:-(cy+ch/2),width:ch,height:ch,fill:'none',stroke:C,'stroke-width':sw,'stroke-dasharray':'3 2','vector-effect':'non-scaling-stroke'},grp)); } } }
+    if(x.kind==='counter'&&x.washer){ ell(0.42,Dp/2,0.2,0.2); } }); }
+
+/* ---------- 3D 상세 ---------- */
+function slab3D(grp,m,pA,pB,cross,thick,ud,axisV){ // pA,pB: THREE.Vector3 중심선 시작·끝, cross: 폭, axisV: 길이 방향이 v축이면 true
+  const d=pB.clone().sub(pA), len=d.length(); if(len<1e-4) return null; const me=new THREE.Mesh(new THREE.BoxGeometry(axisV?cross:len,thick,axisV?len:cross),m);
+  me.position.copy(pA.clone().add(pB).multiplyScalar(0.5)); const base=axisV?new THREE.Vector3(0,0,Math.sign(d.z)||1):new THREE.Vector3(Math.sign(d.x)||1,0,0); me.quaternion.setFromUnitVectors(base,d.clone().normalize());
+  if(ud){ me.userData=ud; R.pick.push(me); } grp.add(me); return me; }
+function open3D(f,w,o,a,b,sill,hh,z0,horiz,sgn,boxAt,mat,selMat,grp){ const sel=isSel(o.id), ud={fid:f.id,id:o.id}, t=w.t;
+  const U=(u)=>horiz?[w.a[0]+u*sgn,w.a[1]]:[w.a[0],w.a[1]+u*sgn]; // 벽 따라 u → 평면 좌표
+  const wb=(u0,u1,q0,q1,h0,h1,m,ud2)=>{ const p=U(u0), q=U(u1); if(horiz) boxAt(Math.min(p[0],q[0]),Math.max(p[0],q[0]),w.a[1]+q0,w.a[1]+q1,z0+h0,z0+h1,m,ud2); else boxAt(w.a[0]+q0,w.a[0]+q1,Math.min(p[1],q[1]),Math.max(p[1],q[1]),z0+h0,z0+h1,m,ud2); };
+  if(o.kind==='window'){ const fm=sel?selMat:mat('#f4f4f2'), gm=sel?selMat:mat('#8fc3f0',{transparent:true,opacity:0.38}); const fr=0.06, fd=0.05;
+    wb(a,a+fr,-fd,fd,sill,sill+hh,fm,ud); wb(b-fr,b,-fd,fd,sill,sill+hh,fm,ud); wb(a,b,-fd,fd,sill,sill+fr,fm,ud); wb(a,b,-fd,fd,sill+hh-fr,sill+hh,fm,ud);
+    const n=o.panels||1; for(let i=1;i<n;i++){ const u=a+(b-a)*i/n; wb(u-0.03,u+0.03,-fd,fd,sill,sill+hh,fm,ud); }
+    const sl=String(o.operation||'').startsWith('미서기'); for(let i=0;i<n;i++){ const u0=a+(b-a)*i/n, u1=a+(b-a)*(i+1)/n, off=sl?(i%2?0.025:-0.025):0; wb(u0+0.03,u1-0.03,off-0.006,off+0.006,sill+fr,sill+hh-fr,gm,ud); }
+    if(o.rail&&layers.fix){ const out=w.rooms[0]===null?-1:1; const q=out*(t/2+0.1), rm=mat('#56626a'); const top=Math.max(o.rail.height,sill+0.2);
+      wb(a+0.05,b-0.05,q-0.02,q+0.02,top-0.04,top,rm); wb(a+0.05,b-0.05,q-0.015,q+0.015,Math.max(sill,0.1),Math.max(sill,0.1)+0.03,rm);
+      for(let u=a+0.08;u<=b-0.07;u+=Math.max(0.12,(b-a-0.15)/Math.max(1,Math.round((b-a)/0.11)))) wb(u-0.008,u+0.008,q-0.008,q+0.008,Math.max(sill,0.1),top,rm); }
+    return; }
+  // door
+  const dm=sel?selMat:mat(o.type.includes('승강기')?'#9aa3a8':o.fire?'#7d6a5a':'#b8875a'), fm=sel?selMat:mat('#5f6b70');
+  wb(a,a+0.04,-t/2,t/2,0,hh,fm,ud); wb(b-0.04,b,-t/2,t/2,0,hh,fm,ud); wb(a,b,-t/2,t/2,hh-0.04,hh,fm,ud);
+  if(o.type.includes('승강기')||o.sliding){ wb(a+0.04,b-0.04,-0.03,0.03,0,hh-0.04,dm,ud); return; }
+  const c=wallPt(w,o.at), dir=horiz?[Math.sign(w.b[0]-w.a[0])||1,0]:[0,Math.sign(w.b[1]-w.a[1])||1], nrm=horiz?[0,1]:[1,0], side=swingSide(f,w,o), n2=[nrm[0]*side,nrm[1]*side], th=35*Math.PI/180;
+  const leaf=(h,dv,lw)=>{ const ld=[Math.cos(th)*dv[0]+Math.sin(th)*n2[0],Math.cos(th)*dv[1]+Math.sin(th)*n2[1]]; const me=new THREE.Mesh(new THREE.BoxGeometry(lw,hh-0.05,0.045),dm);
+    me.position.set(h[0]+ld[0]*lw/2,z0+(hh-0.05)/2,-(h[1]+ld[1]*lw/2)); me.rotation.y=Math.atan2(ld[1],ld[0]); me.userData=ud; R.pick.push(me); grp.add(me); };
+  const hw=o.w/2, p0=[c[0]-dir[0]*hw,c[1]-dir[1]*hw], p1=[c[0]+dir[0]*hw,c[1]+dir[1]*hw];
+  if(o.leaves===2){ leaf(p0,dir,hw-0.03); leaf(p1,[-dir[0],-dir[1]],hw-0.03); } else if(o.hinge==='end') leaf(p1,[-dir[0],-dir[1]],o.w-0.06); else leaf(p0,dir,o.w-0.06); }
+function stair3D(f,st,z0,boxAt,mat,selMat,grp){ const sel=isSel(st.id), m=sel?selMat:mat('#c3c8cc'), rm=mat('#8a6d3b'), ud={fid:f.id,id:st.id}; const v=st.axis==='v';
+  if(!st.flights) return;
+  st.flights.forEach(fl=>{ const A0=v?fl.y:fl.x, A1=v?fl.y+fl.h:fl.x+fl.w, Q0=v?fl.x:fl.y, Q1=v?fl.x+fl.w:fl.y+fl.h; const n=fl.risers, tr=(A1-A0)/Math.max(1,n-1), rh=(fl.z1-fl.z0)/n;
+    for(let i=1;i<n;i++){ const s0=fl.dir>0?A0+(i-1)*tr:A1-i*tr, s1=s0+tr; const zt=z0+fl.z0+i*rh; if(v) boxAt(Q0,Q1,s0,s1,z0+fl.z0+Math.max(0,(i-2))*rh,zt,m,ud); else boxAt(s0,s1,Q0,Q1,z0+fl.z0+Math.max(0,(i-2))*rh,zt,m,ud); }
+    const lowA=fl.dir>0?A0:A1, highA=fl.dir>0?A1:A0; [Q0+0.06,Q1-0.06].forEach(q=>{ const pA=v?new THREE.Vector3(q,z0+fl.z0+rh+0.9,-lowA):new THREE.Vector3(lowA,z0+fl.z0+rh+0.9,-q), pB=v?new THREE.Vector3(q,z0+fl.z1+0.9,-highA):new THREE.Vector3(highA,z0+fl.z1+0.9,-q);
+      slab3D(grp,rm,pA,pB,0.05,0.05,null,v); [pA,pB].forEach(p=>{ const post=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.9,0.04),rm); post.position.set(p.x,p.y-0.45,p.z); grp.add(post); }); }); });
+  (st.landings||[]).forEach(l=>{ if(l.z>0) boxAt(l.x,l.x+l.w,l.y,l.y+l.h,z0+l.z-0.2,z0+l.z,m,ud); }); }
+function fixture3D(f,x,z0,boxAt,mat,selMat){ const sel=isSel(x.id), ud={fid:f.id,id:x.id}; const col={toilet:'#f4f6f7',basin:'#f4f6f7',shower:'#e4eef2',counter:'#d9cbb5',fridge:'#e6e9eb',shoe:'#cdb89e',wardrobe:'#c9b49a',shelf:'#d6c7ae',washer:'#eef0f1',bed_d:'#ece4d6',bed_s:'#ece4d6',sofa:'#9fb0bf',sofa_s:'#9fb0bf',tv:'#3a3f44',table:'#c8a27a',table_s:'#c8a27a'}[x.kind]||'#ddd';
+  const m=sel?selMat:mat(col); const g=0.02;
+  if(x.kind==='table'||x.kind==='table_s'){ boxAt(x.x+g,x.x+x.w-g,x.y+g,x.y+x.h-g,z0+x.h3-0.05,z0+x.h3,m,ud); [[x.x+0.05,x.y+0.05],[x.x+x.w-0.1,x.y+0.05],[x.x+0.05,x.y+x.h-0.1],[x.x+x.w-0.1,x.y+x.h-0.1]].forEach(([a,b])=>boxAt(a,a+0.05,b,b+0.05,z0+0.03,z0+x.h3-0.05,m));
+    const cm=mat('#a98763'), ch=0.42, per=x.kind==='table'?2:1; for(let k=0;k<per;k++){ if(x.chairs==='long'){ const cx=x.x+x.w*(k+0.5)/per; [[x.y-0.05-ch,x.y-0.05],[x.y+x.h+0.05,x.y+x.h+0.05+ch]].forEach(([y0,y1])=>boxAt(cx-ch/2,cx+ch/2,y0,y1,z0+0.03,z0+0.45,cm)); } else { const cy=x.y+x.h*(k+0.5)/per; [[x.x-0.05-ch,x.x-0.05],[x.x+x.w+0.05,x.x+x.w+0.05+ch]].forEach(([x0,x1])=>boxAt(x0,x1,cy-ch/2,cy+ch/2,z0+0.03,z0+0.45,cm)); } }
+    return; }
+  if(x.kind==='bed_d'||x.kind==='bed_s'){ boxAt(x.x+g,x.x+x.w-g,x.y+g,x.y+x.h-g,z0+0.03,z0+x.h3,m,ud); const sd=fxSide(f,x), hb=mat('#9c8466'); // 헤드보드
+    if(sd==='S') boxAt(x.x,x.x+x.w,x.y,x.y+0.08,z0+0.03,z0+0.95,hb); else if(sd==='N') boxAt(x.x,x.x+x.w,x.y+x.h-0.08,x.y+x.h,z0+0.03,z0+0.95,hb); else if(sd==='W') boxAt(x.x,x.x+0.08,x.y,x.y+x.h,z0+0.03,z0+0.95,hb); else boxAt(x.x+x.w-0.08,x.x+x.w,x.y,x.y+x.h,z0+0.03,z0+0.95,hb); return; }
+  boxAt(x.x+g,x.x+x.w-g,x.y+g,x.y+x.h-g,z0+0.03,z0+x.h3,m,ud);
+  if(x.kind==='shower'){ const gm=mat('#bfe0f0',{transparent:true,opacity:0.3}); const sd=fxSide(f,x); const r=f._idx[x.room]; // 유리 칸막이 (실 안쪽 두 변)
+    if(sd==='S'||sd==='N'){ const yy=sd==='S'?x.y+x.h:x.y; boxAt(x.x,x.x+x.w,yy-0.01,yy+0.01,z0+0.05,z0+1.9,gm); } else { const xx=sd==='W'?x.x+x.w:x.x; boxAt(xx-0.01,xx+0.01,x.y,x.y+x.h,z0+0.05,z0+1.9,gm); } } }
+function buildLabels3D(){ const host=$('labels3d'); if(!host) return; host.innerHTML=''; if(!R) return; R.labels=[];
+  if(document.querySelector('input[name=v3]:checked').value==='all'){ const cut=$('cutCur').checked, cl=F().level; doc.floors.forEach(g=>{ if(cut&&g.level>cl) return; const xs=g.outline.map(p=>p[0]), ys=g.outline.map(p=>p[1]); const d=document.createElement('div'); d.className='lab3d'+(g.id===F().id?' unit':'');
+      d.innerHTML=`${g.id}<small>${g.units.length?g.units.length+'세대':g.level<0?'주차 '+(g.stalls||[]).length+'대':g.planType||'비주거'}</small>`; host.appendChild(d); R.labels.push({d,v:new THREE.Vector3(Math.max(...xs)+1.5,g.elev+g.height/2,-Math.min(...ys)),diag:999}); });     if($('ctx3d').checked&&CTX&&!CTX.error){ CTX.buildings.forEach(b=>{ if(b.onSite||!(b.floors>=4)) return; const cx=b.pts.reduce((a,p)=>a+p[0],0)/b.pts.length, cy=b.pts.reduce((a,p)=>a+p[1],0)/b.pts.length; const d=document.createElement('div'); d.className='lab3d'; d.innerHTML=`${esc(b.name)}<small>${b.floors}층</small>`; host.appendChild(d); R.labels.push({d,v:new THREE.Vector3(cx,b.height+1,-cy),diag:60}); });
+      const road=CTX.roads.find(r=>/대로/.test(r.name)); if(road){ const vs=road.pts.filter(p=>Math.abs(p[0]-15)<40).map(p=>p[1]); var rv=vs.length?(Math.min(...vs)+Math.max(...vs))/2:-12; const d=document.createElement('div'); d.className='lab3d'; d.innerHTML='망우로<small>대로1류</small>'; host.appendChild(d); R.labels.push({d,v:new THREE.Vector3(15,0.5,-rv),diag:999}); }
+      const rl=CTX.rail[0]; if(rl){ const d=document.createElement('div'); d.className='lab3d'; d.innerHTML='철도<small>상봉역 방면</small>'; host.appendChild(d); const near=rl.pts.reduce((b,p)=>Math.hypot(p[0]-15,p[1]-20)<Math.hypot(b[0]-15,b[1]-20)?p:b,rl.pts[0]); R.labels.push({d,v:new THREE.Vector3(near[0],0.5,-near[1]),diag:999}); } }
+    positionLabels3D(); return; }
+  if(!layers.labels3d) return; const f=F();
+  f.rooms.forEach(r=>{ if(r.w*r.h<2.5&&r.kind!=='core') return; if(r.kind==='core'&&!['stair','vestibule','ev'].includes(r.corekind)) return; const d=document.createElement('div'); d.className='lab3d';
+    d.innerHTML=`${esc(r.name.replace(' (특피·비상EV 승강장 겸용)','').replace(/\s*\(.*\)$/,''))}<small>${fmt(r.w*r.h,1)}㎡</small>`; host.appendChild(d); R.labels.push({d,v:new THREE.Vector3(r.x+r.w/2,f.elev+0.15,-(r.y+r.h/2)),diag:Math.hypot(r.w,r.h)}); });
+  f.units.forEach(u=>{ const rs=f.rooms.filter(r=>u.rooms.includes(r.id)); if(!rs.length) return; const big=rs.reduce((a,r)=>r.w*r.h>a.w*a.h?r:a); const d=document.createElement('div'); d.className='lab3d unit';
+    d.textContent=`${u.name} · ${u.unitType}`; host.appendChild(d); R.labels.push({d,v:new THREE.Vector3(big.x+big.w/2,f.elev+1.6,-(big.y+big.h/2)),diag:99}); });
+  positionLabels3D(); }
+function positionLabels3D(){ if(!R||!R.labels) return; const C=$('center').getBoundingClientRect(); const cam=R.cam;
+  R.labels.forEach(L=>{ const q=L.v.clone().project(cam); if(q.z>1||q.x<-1.1||q.x>1.1||q.y<-1.1||q.y>1.1){ L.d.style.display='none'; return; }
+    const dist=cam.position.distanceTo(L.v); const px=L.diag/dist*C.height*0.9; if(px<55){ L.d.style.display='none'; return; }
+    L.d.style.display=''; L.d.style.left=((q.x+1)/2*C.width)+'px'; L.d.style.top=((1-q.y)/2*C.height)+'px'; }); }
+
+
+/* ---------- 건물 전체 3D (층마다 한 덩어리로 묶어 가볍게) ---------- */
+function Batch(){ const P=[],N=[]; return { P,N, box(x0,x1,y0,y1,z0,z1){ if(x1-x0<1e-4||y1-y0<1e-4||z1-z0<1e-4) return; const X0=x0,X1=x1,Y0=z0,Y1=z1,Z0=-y1,Z1=-y0;
+    const v=[[X0,Y0,Z0],[X1,Y0,Z0],[X1,Y1,Z0],[X0,Y1,Z0],[X0,Y0,Z1],[X1,Y0,Z1],[X1,Y1,Z1],[X0,Y1,Z1]];
+    [[0,3,2,1,[0,0,-1]],[4,5,6,7,[0,0,1]],[0,1,5,4,[0,-1,0]],[3,7,6,2,[0,1,0]],[0,4,7,3,[-1,0,0]],[1,2,6,5,[1,0,0]]].forEach(([a,b,c,d,n])=>[a,b,c,a,c,d].forEach(i=>{ P.push(v[i][0],v[i][1],v[i][2]); N.push(n[0],n[1],n[2]); })); },
+  mesh(m){ if(!P.length) return null; const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(P,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3)); return new THREE.Mesh(g,m); } }; }
+function buildWhole(mat){ const {grp}=R; const cut=$('cutCur').checked, cl=F().level, curId=F().id;
+  const side={side:THREE.DoubleSide}; const mExt=mat('#ebe7df',side), mIn=mat('#f3f1ec',side), mCore=mat('#c9ced2',side), mGlass=mat('#6fa8d6',Object.assign({transparent:true,opacity:0.6},side)), mFrame=mat('#f7f7f5',side), mRail=mat('#4a545b',side), mDoor=mat('#b8875a',side), mSlab=mat('#c9cdcf'), mCur=mat('#f0b9c8'), mRamp=mat('#d9a28a',side);
+  const top=doc.floors.filter(g=>g.level>0).reduce((a,g)=>g.level>a.level?g:a,doc.floors[0]);
+  doc.floors.forEach(g=>{ if(cut&&g.level>cl) return; const z0=g.elev, H=g.height, wt=z0+H-0.2; const be=Batch(), bi=Batch(), bc=Batch(), bg=Batch(), bd=Batch(), bf=Batch(), br=Batch(); objIn(g.id,''); const E=wallEnds(g);
+    g.walls.forEach(w=>{ const horiz=Math.abs(w.a[1]-w.b[1])<1e-6, L=w.len, t=w.t, sgn=horiz?(Math.sign(w.b[0]-w.a[0])||1):(Math.sign(w.b[1]-w.a[1])||1); const B=['exterior','basement'].includes(w.kind)?be:['core','core_inner'].includes(w.kind)?bc:bi;
+      const pc=(b,s0,s1,h0,h1)=>{ const a=s0*sgn, c=s1*sgn; if(horiz) b.box(w.a[0]+Math.min(a,c),w.a[0]+Math.max(a,c),w.a[1]-t/2,w.a[1]+t/2,z0+h0,z0+h1); else b.box(w.a[0]-t/2,w.a[0]+t/2,w.a[1]+Math.min(a,c),w.a[1]+Math.max(a,c),z0+h0,z0+h1); };
+      const pane=(b,s0,s1,h0,h1,th)=>{ const a=s0*sgn, c=s1*sgn; if(horiz) b.box(w.a[0]+Math.min(a,c),w.a[0]+Math.max(a,c),w.a[1]-th,w.a[1]+th,z0+h0,z0+h1); else b.box(w.a[0]-th,w.a[0]+th,w.a[1]+Math.min(a,c),w.a[1]+Math.max(a,c),z0+h0,z0+h1); };
+      const pq=(b,s0,s1,q0,q1,h0,h1)=>{ const a=s0*sgn, c=s1*sgn; if(horiz) b.box(w.a[0]+Math.min(a,c),w.a[0]+Math.max(a,c),w.a[1]+q0,w.a[1]+q1,z0+h0,z0+h1); else b.box(w.a[0]+q0,w.a[0]+q1,w.a[1]+Math.min(a,c),w.a[1]+Math.max(a,c),z0+h0,z0+h1); };
+      const win=(o,a,b,sill,oh)=>{ const fr=0.07, fd=0.06, n=o.panels||1; // 창틀·멀리언·유리·난간 (상세 보기와 같은 규칙)
+        pq(bf,a,a+fr,-fd,fd,sill,sill+oh); pq(bf,b-fr,b,-fd,fd,sill,sill+oh); pq(bf,a,b,-fd,fd,sill,sill+fr); pq(bf,a,b,-fd,fd,sill+oh-fr,sill+oh);
+        for(let i=1;i<n;i++){ const u=a+(b-a)*i/n; pq(bf,u-0.035,u+0.035,-fd,fd,sill,sill+oh); }
+        if(String(o.operation||'').startsWith('커튼월')){ const tr=Math.min(sill+oh-fr,Math.max(sill+fr+0.3,(hh)*0.75)); pq(bf,a,b,-fd,fd,tr-0.035,tr+0.035); }
+        for(let i=0;i<n;i++){ const u0=a+(b-a)*i/n+0.035, u1=a+(b-a)*(i+1)/n-0.035; pq(bg,u0,u1,-0.012,0.012,sill+fr,sill+oh-fr); }
+        if(o.rail){ const out=w.rooms[0]===null?-1:1, q=out*(t/2+0.1), tp=Math.max(o.rail.height,sill+0.2), lo=Math.max(sill,0.1); pq(br,a+0.05,b-0.05,q-0.025,q+0.025,tp-0.05,tp); pq(br,a+0.05,b-0.05,q-0.02,q+0.02,lo,lo+0.04);
+          const k=Math.max(2,Math.round((b-a)/0.25)); for(let i=0;i<=k;i++){ const u=a+0.06+(b-a-0.12)*i/k; pq(br,u-0.012,u+0.012,q-0.012,q+0.012,lo,tp); } } };
+      const e=E[w.id]||[0,0]; let p=-e[0]; const hh=wt-z0;
+      g.openings.filter(o=>o.wall===w.id).sort((a,b)=>a.at-b.at).forEach(o=>{ const a=o.at-o.w/2, b=o.at+o.w/2; pc(B,p,a,0,hh); const sill=o.kind==='window'?o.sill:0, oh=o.kind==='window'?o.h:Math.min(o.h,hh-0.05);
+        pc(B,a,b,0,sill); pc(B,a,b,sill+oh,hh); if(o.kind==='window') win(o,a,b,sill,oh); else if(!o.type.includes('승강기')) pane(bd,a+0.02,b-0.02,0,oh,0.03); p=b; }); pc(B,p,L+e[1],0,hh); });
+    const ud={fid:g.id,floorOnly:true}; [[be,mExt],[bi,mIn],[bc,mCore],[bf,mFrame],[br,mRail],[bd,mDoor],[bg,mGlass]].forEach(([b,m])=>{ const me=b.mesh(m); if(me){ me.userData=ud; grp.add(me); if(m!==mGlass) R.pick.push(me); } });
+    // 바닥판 (내려가는 램프 자리는 뚫음)
+    const sh=new THREE.Shape(); slabOutline(g).forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1]));
+    (g.ramps||[]).filter(Rp=>Rp.mode==='down'&&Rp.run).forEach(Rp=>{ const v=Rp.axis==='v', c0=v?Rp.y:Rp.x, c1=v?Rp.y+Rp.h:Rp.x+Rp.w; const a=Math.max(c0,Math.min(Rp.sStart,Rp.sEnd)), b=Math.min(c1,Math.max(Rp.sStart,Rp.sEnd)); const h=v?[Rp.x,Rp.x+Rp.w,a,b]:[a,b,Rp.y,Rp.y+Rp.h]; const pth=new THREE.Path(); pth.moveTo(h[0],h[2]); pth.lineTo(h[0],h[3]); pth.lineTo(h[1],h[3]); pth.lineTo(h[1],h[2]); pth.lineTo(h[0],h[2]); sh.holes.push(pth); });
+    const sg=new THREE.ExtrudeGeometry(sh,{depth:0.2,bevelEnabled:false}); sg.rotateX(-Math.PI/2); sg.translate(0,z0-0.2,0); const sm=new THREE.Mesh(sg,g.id===curId?mCur:mSlab); sm.userData=ud; grp.add(sm); R.pick.push(sm);
+    (g.ramps||[]).forEach(Rp=>{ if(Rp.mode!=='down'||!Rp.run) return; const v=Rp.axis==='v', qm=v?Rp.x+Rp.w/2:Rp.y+Rp.h/2, qw=v?Rp.w:Rp.h; const at=(c,e)=>v?new THREE.Vector3(qm,e,-c):new THREE.Vector3(c,e,-qm); slab3D(grp,mRamp,at(Rp.sStart,z0+Rp.relHigh-0.13),at(Rp.sEnd,z0+Rp.relLow-0.13),qw,0.25,null,v); });
+  });
+  if(!cut||cl>=top.level){ // 지붕 + 옥상 난간(파라펫 1.2m)
+    const z=top.elev+top.height; const sh=new THREE.Shape(); slabOutline(top).forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1])); const rg=new THREE.ExtrudeGeometry(sh,{depth:0.25,bevelEnabled:false}); rg.rotateX(-Math.PI/2); rg.translate(0,z-0.25,0); grp.add(new THREE.Mesh(rg,mat('#b9bec2')));
+    const bp=Batch(); const o=offsetOrtho(top.outline,slabOff(top)-0.1); for(let i=0;i<o.length;i++){ const a=o[i], b=o[(i+1)%o.length]; if(Math.abs(a[1]-b[1])<1e-6) bp.box(Math.min(a[0],b[0])-0.1,Math.max(a[0],b[0])+0.1,a[1]-0.1,a[1]+0.1,z,z+1.2); else bp.box(a[0]-0.1,a[0]+0.1,Math.min(a[1],b[1])-0.1,Math.max(a[1],b[1])+0.1,z,z+1.2); } // 파라펫 바깥면 = 외벽 바깥면
+    const pm=bp.mesh(mExt); if(pm) grp.add(pm); }
+  if($('ctx3d').checked) buildContext(grp,mat);
+  // 대지 경계
+  const sp=doc.site.uv.map(p=>new THREE.Vector3(p[0],0.02,-p[1])); sp.push(sp[0].clone()); grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(sp),new THREE.LineBasicMaterial({color:0xc6402b}))); }
+function offsetOrtho(poly,d){ // 직교 다각형을 바깥쪽으로 d만큼 (벽 중심선 → 외벽 바깥면)
+  const n=poly.length; let A=0; for(let i=0;i<n;i++){ const a=poly[i], b=poly[(i+1)%n]; A+=a[0]*b[1]-b[0]*a[1]; } const ccw=A>0;
+  const off=(a,b)=>{ const dx=b[0]-a[0], dy=b[1]-a[1], L=Math.hypot(dx,dy)||1; const nx=(ccw?dy:-dy)/L, ny=(ccw?-dx:dx)/L; return [[a[0]+nx*d,a[1]+ny*d],[b[0]+nx*d,b[1]+ny*d]]; };
+  const E=poly.map((p,i)=>off(p,poly[(i+1)%n])); const out=[];
+  for(let i=0;i<n;i++){ const e1=E[(i-1+n)%n], e2=E[i]; const h1=Math.abs(e1[0][1]-e1[1][1])<1e-9; out.push(h1?[e2[0][0],e1[0][1]]:[e1[0][0],e2[0][1]]); }
+  return out; }
+function slabOff(f){ const ext=f.walls.filter(w=>w.kind==='exterior'||w.kind==='basement'); return ext.length? Math.max(...ext.map(w=>w.t))/2 : 0.15; }
+const slabOutline=f=>offsetOrtho(f.outline,slabOff(f));
+let CTX=null, ctxLoading=false;
+async function loadContext(){ if(CTX||ctxLoading||!doc.contextFile) return; ctxLoading=true; try{ CTX=await (await fetch(encodeURI(doc.contextFile),{cache:'no-store'})).json(); }catch(e){ CTX={error:String(e)}; } ctxLoading=false; if(tab==='3d'&&document.querySelector('input[name=v3]:checked').value==='all') build3D(); }
+function buildContext(grp,mat){ if(!CTX){ loadContext(); return; } if(CTX.error) return;
+  const all=[...CTX.buildings,...CTX.roads,...CTX.parcels].flatMap(e=>e.pts); const us=all.map(p=>p[0]), vs=all.map(p=>p[1]); const m=20, u0=Math.min(...us)-m, u1=Math.max(...us)+m, v0=Math.min(...vs)-m, v1=Math.max(...vs)+m;
+  const flat=(pts,y,m2,holes)=>{ const sh=new THREE.Shape(); pts.forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1])); (holes||[]).forEach(h=>{ const pth=new THREE.Path(); h.forEach((p,i)=>i?pth.lineTo(p[0],p[1]):pth.moveTo(p[0],p[1])); sh.holes.push(pth); }); const g=new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI/2); g.translate(0,y,0); const me=new THREE.Mesh(g,m2); grp.add(me); return me; };
+  const side={side:THREE.DoubleSide};
+  // 지면 (대지 안은 비워 지하층이 보이게)
+  flat([[u0,v0],[u1,v0],[u1,v1],[u0,v1]],-0.03,mat('#d9ddd2',Object.assign({polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:2},side)),[doc.site.uv.slice().reverse()]);
+  CTX.roads.forEach(r=>flat(r.pts,-0.01,mat(r.kind==='도시계획시설'&&/대로/.test(r.name)?'#666c70':'#7a8085',Object.assign({polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1},side))));
+  CTX.rail.forEach(r=>flat(r.pts,0.0,mat('#8b8178',side)));
+  const lm=new THREE.LineBasicMaterial({color:0x9aa3a8}); CTX.parcels.forEach(p=>{ const pts=p.pts.map(q=>new THREE.Vector3(q[0],0.03,-q[1])); pts.push(pts[0].clone()); grp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),lm)); });
+  const bm=mat('#cfd4d8'), bmE=mat('#e3e0d9',{transparent:true,opacity:0.8}), em=new THREE.LineBasicMaterial({color:0x7d878c});
+  CTX.buildings.forEach(b=>{ if(b.onSite||b.pts.length<3) return; const sh=new THREE.Shape(); b.pts.forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1])); const g=new THREE.ExtrudeGeometry(sh,{depth:b.height,bevelEnabled:false}); g.rotateX(-Math.PI/2); const me=new THREE.Mesh(g,b.estimated?bmE:bm); grp.add(me); grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(g,30),em)); }); }
+function fitWhole(withCtx){ if(!R) return; if(withCtx&&CTX&&!CTX.error){ R.ctl.target.set(15,10,-20); R.cam.position.set(-95,120,140); R.cam.near=0.5; R.cam.far=6000; R.cam.updateProjectionMatrix(); R.ctl.update(); return; } const xs=doc.floors.flatMap(g=>g.outline.map(p=>p[0])), ys=doc.floors.flatMap(g=>g.outline.map(p=>p[1])); const zt=Math.max(...doc.floors.map(g=>g.elev+g.height)), zb=Math.min(...doc.floors.map(g=>g.elev));
+  const cx=(Math.min(...xs)+Math.max(...xs))/2, cy=(Math.min(...ys)+Math.max(...ys))/2, span=Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys),zt-zb);
+  R.ctl.target.set(cx,(zt+zb)/2,-cy); R.cam.position.set(cx-span*1.1,(zt+zb)/2+span*0.55,-cy+span*1.25); R.cam.near=0.5; R.cam.far=4000; R.cam.updateProjectionMatrix(); R.ctl.update(); }
+function focus3D(){ if(!R) return; const f=F(); const xs=f.outline.map(p=>p[0]), ys=f.outline.map(p=>p[1]); const c=[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...ys)+Math.max(...ys))/2];
+  R.cam.position.set(c[0]-30,f.elev+38,-c[1]+42); R.ctl.target.set(c[0],f.elev+1,-c[1]); R.ctl.update(); }
+
+load();
+</script>
+<script>
+window.requestDescribe=el=>{ try{ if(!doc) return null; if(tab==='type'){ const h=el.closest('[data-id]'); if(h&&tKey){ const o=objIn('TV',tKey+'@'+h.getAttribute('data-id')); if(o) return {label:tvLabel(o),typeKey:tKey}; } const ri=el.closest('[data-i]'); if(ri&&tKey){ const T=typeBy(tKey), r=tRooms()[+ri.dataset.i]; if(r) return {label:`타입 ${T.code} · ${dispName(T,r)}`,typeKey:tKey}; } return null; }
+  const h=el.closest('[data-id]'); if(h){ const o=objIn(F().id,h.getAttribute('data-id')); if(o) return {label:label(F().id,o),floor:F().id,id:o.id,view:tab}; } return null; }catch(e){ return null; } };
+window.requestFocus=t=>{ try{ if(!t.floor||!t.id) return false; const fi=floorIdxOf(t.floor); if(fi<0) return false; cur=fi; if(tab!=='plan'&&tab!=='3d') setTab('plan'); sel=[{fid:t.floor,id:t.id}]; renderAll(); return true; }catch(e){ return false; } };
+</script>
+<script src="assets/request-dock.js" data-page="plan" data-title="계획설계"></script>
+</body>
+</html>

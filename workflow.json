@@ -1,0 +1,516 @@
+{
+  "schema": "design-workflow/0.1-draft",
+  "note": "실습용 작업 폴더 — 대지 정보와 벽·문·창 디테일만 준비된 상태에서 시작해, 대지 경계 → 조닝 → 계획설계 → 실 디테일 → 법규·인허가를 단계별로 진행합니다. 단계마다 git 커밋(step-N)이 있습니다.",
+  "project": {
+    "name": "상봉동 116-49 신축 기획 (실습)",
+    "address": "서울특별시 중랑구 상봉동 116-49 (망우로 265)",
+    "zone": "일반상업지역",
+    "prefix": "상봉동_116-49"
+  },
+  "stages": [
+    {
+      "id": "site",
+      "no": 1,
+      "title": "대지 정보",
+      "kind": "doc",
+      "status": "done",
+      "page": "site/상봉동_116-49_대지조사_정리.md",
+      "source": "site/상봉동_116-49_대지조사_원자료.zip",
+      "outputs": [
+        "대지 경계·좌표 (EPSG:5186 → 조닝 u·v)",
+        "용도지역·건폐율 60%·용적률 960%·높이 80m",
+        "건축한계선 3m (망우로)",
+        "지구단위계획 (세대 면적·비주거 비율)"
+      ],
+      "storage": "site/ 폴더 (고치지 않는 원본) · site_geometry.json",
+      "ask": "대지 경계 표시해줘",
+      "inputs": []
+    },
+    {
+      "id": "details",
+      "no": 2,
+      "title": "벽·문·창 디테일",
+      "kind": "doc",
+      "status": "done",
+      "page": "details/README.md",
+      "outputs": [
+        "벽 종류별 두께·구성 (walls.json)",
+        "문 크기·방화·문틀 (doors.json)",
+        "실별 창 크기·창대·창호 사양 (windows.json)"
+      ],
+      "storage": "details/*.json — 계획설계 생성기가 읽음",
+      "ask": "욕실문 폭 0.9m로 바꾸고 다시 생성해줘",
+      "inputs": []
+    },
+    {
+      "id": "zoning",
+      "no": 3,
+      "title": "대지 경계 · 조닝",
+      "kind": "page",
+      "status": "active",
+      "page": "상봉동_116-49_조닝편집기.html",
+      "api": "/api/zoning",
+      "data": "zoning/상봉동_116-49_zoning.json",
+      "history": "zoning/history/",
+      "inputs": [
+        "site"
+      ],
+      "outputs": [
+        "대지 경계·건축한계선 표시",
+        "층별 외곽선",
+        "세대·코어·복도·근생·주차·램프 구역",
+        "건폐율·용적률·주차·비주거 확인"
+      ],
+      "storage": "로컬 서버 → JSON (자동 저장·버전 기록)",
+      "comments": true,
+      "ask": "요청 반영해줘",
+      "dockPage": "zoning"
+    },
+    {
+      "id": "plan",
+      "no": 4,
+      "title": "계획설계 · 실 디테일",
+      "kind": "page",
+      "status": "active",
+      "page": "상봉동_116-49_계획설계.html",
+      "api": "/api/plan",
+      "data": "plan/상봉동_116-49_plan.json",
+      "history": "plan/history/",
+      "generator": "tools/gen_plan.py",
+      "inputs": [
+        "zoning",
+        "details"
+      ],
+      "outputs": [
+        "실·벽·문·창·계단·승강기 (디테일 라이브러리 적용)",
+        "세대 타입 (타입 편집 → 같은 타입 전체 반영)",
+        "창호·문 일람표",
+        "세대·이슈 (채광·계단·문 열림 충돌)"
+      ],
+      "storage": "조닝 + 디테일 + 타입 편집 → 생성기로 다시 계산 (요청·편집은 보존)",
+      "auto": "처음 생성은 Claude에게 요청 · 그 뒤로는 조닝을 저장하면 2~3초 뒤 자동 재생성",
+      "comments": true,
+      "ask": "계획설계 요청 반영해줘",
+      "dockPage": "plan"
+    },
+    {
+      "id": "legal",
+      "no": 5,
+      "title": "법규·인허가 검토",
+      "kind": "page",
+      "status": "active",
+      "page": "상봉동_116-49_법규인허가.html",
+      "api": "/api/legal",
+      "data": "legal/상봉동_116-49_legal.json",
+      "history": "legal/history/",
+      "dockPage": "legal",
+      "inputs": [
+        "zoning",
+        "plan"
+      ],
+      "outputs": [
+        "밀도·건축선·공지·주택·피난·승강기·주차 판정",
+        "인허가 절차 로드맵",
+        "가정값·사람 판정·협의 메모"
+      ],
+      "storage": "판정은 매번 자동 계산, 가정값·판정 수정·메모만 JSON에 저장",
+      "auto": "조닝·계획설계가 바뀌면 판정도 다시 계산",
+      "comments": true,
+      "ask": "법규 검토 요청 반영해줘"
+    }
+  ],
+  "services": {
+    "server": "tools/zoning_server.py",
+    "launch": ".claude/launch.json → \"zoning\" (포트 8770)",
+    "endpoints": [
+      [
+        "GET/POST",
+        "/api/zoning",
+        "조닝 JSON 읽기·저장 (계획설계가 생긴 뒤부터는 저장하면 자동 재생성)"
+      ],
+      [
+        "GET",
+        "/api/plan",
+        "계획설계 JSON"
+      ],
+      [
+        "POST",
+        "/api/plan/comments",
+        "계획설계 수정 요청 저장"
+      ],
+      [
+        "POST",
+        "/api/plan/typeedit",
+        "타입 편집 저장 → 재생성"
+      ],
+      [
+        "POST",
+        "/api/plan/preview",
+        "편집 중인 타입 미리보기 (저장 안 함)"
+      ],
+      [
+        "POST",
+        "/api/plan/regen",
+        "계획설계 다시 생성"
+      ],
+      [
+        "POST",
+        "/api/plan/ack",
+        "조닝 충돌 알림 확인"
+      ],
+      [
+        "GET",
+        "/api/status",
+        "서버·재생성 상태"
+      ],
+      [
+        "GET",
+        "/api/summary",
+        "허브용 요약"
+      ],
+      [
+        "GET/POST",
+        "/api/legal",
+        "법규·인허가 가정값·판정 저장"
+      ],
+      [
+        "GET/POST",
+        "/api/requests",
+        "공통 수정 요청 (요청 바)"
+      ]
+    ]
+  },
+  "templateDraft": {
+    "generic": [
+      "git 태그 step-0 ~ step-5 — 늦으면 git checkout 으로 따라잡기",
+      "페이지에서 객체를 고르고 “Claude에게 수정 요청” → 대화창에서 “요청 반영해줘”",
+      "로컬 서버 + JSON 원본 + 버전 기록 (history/)"
+    ],
+    "projectSpecific": [
+      "site/ — 대지 정보 (상봉동 116-49 예시)",
+      "details/ — 벽·문·창 디테일 라이브러리",
+      "project.json — 건폐율·용적률·높이·주차 가정"
+    ],
+    "open": [
+      "다른 대지: asuka_template/new_project.py 로 site/ 와 project.json 만 새로 만들기",
+      "소방·설비·구조·공사비는 생성기 안에서 계산만 (이번 실습 페이지에서는 제외)"
+    ]
+  },
+  "dataflow": {
+    "lanes": [
+      "대지 정보",
+      "디테일",
+      "조닝 (원본)",
+      "생성",
+      "계획설계 결과",
+      "검토"
+    ],
+    "nodes": [
+      {
+        "id": "raw",
+        "lane": 0,
+        "kind": "file",
+        "title": "대지 조사 원자료",
+        "path": "site/상봉동_116-49_대지조사_원자료.zip",
+        "thumb": "zip",
+        "snippet": "zip",
+        "what": "VWorld 원자료 (연속지적·건물·용도지역·도시계획시설). 직접 고치지 않는 원본.",
+        "edit": "고치지 않음 — 새 자료가 오면 Claude에게 다시 정리 요청"
+      },
+      {
+        "id": "site",
+        "lane": 0,
+        "kind": "doc",
+        "title": "대지·법규 정리 (.md)",
+        "path": "site/상봉동_116-49_대지조사_정리.md",
+        "thumb": "site",
+        "snippet": "md",
+        "what": "대지 경계(EPSG:5186), 용도지역·밀도 기본값, 건축선, 확인할 것.",
+        "edit": "고치지 않음 (원본) — 대지 경계는 site_geometry.json"
+      },
+      {
+        "id": "ctx",
+        "lane": 0,
+        "kind": "data",
+        "title": "주변 맥락 (context.json)",
+        "path": "site/상봉동_116-49_context.json",
+        "thumb": "ctx",
+        "snippet": "ctx",
+        "what": "주변 건물(층수)·도로(망우로)·철도·지적·용도지역 — 조사 원자료의 공간정보를 대지 좌표(u·v)로 바꾼 것.",
+        "edit": "원자료가 바뀌면 Claude에게 \"주변 맥락 다시 만들어줘\""
+      },
+      {
+        "id": "geo",
+        "lane": 0,
+        "kind": "data",
+        "title": "대지 경계 (site_geometry.json)",
+        "path": "site/site_geometry.json",
+        "thumb": "ctx",
+        "snippet": "ctx",
+        "what": "대지 경계·건축한계선·좌표 기준. tools/site_boundary.py 가 조닝 파일에 넣음.",
+        "edit": "Claude에게 “대지 경계 표시해줘”"
+      },
+      {
+        "id": "det",
+        "lane": 1,
+        "kind": "data",
+        "title": "벽·문·창 디테일 (details/)",
+        "path": "details/walls.json · doors.json · windows.json",
+        "thumb": "code",
+        "snippet": "gen",
+        "what": "벽 두께·구성, 문 크기·방화, 실별 창 크기·창호 사양. 생성기가 읽어 평면에 반영.",
+        "edit": "Claude에게 “○○ 바꾸고 다시 생성해줘” 또는 직접 수정"
+      },
+      {
+        "id": "zedit",
+        "lane": 2,
+        "kind": "page",
+        "title": "조닝 편집기",
+        "path": "상봉동_116-49_조닝편집기.html",
+        "thumb": "zoning",
+        "snippet": "zedit",
+        "what": "대지 경계 위에 층별 외곽선을 잡고 세대·코어·복도·근생·주차·램프 구역을 그림. 건폐율·용적률·주차 확인.",
+        "edit": "페이지에서 구역을 끌거나 속성 수정, 또는 요청 코멘트"
+      },
+      {
+        "id": "zjson",
+        "lane": 2,
+        "kind": "data",
+        "title": "zoning.json",
+        "path": "zoning/상봉동_116-49_zoning.json",
+        "thumb": "zoning-data",
+        "snippet": "zoning",
+        "what": "계획설계의 원본 데이터. 저장할 때마다 history/에 버전이 남음.",
+        "edit": "조닝 편집기에서 (직접 고치지 않음)"
+      },
+      {
+        "id": "claude",
+        "lane": 3,
+        "kind": "you",
+        "title": "Claude (대화창)",
+        "path": "\"요청 반영해줘\" · \"계획설계 요청 반영해줘\"",
+        "thumb": "chat",
+        "snippet": "claude",
+        "what": "페이지에 남긴 요청 코멘트를 읽고 조닝·생성 규칙·타입 편집을 고친 뒤 답변을 남김.",
+        "edit": "대화창에서 요청"
+      },
+      {
+        "id": "gen",
+        "lane": 3,
+        "kind": "tool",
+        "title": "gen_plan.py (생성기)",
+        "path": "tools/gen_plan.py",
+        "thumb": "code",
+        "snippet": "gen",
+        "what": "세대 실 배치·벽 종류·문·창·계단·가구·주차·램프·법규 확인 규칙.",
+        "edit": "Claude에게 규칙 변경 요청"
+      },
+      {
+        "id": "tedit",
+        "lane": 3,
+        "kind": "data",
+        "title": "타입 편집 (typeEdits)",
+        "path": "plan.json › typeEdits",
+        "thumb": "type",
+        "snippet": "typeEdits",
+        "what": "타입별 실 배치·문 위치. 생성기가 자동 배치보다 먼저 적용.",
+        "edit": "계획설계 › 타입 탭 › 실 편집"
+      },
+      {
+        "id": "pjson",
+        "lane": 4,
+        "kind": "data",
+        "title": "plan.json",
+        "path": "plan/상봉동_116-49_plan.json",
+        "thumb": "plan-data",
+        "snippet": "plan",
+        "what": "층별 실·벽·문·창·계단·승강기·가구·주차·램프, 타입, 이슈, 요청, 충돌.",
+        "edit": "직접 고치지 않음 — 생성기가 다시 만듦 (요청·타입 편집은 보존)"
+      },
+      {
+        "id": "pview",
+        "lane": 4,
+        "kind": "page",
+        "title": "계획설계",
+        "path": "상봉동_116-49_계획설계.html",
+        "thumb": "plan",
+        "snippet": "pview",
+        "what": "평면·3D(건물 전체)·타입·세대·이슈. 객체를 골라 요청 코멘트.",
+        "edit": "타입 탭에서 실·문 편집, 또는 요청 코멘트"
+      },
+      {
+        "id": "legal",
+        "lane": 5,
+        "kind": "page",
+        "title": "법규·인허가",
+        "path": "상봉동_116-49_법규인허가.html · legal/…_legal.json",
+        "thumb": "legal",
+        "snippet": "legal",
+        "what": "조닝·계획설계·주변 맥락에서 법규 항목을 자동 판정. 가정값·사람 판정·메모만 legal.json에 저장.",
+        "edit": "페이지에서 가정값·판정·메모 수정, 원본 수치는 조닝·계획설계에서"
+      },
+      {
+        "id": "reqs",
+        "lane": 5,
+        "kind": "data",
+        "title": "수정 요청 (requests.json)",
+        "path": "requests/requests.json",
+        "thumb": "reqs",
+        "snippet": "reqs",
+        "what": "모든 페이지 아래 가운데 요청 바에서 남긴 요청 (채팅·마우스로 고른 요소).",
+        "edit": "각 페이지 아래 요청 바"
+      }
+    ],
+    "edges": [
+      [
+        "raw",
+        "site",
+        "정리",
+        "claude"
+      ],
+      [
+        "zedit",
+        "zjson",
+        "편집하면 자동 저장",
+        "auto"
+      ],
+      [
+        "tedit",
+        "gen",
+        "타입별 우선 적용",
+        "auto"
+      ],
+      [
+        "gen",
+        "pjson",
+        "생성",
+        "auto"
+      ],
+      [
+        "pjson",
+        "pview",
+        "불러오기 (새 생성은 자동 감지)",
+        "auto"
+      ],
+      [
+        "pview",
+        "tedit",
+        "실 편집 → 적용",
+        "auto"
+      ],
+      [
+        "zedit",
+        "claude",
+        "요청 코멘트",
+        "claude"
+      ],
+      [
+        "pview",
+        "claude",
+        "요청 코멘트",
+        "claude"
+      ],
+      [
+        "claude",
+        "zjson",
+        "조닝 수정",
+        "claude"
+      ],
+      [
+        "claude",
+        "gen",
+        "생성 규칙 수정",
+        "claude"
+      ],
+      [
+        "claude",
+        "tedit",
+        "타입 수정",
+        "claude"
+      ],
+      [
+        "raw",
+        "ctx",
+        "좌표 변환 (EPSG:5186 → u·v)",
+        "claude"
+      ],
+      [
+        "ctx",
+        "pview",
+        "3D 건물 전체 · 주변 건물·도로",
+        "auto"
+      ],
+      [
+        "zjson",
+        "legal",
+        "면적·구역 → 자동 판정",
+        "auto"
+      ],
+      [
+        "pjson",
+        "legal",
+        "세대·계단·주차·채광 → 자동 판정",
+        "auto"
+      ],
+      [
+        "ctx",
+        "legal",
+        "철도·도로 거리",
+        "auto"
+      ],
+      [
+        "reqs",
+        "claude",
+        "\"요청 반영해줘\"",
+        "claude"
+      ],
+      [
+        "raw",
+        "geo",
+        "좌표 변환 (EPSG:5186 → u·v)",
+        "claude"
+      ],
+      [
+        "geo",
+        "zjson",
+        "대지 경계 표시 (site_boundary.py)",
+        "claude"
+      ],
+      [
+        "det",
+        "gen",
+        "벽 두께·문·창 규칙",
+        "auto"
+      ],
+      [
+        "claude",
+        "gen",
+        "처음 생성 · 규칙 수정",
+        "claude"
+      ],
+      [
+        "zjson",
+        "gen",
+        "계획설계가 생긴 뒤 저장 2~3초 뒤 자동 재생성",
+        "auto"
+      ],
+      [
+        "claude",
+        "det",
+        "디테일 수정",
+        "claude"
+      ]
+    ]
+  },
+  "sharedModel": {
+    "file": "plan/상봉동_116-49_plan.json",
+    "rule": "계획설계·법규는 하나의 plan.json을 공유. 생성기 안에서 소방·설비·구조·공사비 모듈도 계산되지만 이번 실습 페이지에서는 계획설계·법규만 다룸.",
+    "order": [
+      "arch",
+      "fire",
+      "mep",
+      "struct"
+    ],
+    "inputsEndpoint": "POST /api/plan/inputs {discipline, inputs}"
+  }
+}

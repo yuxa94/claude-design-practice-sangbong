@@ -1,0 +1,47 @@
+{
+  "name": "상봉동 116-49 신축 기획 (실습)",
+  "address": "서울특별시 중랑구 상봉동 116-49 (망우로 265)",
+  "pnu": "1126010200101160049",
+  "slug": "상봉동_116-49",
+  "site": "상봉동 116-49",
+  "use": "공동주택 + 도시형생활주택 + 근린생활시설",
+  "zone": "일반상업지역",
+  "siteAreaOfficial": 2027.0,
+  "limits": {
+    "coverage": 60,
+    "far": 960,
+    "farBase": 680,
+    "height": 80,
+    "src": "지구단위계획 시행지침 (상한 960% 조건부)",
+    "heightSrc": "가로구역별 최고높이 (망우로)"
+  },
+  "frontRoad": {
+    "name": "망우로",
+    "setback": 3,
+    "src": "시행지침 제12조 (건축한계선 3m)"
+  },
+  "districtPlan": {
+    "unitMin": 20,
+    "unitMax": 60,
+    "nonResMin": 10,
+    "nonResMax": 20,
+    "communityMin": 150,
+    "publicArea": 1099.15,
+    "src": "지구단위계획 시행지침"
+  },
+  "program": {
+    "unitMix": {
+      "원룸": 0.5,
+      "1.5룸": 0.25,
+      "투룸": 0.25
+    },
+    "parkingPerUnit": 0.3,
+    "retailM2PerStall": 134,
+    "groundFloorHeight": 4.8,
+    "floorHeight": 3.0,
+    "retailFloors": 1
+  },
+  "existingGfa": 26105.11,
+  "template": "asuka practice 0.1",
+  "sourceNote": "원자료 폴더 sangbong_sources"
+}

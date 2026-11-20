@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>상봉동 116-49 조닝 편집기</title>
+<style>
+:root{
+  --bg:#f4f2ee; --panel:#fff; --ink:#1d2326; --muted:#5f6b70; --line:#d9d5cc; --chip:#eef1f3; --canvas:#fbfaf7;
+  --accent:#1f4fd1; --bad:#d92d20; --warn:#b26a00; --ok:#1f7a4c; --site:#c6402b; --bline:#215cca; --grid:rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#15191b; --panel:#1d2225; --ink:#e7ecee; --muted:#9aa6ab; --line:#333b3f; --chip:#262d31; --canvas:#181c1e;
+  --accent:#7aa2ff; --bad:#ff6b5e; --warn:#f0b44c; --ok:#5fd39a; --site:#ff7a63; --bline:#7aa2ff; --grid:rgba(255,255,255,.06);}}
+:root[data-theme="dark"]{
+  --bg:#15191b; --panel:#1d2225; --ink:#e7ecee; --muted:#9aa6ab; --line:#333b3f; --chip:#262d31; --canvas:#181c1e;
+  --accent:#7aa2ff; --bad:#ff6b5e; --warn:#f0b44c; --ok:#5fd39a; --site:#ff7a63; --bline:#7aa2ff; --grid:rgba(255,255,255,.06);}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:13px/1.45 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Segoe UI",sans-serif;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:200px minmax(0,1fr) 330px;grid-template-rows:auto minmax(0,1fr);height:100vh}
+header{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:15px;margin:0;font-weight:700;white-space:nowrap}
+.tabs{display:flex;background:var(--chip);border-radius:9px;padding:3px;gap:2px;margin-left:8px}
+.tabs button{border:none;background:transparent;padding:5px 12px;border-radius:7px;cursor:pointer}
+.tabs button.on{background:var(--panel);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.sp{flex:1}
+.save{font-size:12px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.save i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.save.ok i{background:var(--ok)} .save.pending i{background:var(--warn)} .save.err i{background:var(--bad)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--muted)} .btn:disabled{opacity:.4;cursor:default}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:3px 8px;font-size:12px}
+/* floors */
+#floors{border-right:1px solid var(--line);background:var(--panel);overflow:auto;padding:10px 8px}
+#floors h2,aside h2{font-size:12px;color:var(--muted);margin:14px 4px 6px;font-weight:700}
+#floors h2:first-child,aside h2:first-child{margin-top:2px}
+.fl{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:6px;padding:5px 7px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;font-variant-numeric:tabular-nums}
+.fl:hover{background:var(--chip)}
+.fl.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+.fl b{font-size:13px}
+.fl span{color:var(--muted);font-size:11px}
+.fl .bd{font-size:11px;border-radius:6px;padding:0 5px;background:var(--chip);color:var(--muted)}
+.fl .bd.bad{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.fl.gl{border-top:1px dashed var(--line);border-radius:0;margin-top:4px;padding-top:8px}
+/* center */
+#center{position:relative;min-width:0;min-height:0;background:var(--canvas)}
+.pane{position:absolute;inset:0;display:none}
+.pane.on{display:block}
+svg#plan{width:100%;height:100%;display:block;touch-action:none;user-select:none;cursor:default}
+svg#plan.panning{cursor:grabbing}
+svg#plan.drawing{cursor:crosshair}
+.palette{position:absolute;left:10px;top:10px;right:10px;display:flex;gap:5px;flex-wrap:wrap;pointer-events:none}
+.palette>*{pointer-events:auto}
+.tool{border:1.5px solid var(--line);background:var(--panel);border-radius:8px;padding:4px 9px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
+.tool i{width:11px;height:11px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.25)}
+.tool.on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
+.tool.wall.on{border-color:var(--askc);box-shadow:0 0 0 2px color-mix(in srgb,var(--askc) 25%,transparent)}
+.tool.sep{margin-left:6px}
+.vtools{position:absolute;right:10px;bottom:34px;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.vtools label{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:12px;display:flex;gap:6px;align-items:center}
+.vtools select{border:none;background:transparent}
+.hint{position:absolute;left:10px;bottom:8px;right:200px;color:var(--muted);font-size:11.5px;pointer-events:none}
+.coord{position:absolute;right:10px;bottom:8px;color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+.north{position:absolute;right:16px;top:56px;width:46px;height:46px}
+#v3d canvas{display:block}
+.ov3d{position:absolute;left:10px;top:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:5px}
+.ov3d label{display:flex;gap:6px;align-items:center}
+#sumPane{overflow:auto;padding:16px 18px}
+table.sum{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+table.sum th,table.sum td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.sum th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--canvas)}
+table.sum td:first-child,table.sum th:first-child{text-align:left}
+table.sum tfoot td{font-weight:700;border-top:2px solid var(--line)}
+table.sum tr.cur td{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.kpis div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.kpis b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.kpis span{color:var(--muted);font-size:11.5px}
+/* right */
+aside{border-left:1px solid var(--line);background:var(--panel);overflow:auto;padding:10px 14px 24px}
+.prop{display:grid;grid-template-columns:72px 1fr;gap:5px 8px;align-items:center}
+.prop label{color:var(--muted);font-size:12px}
+.prop input,.prop select{width:100%;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font-variant-numeric:tabular-nums}
+.prop .two{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.empty{color:var(--muted);font-size:12.5px;padding:6px 2px}
+.btns{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.st{display:flex;gap:7px;align-items:flex-start;font-size:12px;margin:3px 0}
+.st i{flex:none;width:7px;height:7px;border-radius:50%;margin-top:5px;background:var(--ok)}
+.st.bad i{background:var(--bad)} .st.warn i{background:var(--warn)}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mini div{background:var(--chip);border-radius:8px;padding:6px 8px}
+.mini b{display:block;font-size:15px;font-variant-numeric:tabular-nums}
+.mini span{color:var(--muted);font-size:11px}
+.ifc{background:var(--chip);border-radius:10px;padding:9px 10px;font-size:12px;color:var(--muted)}
+.ifc code{font-size:11px;word-break:break-all;color:var(--ink)}
+.rowsel{display:flex;gap:5px;align-items:center;margin-top:6px;font-size:12px}
+.rowsel select{padding:3px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+:root{--ask1:#ff7a45;--ask2:#e8467c;--askc:#f0507a}
+.askbtn{position:absolute;z-index:6;display:none;align-items:center;gap:9px;padding:11px 16px 11px 14px;border:none;border-radius:999px;background:linear-gradient(135deg,var(--ask1),var(--ask2));color:#fff;font-size:15px;font-weight:800;letter-spacing:-.01em;cursor:pointer;box-shadow:0 10px 28px rgba(232,70,124,.38),0 2px 6px rgba(0,0,0,.2);transform:translateY(-100%);white-space:nowrap;animation:pop .16s ease-out}
+.askbtn.on{display:inline-flex}
+.askbtn.ghosted{pointer-events:none;opacity:.35}
+.askbtn:hover{filter:brightness(1.07);box-shadow:0 12px 32px rgba(232,70,124,.48),0 2px 6px rgba(0,0,0,.2)}
+.askbtn .spark{font-size:17px}
+.askbtn .cnt{background:rgba(255,255,255,.24);border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700}
+.askbtn kbd{background:rgba(255,255,255,.22);border-radius:5px;padding:0 6px;font:inherit;font-size:11px;font-weight:700}
+@keyframes pop{from{opacity:0;transform:translateY(-90%) scale(.96)}to{opacity:1;transform:translateY(-100%) scale(1)}}
+.askhdr{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:999px;padding:7px 14px;background:linear-gradient(135deg,var(--ask1),var(--ask2));color:#fff;font-weight:800;font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(232,70,124,.3)}
+.askhdr b{background:rgba(255,255,255,.25);border-radius:999px;padding:0 8px;font-size:12px}
+.askhdr.idle{opacity:.92}
+.composer{position:absolute;z-index:7;width:390px;max-width:calc(100% - 20px);background:var(--panel);border:1.5px solid var(--askc);border-radius:14px;box-shadow:0 20px 54px rgba(0,0,0,.28);padding:12px 12px 10px;display:none}
+.composer.on{display:block}
+.composer h4{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:6px;color:var(--ink)}
+.composer h4 .spark{color:var(--askc)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;max-height:86px;overflow:auto}
+.chip{display:inline-flex;align-items:center;gap:4px;background:color-mix(in srgb,var(--askc) 11%,var(--chip));border:1px solid color-mix(in srgb,var(--askc) 35%,transparent);border-radius:999px;padding:2px 9px;font-size:11.5px;white-space:nowrap}
+.chip.wall{border-style:dashed}
+.chip button{border:none;background:none;cursor:pointer;color:var(--muted);padding:0 0 0 2px;font-size:13px;line-height:1}
+.composer textarea{width:100%;min-height:86px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);font:inherit;color:var(--ink);outline:none}
+.composer textarea:focus{border-color:var(--askc);box-shadow:0 0 0 3px color-mix(in srgb,var(--askc) 18%,transparent)}
+.sugg{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px}
+.sugg button{border:1px dashed var(--line);background:transparent;border-radius:999px;padding:2px 9px;font-size:11.5px;cursor:pointer;color:var(--muted)}
+.sugg button:hover{border-color:var(--askc);color:var(--ink)}
+.composer .row2{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
+.sendbtn{background:linear-gradient(135deg,var(--ask1),var(--ask2));color:#fff;border:none;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer;font-size:13.5px}
+.sendbtn.big{width:100%;padding:11px 14px;font-size:14.5px;border-radius:12px;margin-top:8px;box-shadow:0 6px 18px rgba(232,70,124,.28)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+#cmtList{display:flex;flex-direction:column;gap:7px}
+.cm{border:1px solid var(--line);border-left:4px solid var(--askc);border-radius:10px;padding:8px 9px;background:var(--panel);font-size:12.5px}
+.cm.done{border-left-color:var(--ok);opacity:.75}
+.cm.flash{box-shadow:0 0 0 3px color-mix(in srgb,var(--askc) 30%,transparent)}
+.cmh{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.cmn{background:var(--askc);color:#fff;border-radius:999px;padding:0 7px;font-weight:800;font-size:11.5px}
+.cm.done .cmn{background:var(--ok)}
+.cmt{color:var(--muted);font-size:11px}
+.cms{margin-left:auto;font-size:11px;font-weight:700;color:var(--askc)}
+.cm.done .cms{color:var(--ok)}
+.cmx{white-space:pre-wrap;margin:3px 0 6px}
+.cmr{background:var(--chip);border-radius:8px;padding:6px 8px;margin:4px 0;font-size:12px}
+.cm .btns{margin-top:4px}
+.cm .chips{margin-bottom:2px}
+.cmhelp{color:var(--muted);font-size:11.5px;margin:2px 2px 8px}
+.pin3d{position:absolute;z-index:5;transform:translate(-50%,-100%);background:var(--askc);color:#fff;font-weight:800;font-size:11.5px;border-radius:999px 999px 999px 2px;padding:2px 8px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25);white-space:nowrap}
+.pin3d.done{background:var(--ok)}
+#pins3d{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#pins3d .pin3d{pointer-events:auto}
+.seg3{display:flex;background:var(--chip);border-radius:8px;padding:2px;gap:2px}
+.seg3 button{flex:1;border:none;background:transparent;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px}
+.seg3 button.on{background:var(--panel);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.wallinfo{display:grid;grid-template-columns:80px 1fr;gap:4px 8px;font-size:12.5px}
+.wallinfo span{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+/* svg */
+.site{fill:none;stroke:var(--site);stroke-width:1.6;stroke-dasharray:8 4}
+.bl{stroke:var(--bline);stroke-width:1.6;stroke-dasharray:10 4 2 4}
+.outl{fill:var(--panel);stroke:var(--ink);stroke-width:2.4}
+.ghost{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3;opacity:.6}
+.zone{stroke-width:1.2;cursor:move}
+.zone.bad{stroke:var(--bad)!important;stroke-width:2.4;stroke-dasharray:5 3}
+.zone.sel{stroke:var(--accent)!important;stroke-width:2.6}
+.zl{fill:var(--ink);pointer-events:none;font-weight:600}
+.zs{fill:var(--muted);pointer-events:none}
+.stall{fill:none;stroke:#3b4a52;stroke-opacity:.55;stroke-width:.8}
+.hd{fill:var(--panel);stroke:var(--accent);stroke-width:1.6}
+.eh{fill:var(--accent);fill-opacity:.25;stroke:var(--accent);stroke-width:1.4;cursor:grab}
+.gridl{stroke:var(--grid);stroke-width:1}
+.rubber{fill:color-mix(in srgb,var(--accent) 15%,transparent);stroke:var(--accent);stroke-width:1.4;stroke-dasharray:4 3}
+@media (max-width:1100px){ .app{grid-template-columns:150px minmax(0,1fr) 290px} .hint{display:none} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <a class="hub-link" href="index.html" title="작업 허브 (전체 워크플로)" style="text-decoration:none;font-size:12px;font-weight:700;border:1px solid currentColor;border-radius:7px;padding:2px 8px;margin-right:8px;color:inherit;opacity:.75;white-space:nowrap">⌂ 허브</a><h1>상봉동 116-49 · 조닝 편집기</h1>
+    <div class="tabs" id="tabs"><button data-t="plan" class="on">평면</button><button data-t="3d">3D</button><button data-t="sum">집계</button></div>
+    <span class="sp"></span>
+    <button class="askhdr idle" id="askHdr" title="선택한 객체에 수정 요청 (C)">💬 수정 요청 <b id="askHdrN">0</b></button>
+    <span class="save" id="save"><i></i><span id="saveTxt">—</span></span>
+    <button class="btn sm" id="undoBtn" title="되돌리기 ⌘Z">↶</button>
+    <button class="btn sm" id="redoBtn" title="다시하기 ⇧⌘Z">↷</button>
+    <button class="btn sm" id="themeBtn" title="라이트/다크">◐</button>
+  </header>
+
+  <nav id="floors"></nav>
+
+  <main id="center">
+    <div class="pane on" id="planPane">
+      <svg id="plan" xmlns="http://www.w3.org/2000/svg"><g id="gGrid"></g><g id="gBase"></g><g id="gGhost"></g><g id="gZones"></g><g id="gTop"></g><g id="gPins"></g></svg>
+      <div class="palette" id="palette"></div>
+      <svg class="north" id="north" viewBox="-23 -23 46 46"></svg>
+      <div class="vtools">
+        <label>격자 <select id="snap"><option value="0.1">0.1m</option><option value="0.3" selected>0.3m</option><option value="0.6">0.6m</option><option value="1">1.0m</option></select></label>
+        <label><input type="checkbox" id="ghostOn" checked>아래층 겹쳐보기</label>
+        <label><input type="checkbox" id="stallOn" checked>주차구획 표시</label>
+        <button class="btn sm" id="fitBtn">화면 맞춤 (F)</button>
+      </div>
+      <div class="hint" id="hint"></div>
+      <div class="coord" id="coord"></div>
+    </div>
+    <div class="pane" id="v3d">
+      <div class="ov3d">
+        <div class="seg3" id="seg3"><button data-t="select">실 선택</button><button data-t="wall">벽 선택</button></div>
+        <span style="color:var(--muted)">Shift+클릭 = 여러 개 · 더블클릭 = 평면으로</span>
+        <label><input type="checkbox" id="cutOn">선택 층 위로 숨기기</label>
+        <label><input type="checkbox" id="unitsOnly">주거유닛만 강조</label>
+      </div>
+      <div id="pins3d"></div>
+    </div>
+    <div class="pane" id="sumPane"></div>
+    <button class="askbtn" id="askBtn"><span class="spark">✦</span>Claude에게 수정 요청<span class="cnt">1개</span><kbd>C</kbd></button>
+    <div class="composer" id="composer">
+      <h4><span class="spark">✦</span> Claude에게 수정 요청 <span style="margin-left:auto;color:var(--muted);font-weight:400;font-size:11.5px">Enter 보내기 · Shift+Enter 줄바꿈</span></h4>
+      <div class="chips" id="cmpChips"></div>
+      <textarea id="cmpText" placeholder="무엇을 바꿀까요?&#10;예) 이 벽을 1m 북쪽으로 옮겨줘 / 두 세대를 투룸 하나로 합쳐줘 / 램프 폭을 3.3m로"></textarea>
+      <div class="sugg" id="cmpSugg"></div>
+      <div class="row2"><span style="color:var(--muted);font-size:11.5px" id="cmpNote"></span><span style="display:flex;gap:6px"><button class="btn sm" id="cmpCancel">취소</button><button class="sendbtn" id="cmpSend">요청 남기기 ↵</button></span></div>
+    </div>
+  </main>
+
+  <aside>
+    <h2 style="display:flex;align-items:center;gap:6px">💬 수정 요청 <span id="cmtCount" style="font-weight:400"></span><button class="btn sm" id="cmtFilter" style="margin-left:auto">열린 것만</button></h2>
+    <div class="cmhelp">객체를 선택하고 <b style="color:var(--askc)">✦ Claude에게 수정 요청</b>을 누르세요. 요청은 조닝 JSON에 저장되고, 대화창에서 “요청 반영해줘”라고 하면 Claude가 읽고 고칩니다.</div>
+    <div id="cmtList"></div>
+    <h2 id="selTitle">선택한 구역</h2>
+    <div id="zoneProps"></div>
+    <h2>현재 층</h2>
+    <div id="floorProps"></div>
+    <h2>검토</h2>
+    <div id="checks"></div>
+    <h2>IFC 연동</h2>
+    <div class="ifc" id="ifcBox"></div>
+    <div class="btns">
+      <button class="btn sm" id="expBtn">JSON 내보내기</button>
+      <label class="btn sm" style="display:inline-flex;align-items:center">JSON 불러오기<input type="file" id="impFile" accept=".json,application/json" hidden></label>
+      <button class="btn sm danger" id="resetBtn">기본 초안으로 초기화</button>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const DEFAULT = {"schema":"sangbong-zoning/1","project":{"name":"상봉동 116-49 신축 기획 (실습)","address":"서울특별시 중랑구 상봉동 116-49 (망우로 265)","pnu":"1126010200101160049","siteAreaOfficial":2027},"frame":{"epsg":5186,"displayOrigin":[207221.90692937886,555138.7909994795],"uvOriginDisplay":[-6.18,25.983],"uAxisDisplay":[0.9536583546135763,-0.3008915796025642],"vAxisDisplay":[-0.3008915796025642,-0.9536583546135763],"note":"display: x=E-X0, y=Y0-N (m). uv: u along 망우로 building line (to ENE), v perpendicular inward (to NNW). X=X0+(ox+u*ux+v*vx), Y=Y0-(oy+u*uy+v*vy)"},"site":{"uv":[],"buildingLineV":0},"params":{"coverageLimit":60,"farTarget":960,"maxHeight":80,"parkingPerUnit":0.3,"retailM2PerStall":134,"stall":{"w":2.5,"d":5,"aisle":6},"grid":0.3,"windowMin":2.4},"context":{"bline":[]},"floors":[{"id":"1F","name":"1층","level":1,"height":4.8,"outline":[],"zones":[]}],"comments":[]};
+const $ = id => document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+const fmt=(v,d=1)=>(+v).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const clone=o=>JSON.parse(JSON.stringify(o));
+const LSKEY='site-1126010200101160049-zoning-v1';
+
+/* ---------- types ---------- */
+const TYPES={
+  unit:{label:'주거유닛',color:'#8fb1e8',res:true},
+  corridor:{label:'복도·차로',color:'#e4e1da'},
+  core:{label:'코어',color:'#6b7280'},
+  lobby:{label:'주거 로비',color:'#b7d3c4'},
+  community:{label:'주민공동',color:'#9fd0b0'},
+  retail:{label:'근린생활',color:'#f0b46a'},
+  public:{label:'공공시설',color:'#c9a7e0'},
+  parking:{label:'주차',color:'#cfd6dc'},
+  aisle:{label:'차로',color:'#e9e3d6'},
+  ramp:{label:'램프',color:'#f08f7a'},
+  mep:{label:'기계·설비',color:'#a9b0a3'},
+};
+const UNIT_TYPES={'원룸':{target:25,min:20,max:35,w:3.3,h:8.0},'1.5룸':{target:40,min:30,max:50,w:3.6,h:11.4},'투룸':{target:50,min:40,max:60,w:4.5,h:11.4},'쓰리룸':{target:60,min:50,max:60,w:5.4,h:11.4}};
+const typeColor=t=>(TYPES[t]||{color:'#ccc'}).color;
+
+/* ---------- doc + history ---------- */
+let doc=null, cur=0, selId=null, tool='select', unitPreset='원룸';
+let undo=[], redo=[];
+function loadInitial(){
+  try{ const s=localStorage.getItem(LSKEY); if(s){ const d=JSON.parse(s); if(d&&d.schema===DEFAULT.schema) return d; } }catch(e){}
+  return clone(DEFAULT);
+}
+doc=loadInitial();
+cur=Math.max(0,doc.floors.findIndex(f=>f.id==='3F'));
+const F=()=>doc.floors[cur];
+function commit(){ undo.push(JSON.stringify(doc)); if(undo.length>150) undo.shift(); redo=[]; }
+function changed(opts={}){ doc.updated=new Date().toISOString(); scheduleSave(); renderAll(opts); }
+function doUndo(){ if(!undo.length) return; redo.push(JSON.stringify(doc)); doc=JSON.parse(undo.pop()); cur=Math.min(cur,doc.floors.length-1); pruneSel(); changed(); }
+function doRedo(){ if(!redo.length) return; undo.push(JSON.stringify(doc)); doc=JSON.parse(redo.pop()); cur=Math.min(cur,doc.floors.length-1); pruneSel(); changed(); }
+const zoneById=id=>F().zones.find(z=>z.id===id);
+const newId=()=>'z'+Math.random().toString(36).slice(2,9);
+
+/* ---------- save / sync ---------- */
+const HTTP=location.protocol.startsWith('http');
+let saveTimer=null;
+function setSave(cls,txt){ $('save').className='save '+cls; $('saveTxt').textContent=txt; }
+function scheduleSave(){ setSave('pending','저장 대기…'); clearTimeout(saveTimer); saveTimer=setTimeout(saveNow,700); }
+async function saveNow(){
+  const body=JSON.stringify(doc,null,1);
+  try{ localStorage.setItem(LSKEY,body); }catch(e){}
+  if(HTTP){
+    try{ const r=await fetch('/api/zoning',{method:'POST',headers:{'Content-Type':'application/json'},body}); const j=await r.json(); if(!r.ok||!j.ok) throw new Error(j.error||r.status);
+      setSave('ok','저장됨 '+new Date().toLocaleTimeString('ko-KR',{hour12:false})+' · '+j.path); return; }
+    catch(e){ setSave('err','서버 저장 실패 — '+e.message); return; }
+  }
+  setSave('pending','파일로 열림 — 서버 저장 안 됨 (JSON 내보내기 사용)');
+}
+async function loadFromServer(){
+  if(!HTTP) { setSave('pending','파일로 열림 — 서버 저장 안 됨'); return; }
+  try{ const r=await fetch('/api/zoning'); if(r.status===200){ const d=await r.json(); if(d&&d.schema===DEFAULT.schema){ doc=d; cur=Math.min(cur,doc.floors.length-1); { const q=new URLSearchParams(location.search).get('floor'); const qi=q?doc.floors.findIndex(f=>f.id===q):-1; if(qi>=0) cur=qi; }  /* 실습: ?floor=4F 로 그 층 열기 */ pruneSel(); setSave('ok','서버 파일 불러옴'); renderAll({fit:true}); return; } }
+    setSave('pending','서버에 저장된 파일 없음 — 첫 저장 중'); saveNow(); }
+  catch(e){ setSave('err','서버 연결 실패'); }
+}
+
+/* ---------- geometry ---------- */
+const polyArea=p=>{let s=0;for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length];s+=a[0]*b[1]-b[0]*a[1];}return Math.abs(s)/2;};
+function pip(p,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])c=!c;}return c;}
+function onB(p,poly,t=0.02){for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];const dx=b[0]-a[0],dy=b[1]-a[1],l=dx*dx+dy*dy;let k=l?((p[0]-a[0])*dx+(p[1]-a[1])*dy)/l:0;k=Math.max(0,Math.min(1,k));if(Math.hypot(p[0]-a[0]-k*dx,p[1]-a[1]-k*dy)<t)return true;}return false;}
+const inPoly=(p,poly)=>pip(p,poly)||onB(p,poly);
+function rectInPoly(z,poly){ const c=[[z.x,z.y],[z.x+z.w,z.y],[z.x+z.w,z.y+z.h],[z.x,z.y+z.h]];
+  if(!c.every(p=>inPoly(p,poly))) return false;
+  return !poly.some(p=>p[0]>z.x+0.01&&p[0]<z.x+z.w-0.01&&p[1]>z.y+0.01&&p[1]<z.y+z.h-0.01); }
+const ov=(a,b)=>Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+const zA=z=>z.w*z.h;
+const EPS=0.02;
+function facadeSegs(z,poly){ const segs=[]; const E=[[z.x,z.y,z.x+z.w,z.y],[z.x,z.y+z.h,z.x+z.w,z.y+z.h],[z.x,z.y,z.x,z.y+z.h],[z.x+z.w,z.y,z.x+z.w,z.y+z.h]];
+  for(let i=0;i<poly.length;i++){ const a=poly[i], b=poly[(i+1)%poly.length];
+    E.forEach(([x0,y0,x1,y1])=>{
+      if(Math.abs(y0-y1)<1e-9 && Math.abs(a[1]-b[1])<EPS && Math.abs(a[1]-y0)<EPS){ const lo=Math.max(x0,Math.min(a[0],b[0])), hi=Math.min(x1,Math.max(a[0],b[0])); if(hi-lo>0.01) segs.push([lo,y0,hi,y0]); }
+      if(Math.abs(x0-x1)<1e-9 && Math.abs(a[0]-b[0])<EPS && Math.abs(a[0]-x0)<EPS){ const lo=Math.max(y0,Math.min(a[1],b[1])), hi=Math.min(y1,Math.max(a[1],b[1])); if(hi-lo>0.01) segs.push([x0,lo,x0,hi]); }
+    }); }
+  return segs; }
+const segLen=s=>Math.hypot(s[2]-s[0],s[3]-s[1]);
+function contactLen(a,b){ let L=0;
+  if(Math.abs(a.x+a.w-b.x)<EPS||Math.abs(b.x+b.w-a.x)<EPS) L=Math.max(L,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+  if(Math.abs(a.y+a.h-b.y)<EPS||Math.abs(b.y+b.h-a.y)<EPS) L=Math.max(L,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x));
+  return Math.max(0,L); }
+const ACCESS_TYPES=['corridor','lobby','aisle'];
+function stalls(z,P=doc.params.stall){
+  if(z.parkingMode==='row'){ // 1열·직각 주차: 주차칸 깊이가 열의 짧은 변(차로 쪽)에 오도록. 확장형 2.6×5.2, 장애인 3.3×5.0
+    const dir=z.parkingDir==='u'?'u':z.parkingDir==='v'?'v':(z.h<=z.w?'u':'v'); const L=dir==='u'?z.w:z.h, D=dir==='u'?z.h:z.w;
+    const ext=z.stallType==='확장형', SW=ext?2.6:P.w, SD=ext?5.2:P.d, nB=Math.floor(D/SD+1e-6), acc=nB?Math.max(0,Math.min(Math.floor(+z.accessible||0),Math.floor(L/3.3+1e-6))):0;
+    const first=acc+Math.floor((L-acc*3.3)/SW+1e-6), n=nB?first+(nB-1)*Math.floor(L/SW+1e-6):0; return {n, dir, row:true, SW, SD, nB, acc, ext}; }
+  const rows=L=>{const m=2*P.d+P.aisle;let n2=Math.floor(L/m),rem=L-n2*m;return 2*n2+(rem>=P.d+P.aisle-1e-6?1:0);};
+  const cu=rows(z.h)*Math.floor(z.w/P.w+1e-6), cv=rows(z.w)*Math.floor(z.h/P.w+1e-6);
+  const dir=z.parkingDir==='u'?'u':z.parkingDir==='v'?'v':(cu>=cv?'u':'v');
+  return {n:dir==='u'?cu:cv, dir};
+}
+function rectPolyArea(z,poly){ // 사각형 z 중 직교 다각형 poly 안에 드는 면적
+  const xs=[...new Set([z.x,z.x+z.w,...poly.map(p=>p[0]).filter(v=>v>z.x&&v<z.x+z.w)])].sort((a,b)=>a-b), ys=[...new Set([z.y,z.y+z.h,...poly.map(p=>p[1]).filter(v=>v>z.y&&v<z.y+z.h)])].sort((a,b)=>a-b); let a=0;
+  for(let i=0;i<xs.length-1;i++) for(let j=0;j<ys.length-1;j++){ const cx=(xs[i]+xs[i+1])/2, cy=(ys[j]+ys[j+1])/2; let c=false; for(let k=0,m=poly.length-1;k<poly.length;m=k++){ const A=poly[k],B=poly[m]; if((A[1]>cy)!==(B[1]>cy)&&cx<(B[0]-A[0])*(cy-A[1])/(B[1]-A[1])+A[0]) c=!c; } if(c) a+=(xs[i+1]-xs[i])*(ys[j+1]-ys[j]); }
+  return a; }
+function floorStats(f){
+  const s={area:polyArea(f.outline),zoned:0,units:0,unitArea:0,byType:{},byUnit:{},stalls:0,bad:0,warn:0};
+  f.zones.forEach(z=>{ const a=zA(z); s.zoned+=a; s.byType[z.type]=(s.byType[z.type]||0)+a;
+    if(z.type==='unit'){ s.units++; s.unitArea+=a; s.byUnit[z.unitType||'기타']=(s.byUnit[z.unitType||'기타']||0)+1; }
+    if(z.type==='parking') s.stalls+=stalls(z).n; });
+  const iss=zoneIssues(f); s.bad=Object.values(iss).filter(v=>v.bad).length; s.warn=Object.values(iss).filter(v=>!v.bad).length;
+  return s;
+}
+function zoneIssues(f){
+  const out={};
+  f.zones.forEach((z,i)=>{ const msgs=[]; let bad=false;
+    if(!rectInPoly(z,f.outline)){ msgs.push('외곽선 밖으로 나감'); bad=true; }
+    f.zones.forEach((o,j)=>{ if(j!==i && ov(z,o)>0.05){ msgs.push(`'${o.name}'와 겹침`); bad=true; } });
+    if(z.type==='unit'){ const ut=UNIT_TYPES[z.unitType]||UNIT_TYPES['원룸']; const a=zA(z);
+      if(a<20) {msgs.push('전용 20㎡ 미만 (지침 하한)'); } else if(a>60) msgs.push('전용 60㎡ 초과 (지침 상한 근처)');
+      else if(a<ut.min||a>ut.max) msgs.push(`${z.unitType} 기준(${ut.min}~${ut.max}㎡) 밖`);
+      if(Math.min(z.w,z.h)<2.7) msgs.push('폭 2.7m 미만');
+      const win=facadeSegs(z,f.outline).reduce((s,g)=>s+segLen(g),0), wmin=+(doc.params.windowMin||2.4);
+      if(win<0.01){ msgs.push('창 없음 — 외벽에 닿지 않음'); bad=true; } else if(win<wmin) msgs.push(`외벽 면 ${win.toFixed(2)}m (창 기준 ${wmin}m 미만)`);
+      const acc=Math.max(0,...f.zones.filter(o=>ACCESS_TYPES.includes(o.type)).map(o=>contactLen(z,o)));
+      if(acc<0.9){ msgs.push('복도·로비와 닿지 않음 — 출입 불가'); bad=true; } }
+    if(z.type==='core' && f.level>=3){ const acc=Math.max(0,...f.zones.filter(o=>ACCESS_TYPES.includes(o.type)).map(o=>contactLen(z,o))); if(acc<0.9) msgs.push('코어가 복도·EV홀과 닿지 않음'); }
+    if(z.type==='ramp' && Math.min(z.w,z.h)<3.3) msgs.push('램프 폭 3.3m 미만');
+    if(z.type==='ramp' && (+z.landing||0)>=0 && f.level!==Math.min(...doc.floors.map(g=>g.level))){ const ri=rampInfo(z,f); if(ri.slope!=null && ri.slope>17.05) msgs.push(`램프 경사 약 ${ri.slope.toFixed(1)}% (직선 17% 초과)`); }
+    if(z.type==='corridor' && f.level>0 && Math.min(z.w,z.h)<1.2) msgs.push('복도 폭 1.2m 미만');
+    if(msgs.length) out[z.id]={msgs,bad};
+  });
+  return out;
+}
+
+/* ---------- plan view ---------- */
+const svg=$('plan');
+let vb={x:0,y:0,w:100,h:100};
+const box=()=>{const r=$('center').getBoundingClientRect();return{w:Math.max(r.width,50),h:Math.max(r.height,50)};};
+const px=()=>vb.w/box().w;
+const Y=v=>-v;
+function fit(){ let pts=[...((doc.site&&doc.site.uv)||[]),...(F().outline||[])]; if(!pts.length) pts=[[-15,-3],[40,50]]; /* 실습: 대지 경계가 아직 없을 때 */ const us=pts.map(p=>p[0]), vs=pts.map(p=>p[1]); const pad=6;
+  const x0=Math.min(...us)-pad,x1=Math.max(...us)+pad,y0=-Math.max(...vs)-pad-6,y1=-Math.min(...vs)+pad; const B=box(), r=B.w/B.h; let w=x1-x0,h=y1-y0;
+  if(w/h<r){const nw=h*r;vb={x:x0-(nw-w)/2,y:y0,w:nw,h};}else{const nh=w/r;vb={x:x0,y:y0-(nh-h)/2,w,h:nh};} applyVB(); }
+function applyVB(){ svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`); drawPlan(); }
+function toM(e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(svg.getScreenCTM().inverse());return[q.x,-q.y];}
+function el(tag,a,parent){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(parent)parent.appendChild(e);return e;}
+const ptsA=p=>p.map(q=>q[0]+','+(-q[1])).join(' ');
+const snap=v=>{const s=+$('snap').value;return Math.round(v/s)*s;};
+const r3=v=>Math.round(v*1000)/1000;
+
+function emptyHint(){ let h=document.getElementById('emptyHint'); const none=!(doc.site&&doc.site.uv&&doc.site.uv.length);
+  if(!h){ h=document.createElement('div'); h.id='emptyHint'; h.style.cssText='position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);max-width:460px;padding:22px 26px;border-radius:14px;background:var(--panel,#1b2028);border:1px dashed var(--accent,#ff6b8b);color:var(--text,#e8ecf1);font-size:14px;line-height:1.6;text-align:center;z-index:5;pointer-events:none';
+    h.innerHTML='<b style="font-size:16px">대지 경계가 아직 없습니다</b><br>대화창에서 Claude에게<br><b>“대지 경계 표시해줘”</b><br>라고 요청한 뒤 이 페이지를 새로고침하세요.'; (svg.parentElement||document.body).appendChild(h); }
+  h.style.display=none?'block':'none'; }
+function drawPlan(){ try{ emptyHint(); }catch(e){}
+  const s=px(), f=F();
+  // grid
+  const gg=$('gGrid'); gg.innerHTML='';
+  const step = s<0.05?1: s<0.12?3 : 6;
+  for(let u=Math.floor(vb.x/step)*step;u<vb.x+vb.w;u+=step) el('line',{x1:u,x2:u,y1:vb.y,y2:vb.y+vb.h,class:'gridl','vector-effect':'non-scaling-stroke'},gg);
+  for(let y=Math.floor(vb.y/step)*step;y<vb.y+vb.h;y+=step) el('line',{x1:vb.x,x2:vb.x+vb.w,y1:y,y2:y,class:'gridl','vector-effect':'non-scaling-stroke'},gg);
+  // base
+  const gb=$('gBase'); gb.innerHTML='';
+  el('polygon',{points:ptsA(doc.site.uv),class:'site','vector-effect':'non-scaling-stroke'},gb);
+  if(f.level>0){ const bl=doc.context.bline; el('line',{x1:-30,x2:60,y1:0,y2:0,class:'bl','vector-effect':'non-scaling-stroke'},gb);
+    const t=el('text',{x:vb.x+8*s,y:12*s,'font-size':10*s,fill:css('--bline')},gb); t.textContent='건축한계선 3m (망우로 쪽)'; }
+  const tt=el('text',{x:vb.x+8*s,y:-(doc.site.uv.reduce((m,p)=>Math.min(m,p[1]),1e9))+26*s,'font-size':11*s,fill:css('--muted')},gb); tt.textContent='↓ 망우로';
+  el('polygon',{points:ptsA(f.outline),class:'outl','vector-effect':'non-scaling-stroke'},gb);
+  // ghost (floor below)
+  const gh=$('gGhost'); gh.innerHTML='';
+  if($('ghostOn').checked && cur>0){ const b=doc.floors[cur-1]; el('polygon',{points:ptsA(b.outline),class:'ghost','vector-effect':'non-scaling-stroke'},gh);
+    b.zones.forEach(z=>{ if(z.type==='core'||z.type==='ramp'||z.type==='unit'||z.type==='corridor') el('rect',{x:z.x,y:-(z.y+z.h),width:z.w,height:z.h,class:'ghost','vector-effect':'non-scaling-stroke'},gh); }); }
+  // zones
+  const gz=$('gZones'); gz.innerHTML='';
+  const iss=zoneIssues(f);
+  f.zones.forEach(z=>{
+    const g=el('g',{},gz);
+    const r=el('rect',{x:z.x,y:-(z.y+z.h),width:z.w,height:z.h,fill:typeColor(z.type),'fill-opacity':z.type==='corridor'?0.9:0.82,stroke:'rgba(0,0,0,.35)',class:'zone'+(iss[z.id]&&iss[z.id].bad?' bad':'')+(isSelZone(z.id)?' sel':''),'vector-effect':'non-scaling-stroke','data-id':z.id},g);
+    if(z.type==='parking' && $('stallOn').checked) drawStalls(z,g);
+    if(z.type==='ramp') drawRamp(z,g);
+    if(z.type==='unit') facadeSegs(z,f.outline).forEach(s2=>el('line',{x1:s2[0],y1:-s2[1],x2:s2[2],y2:-s2[3],stroke:'#2b7bd6','stroke-width':4.5,'stroke-linecap':'butt','vector-effect':'non-scaling-stroke'},g));
+    const minPx=Math.min(z.w,z.h)/s;
+    if(minPx>26){ const fs=Math.min(12, Math.max(8, Math.min(z.w,z.h)/s/4.5))*s;
+      const cx=z.x+z.w/2, cy=-(z.y+z.h/2);
+      const name = z.type==='unit' ? `${z.name}` : z.name;
+      const sub = z.type==='unit' ? `${z.unitType||''} ${fmt(zA(z),1)}㎡` : z.type==='parking' ? `${stalls(z).n}대 · ${fmt(zA(z),0)}㎡` : `${fmt(zA(z),1)}㎡`;
+      const vert = z.h > z.w*1.6 && z.w/s < 90;
+      const t1=el('text',{x:cx,y:cy-fs*0.15,'font-size':fs,class:'zl','text-anchor':'middle',transform:vert?`rotate(-90 ${cx} ${cy})`:''},g); t1.textContent=name;
+      const t2=el('text',{x:cx,y:cy+fs*1.05,'font-size':fs*0.85,class:'zs','text-anchor':'middle',transform:vert?`rotate(-90 ${cx} ${cy})`:''},g); t2.textContent=sub;
+    }
+    r.addEventListener('pointerdown',e=>onZoneDown(e,z));
+  });
+  drawTop(); drawPins(); updateAsk();
+  $('hint').textContent = tool==='select' ? '클릭=선택 · Shift+클릭=여러 개 · 빈 곳 드래그=범위 선택 · 우클릭 드래그·Space+드래그=화면 이동 · C=Claude에게 요청 · W=벽 선택 · ⌫ 삭제 · ⌘D 복제'
+    : tool==='wall' ? '실 안쪽에서 벽 가까이 클릭=그 벽 선택 · Shift+클릭=여러 벽 · 빈 곳 드래그=범위 안 벽 선택 · C=Claude에게 요청 · V=실 선택'
+    : tool==='outline' ? '외곽선 변의 ● 핸들을 끌면 그 변이 평행 이동합니다 (직각 유지) · Esc=선택 도구'
+    : `${TYPES[tool].label} 그리기: 빈 곳에서 드래그해 사각형 만들기 · Esc=선택 도구`;
+}
+function drawStalls(z,g){
+  const P=doc.params.stall, st=stalls(z), m=2*P.d+P.aisle;
+  if(st.row){ const cu = st.dir==='u'; const L=cu?z.w:z.h;
+    for(let j=0;j<st.nB;j++){ let a=0; const ws=[]; if(j===0) for(let k=0;k<st.acc;k++) ws.push(3.3); while(a+ws.reduce((p,q)=>p+q,0)+st.SW<=L+1e-6&&ws.length<500) ws.push(st.SW);
+      ws.forEach(w=>{ const R = cu? {x:z.x+a,y:z.y+j*st.SD,w,h:st.SD} : {x:z.x+j*st.SD,y:z.y+a,w:st.SD,h:w}; a+=w;
+        el('rect',{x:R.x,y:-(R.y+R.h),width:R.w,height:R.h,class:'stall','vector-effect':'non-scaling-stroke',...(w>3?{style:'stroke:#1f6fd1;stroke-opacity:.9'}:{})},g); }); }
+    return; }
+  const along = st.dir==='u' ? z.w : z.h, across = st.dir==='u'? z.h : z.w;
+  const n=Math.floor(along/P.w+1e-6);
+  const rowsAt=[]; let o=0; while(o+m<=across+1e-6){ rowsAt.push(o, o+P.d+P.aisle); o+=m; } if(across-o>=P.d+P.aisle-1e-6) rowsAt.push(o);
+  rowsAt.forEach(r0=>{ for(let i=0;i<n;i++){ const a=i*P.w;
+    const R = st.dir==='u' ? {x:z.x+a,y:z.y+r0,w:P.w,h:P.d} : {x:z.x+r0,y:z.y+a,w:P.d,h:P.w};
+    el('rect',{x:R.x,y:-(R.y+R.h),width:R.w,height:R.h,class:'stall','vector-effect':'non-scaling-stroke'},g); } });
+}
+const DIRV={N:[0,1],S:[0,-1],E:[1,0],W:[-1,0]};
+function rampInfo(z,f=F()){
+  const d=z.rampDown||'N', along=(d==='N'||d==='S')?z.h:z.w, land=+z.landing||0;
+  const lowLv = f.level===1? -1 : f.level-1; const low=doc.floors.find(g=>g.level===lowLv);
+  if(!low || f.level<-0.5 && !doc.floors.some(g=>g.level===f.level-1)) return {d,along,land,drop:null,slope:null};
+  const run=(+z.runLength||along); const drop=low.height, body=run-land-7.2; const slope= body>0? (drop-2*3.6*0.085)/body*100 : Infinity;
+  return {d,along,land,drop,slope,lowId:low.id,run};
+}
+function drawRamp(z,g){
+  const s=px(), ri=rampInfo(z), v=DIRV[ri.d]; const C=css('--ink');
+  // landing line
+  if(ri.land>0){ let x1,y1,x2,y2;
+    if(ri.d==='N'){ y1=y2=z.y+ri.land; x1=z.x; x2=z.x+z.w; } else if(ri.d==='S'){ y1=y2=z.y+z.h-ri.land; x1=z.x; x2=z.x+z.w; }
+    else if(ri.d==='E'){ x1=x2=z.x+ri.land; y1=z.y; y2=z.y+z.h; } else { x1=x2=z.x+z.w-ri.land; y1=z.y; y2=z.y+z.h; }
+    el('line',{x1,y1:-y1,x2,y2:-y2,stroke:C,'stroke-width':1.2,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke'},g); }
+  // chevrons along down direction
+  const n=Math.max(2,Math.floor((ri.along-ri.land)/4)); const cw=Math.min(z.w,z.h)*0.28;
+  for(let i=0;i<n;i++){ const t=(i+0.5)/n; let cx,cy;
+    if(ri.d==='N'){ cx=z.x+z.w/2; cy=z.y+ri.land+(z.h-ri.land)*t; } else if(ri.d==='S'){ cx=z.x+z.w/2; cy=z.y+(z.h-ri.land)*(1-t); }
+    else if(ri.d==='E'){ cy=z.y+z.h/2; cx=z.x+ri.land+(z.w-ri.land)*t; } else { cy=z.y+z.h/2; cx=z.x+(z.w-ri.land)*(1-t); }
+    const px_=-v[1], py_=v[0]; // perpendicular
+    const tip=[cx+v[0]*cw*0.5,cy+v[1]*cw*0.5], a=[cx-v[0]*cw*0.5+px_*cw,cy-v[1]*cw*0.5+py_*cw], b=[cx-v[0]*cw*0.5-px_*cw,cy-v[1]*cw*0.5-py_*cw];
+    el('polyline',{points:`${a[0]},${-a[1]} ${tip[0]},${-tip[1]} ${b[0]},${-b[1]}`,fill:'none',stroke:C,'stroke-opacity':.55,'stroke-width':2,'vector-effect':'non-scaling-stroke'},g); }
+}
+function drawTop(){
+  const gt=$('gTop'); gt.innerHTML=''; const s=px(); const f=F(); const AC=css('--askc')||'#f0507a';
+  if(tool==='select' && selId){ const z=zoneById(selId); if(z){
+    const H=[['sw',z.x,z.y],['se',z.x+z.w,z.y],['ne',z.x+z.w,z.y+z.h],['nw',z.x,z.y+z.h],['s',z.x+z.w/2,z.y],['n',z.x+z.w/2,z.y+z.h],['w',z.x,z.y+z.h/2],['e',z.x+z.w,z.y+z.h/2]];
+    H.forEach(([k,x,y])=>{ const c=el('rect',{x:x-4*s,y:-y-4*s,width:8*s,height:8*s,class:'hd','vector-effect':'non-scaling-stroke',style:`cursor:${({sw:'nesw',ne:'nesw',se:'nwse',nw:'nwse',n:'ns',s:'ns',e:'ew',w:'ew'})[k]}-resize`},gt);
+      c.addEventListener('pointerdown',e=>onHandleDown(e,z,k)); });
+    const t=el('text',{x:z.x+z.w/2,y:-(z.y+z.h)-6*s,'font-size':10.5*s,'text-anchor':'middle',fill:css('--accent'),'font-weight':700},gt); t.textContent=`${fmt(z.w,2)} × ${fmt(z.h,2)} m`;
+  }}
+  // selected walls
+  sel.filter(t=>t.k==='wall'&&t.fid===f.id).forEach(t=>{ const z=f.zones.find(q=>q.id===t.id); if(!z) return; const g=wallSeg(z,t.side);
+    el('line',{x1:g[0],y1:-g[1],x2:g[2],y2:-g[3],stroke:AC,'stroke-width':7,'stroke-linecap':'round','vector-effect':'non-scaling-stroke'},gt);
+    const tx=el('text',{x:(g[0]+g[2])/2,y:-(g[1]+g[3])/2-7*s,'font-size':10*s,'text-anchor':'middle',fill:AC,'font-weight':800,class:'zl',style:'fill:'+AC},gt); tx.textContent=`${SIDE_LABEL[t.side]} ${fmt(segLen(g),2)}m`; });
+  if(tool==='wall' && hoverWall && hoverWall.fid===f.id){ const z=f.zones.find(q=>q.id===hoverWall.id); if(z){ const g=wallSeg(z,hoverWall.side);
+    el('line',{x1:g[0],y1:-g[1],x2:g[2],y2:-g[3],stroke:AC,'stroke-width':5,'stroke-dasharray':'6 4','stroke-opacity':.8,'vector-effect':'non-scaling-stroke','pointer-events':'none'},gt); } }
+  if(tool==='outline'){ const o=f.outline;
+    o.forEach((a,i)=>{ const b=o[(i+1)%o.length]; const c=el('circle',{cx:(a[0]+b[0])/2,cy:-(a[1]+b[1])/2,r:6*s,class:'eh','vector-effect':'non-scaling-stroke'},gt);
+      c.addEventListener('pointerdown',e=>onEdgeDown(e,i)); });
+    const t=el('text',{x:vb.x+8*s,y:vb.y+vb.h-28*s,'font-size':11*s,fill:css('--accent'),'font-weight':700},gt); t.textContent=`외곽선 ${fmt(polyArea(o),1)}㎡ · 건폐율 ${fmt(polyArea(o)/doc.project.siteAreaOfficial*100,2)}%`;
+  }
+}
+function drawPins(){
+  const gp=$('gPins'); gp.innerHTML=''; const s=px(), f=F(); const AC=css('--askc')||'#f0507a', OK=css('--ok');
+  const used={};
+  (doc.comments||[]).forEach(c=>{ if(c.status==='done' && cmtFilterOpen) return;
+    (c.targets||[]).forEach(t=>{ if(t.floor!==f.id) return; const live=targetInfo({k:t.kind,fid:t.floor,id:t.zoneId,side:t.side}); const a=(live||t).anchor; if(!a) return;
+      const key=a.map(v=>v.toFixed(1)).join(','); const k=used[key]=(used[key]||0)+1; const ox=(k-1)*22*s;
+      const g=el('g',{style:'cursor:pointer',transform:`translate(${a[0]+ox},${-a[1]})`},gp);
+      el('path',{d:`M0,0 L${-5*s},${-9*s} A${11*s},${11*s} 0 1 1 ${5*s},${-9*s} Z`,fill:c.status==='done'?OK:AC,stroke:'#fff','stroke-width':1.5,'vector-effect':'non-scaling-stroke'},g);
+      const tx=el('text',{x:0,y:-14.5*s,'font-size':10.5*s,'text-anchor':'middle',fill:'#fff','font-weight':800},g); tx.textContent=c.n;
+      g.addEventListener('pointerdown',e=>{ e.stopPropagation(); focusComment(c.id); });
+    }); });
+}
+/* ---------- selection ---------- */
+let sel=[], hoverWall=null, spaceDown=false, cmtFilterOpen=true;
+const SIDE_LABEL={N:'북벽',S:'남벽',E:'동벽',W:'서벽'};
+const tkey=t=>t.k+':'+t.fid+':'+t.id+(t.side?':'+t.side:'');
+const floorIdx=fid=>doc.floors.findIndex(f=>f.id===fid);
+function setSel(list,opt={}){ const seen=new Set(); sel=list.filter(t=>{const k=tkey(t); if(seen.has(k)) return false; seen.add(k); return true;});
+  selId=(sel.length===1&&sel[0].k==='zone'&&sel[0].fid===F().id)? sel[0].id : null; if(!opt.keepComposer) closeComposer(); }
+function toggleSel(t){ const k=tkey(t); setSel(sel.some(s=>tkey(s)===k)? sel.filter(s=>tkey(s)!==k) : [...sel,t]); }
+const isSelZone=id=>sel.some(s=>s.k==='zone'&&s.fid===F().id&&s.id===id);
+function pruneSel(){ setSel(sel.filter(s=>{ const i=floorIdx(s.fid); return i>=0 && doc.floors[i].zones.some(z=>z.id===s.id); })); }
+function wallSeg(z,side){ return side==='S'?[z.x,z.y,z.x+z.w,z.y]:side==='N'?[z.x,z.y+z.h,z.x+z.w,z.y+z.h]:side==='W'?[z.x,z.y,z.x,z.y+z.h]:[z.x+z.w,z.y,z.x+z.w,z.y+z.h]; }
+function nearestSide(z,p){ const d={S:Math.abs(p[1]-z.y),N:Math.abs(z.y+z.h-p[1]),W:Math.abs(p[0]-z.x),E:Math.abs(z.x+z.w-p[0])}; return Object.entries(d).sort((a,b)=>a[1]-b[1])[0]; }
+function wallNeighbor(f,z,side){ return f.zones.find(o=>o.id!==z.id && (side==='E'?Math.abs(o.x-(z.x+z.w))<EPS:side==='W'?Math.abs(o.x+o.w-z.x)<EPS:side==='N'?Math.abs(o.y-(z.y+z.h))<EPS:Math.abs(o.y+o.h-z.y)<EPS)
+   && ((side==='E'||side==='W')? Math.min(o.y+o.h,z.y+z.h)-Math.max(o.y,z.y)>0.05 : Math.min(o.x+o.w,z.x+z.w)-Math.max(o.x,z.x)>0.05)); }
+function targetInfo(t){ const fi=floorIdx(t.fid); if(fi<0) return null; const f=doc.floors[fi]; const z=f.zones.find(q=>q.id===t.id); if(!z) return null;
+  const info={floor:f.id,kind:t.k,zoneId:z.id,zoneName:z.name,zoneType:z.type,typeLabel:(TYPES[z.type]||{}).label||z.type,unitType:z.unitType||null,
+    rect:{x:z.x,y:z.y,w:z.w,h:z.h},area:+zA(z).toFixed(2),floorElev:+elevOf(fi).toFixed(3),floorHeight:f.height};
+  if(t.k==='wall'){ const s=wallSeg(z,t.side); const horiz=s[1]===s[3];
+    const ext=facadeSegs(z,f.outline).filter(g=>horiz? (g[1]===g[3]&&Math.abs(g[1]-s[1])<EPS) : (g[0]===g[2]&&Math.abs(g[0]-s[0])<EPS)).reduce((a,g)=>a+segLen(g),0);
+    const nb=wallNeighbor(f,z,t.side);
+    Object.assign(info,{side:t.side,sideLabel:SIDE_LABEL[t.side],seg:s.map(v=>+(+v).toFixed(3)),length:+segLen(s).toFixed(3),exteriorLength:+ext.toFixed(3),neighbor:nb?nb.name:null,neighborId:nb?nb.id:null,anchor:[(s[0]+s[2])/2,(s[1]+s[3])/2]}); }
+  else info.anchor=[z.x+z.w/2,z.y+z.h/2];
+  info.label=`${f.id} · ${z.name}${t.k==='wall'?' '+SIDE_LABEL[t.side]:''}`; return info; }
+
+/* ---------- interactions ---------- */
+let drag=null;
+function onZoneDown(e,z){
+  if(e.button!==0 || spaceDown) return;
+  if(tool!=='select'&&tool!=='wall') return;
+  e.stopPropagation();
+  const m=toM(e), fid=F().id, add=e.shiftKey||e.metaKey||e.ctrlKey;
+  if(tool==='wall'||e.altKey){ const t={k:'wall',fid,id:z.id,side:nearestSide(z,m)[0]}; add? toggleSel(t) : setSel([t]); renderSide(); drawPlan(); renderFloors(); return; }
+  const t={k:'zone',fid,id:z.id};
+  if(add){ toggleSel(t); renderSide(); drawPlan(); return; }
+  if(!isSelZone(z.id)) setSel([t]);
+  const movers=F().zones.filter(q=>isSelZone(q.id));
+  commit(); drag={k:'move',start:m,orig:movers.map(q=>({q,x:q.x,y:q.y})),moved:false};
+  svg.setPointerCapture(e.pointerId); renderSide(); drawPlan();
+}
+function onHandleDown(e,z,k){ e.stopPropagation(); commit(); drag={k:'resize',h:k,z,orig:{...z},moved:false}; svg.setPointerCapture(e.pointerId); }
+function onEdgeDown(e,i){ e.stopPropagation(); commit(); const o=F().outline, a=o[i], b=o[(i+1)%o.length]; drag={k:'edge',i,horiz:Math.abs(a[1]-b[1])<1e-6,orig:clone(o),start:toM(e),moved:false}; svg.setPointerCapture(e.pointerId); }
+svg.addEventListener('pointerdown',e=>{
+  if(e.button!==0&&e.button!==1) return;
+  const m=toM(e);
+  if(TYPES[tool] && e.button===0 && !spaceDown){ drag={k:'draw',start:[snap(m[0]),snap(m[1])],cur:[snap(m[0]),snap(m[1])]}; svg.setPointerCapture(e.pointerId); return; }
+  if(e.button===1 || e.button===2 || spaceDown || tool==='outline'){ drag={k:'pan',sx:e.clientX,sy:e.clientY,vb:{...vb},moved:false}; svg.classList.add('panning'); svg.setPointerCapture(e.pointerId); return; }
+  drag={k:'box',start:m,cur:m,sx:e.clientX,sy:e.clientY,add:e.shiftKey||e.metaKey||e.ctrlKey,moved:false}; svg.setPointerCapture(e.pointerId);
+});
+function zoneAt(m){ const zs=F().zones; for(let i=zs.length-1;i>=0;i--){ const z=zs[i]; if(m[0]>=z.x&&m[0]<=z.x+z.w&&m[1]>=z.y&&m[1]<=z.y+z.h) return z; } return null; }
+svg.addEventListener('pointermove',e=>{
+  const m=toM(e); $('coord').textContent=`u ${fmt(m[0],2)} · v ${fmt(m[1],2)} m`;
+  if(!drag){ if(tool==='wall'){ const z=zoneAt(m); const hw=z? {fid:F().id,id:z.id,side:nearestSide(z,m)[0]} : null;
+      if(JSON.stringify(hw)!==JSON.stringify(hoverWall)){ hoverWall=hw; drawTop(); } } return; }
+  if(drag.k==='pan'){ const k=px(); vb.x=drag.vb.x-(e.clientX-drag.sx)*k; vb.y=drag.vb.y-(e.clientY-drag.sy)*k; drag.moved=true; applyVB(); return; }
+  if(drag.k==='box'){ drag.cur=m; if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>4) drag.moved=true; if(!drag.moved) return; drawTop();
+    const x=Math.min(drag.start[0],m[0]), y=Math.min(drag.start[1],m[1]), w=Math.abs(m[0]-drag.start[0]), h=Math.abs(m[1]-drag.start[1]);
+    el('rect',{x,y:-(y+h),width:w,height:h,class:'rubber','vector-effect':'non-scaling-stroke',style:tool==='wall'?'stroke:var(--askc);fill:color-mix(in srgb,var(--askc) 10%,transparent)':''},$('gTop')); return; }
+  if(drag.k==='move'){ const dx=snap(m[0]-drag.start[0]), dy=snap(m[1]-drag.start[1]); drag.orig.forEach(o=>{ o.q.x=r3(o.x+dx); o.q.y=r3(o.y+dy); }); drag.moved=true; drawPlan(); renderSide(); return; }
+  if(drag.k==='resize'){ const z=drag.z,o=drag.orig,k=drag.h, u=snap(m[0]), v=snap(m[1]); let x0=o.x,y0=o.y,x1=o.x+o.w,y1=o.y+o.h;
+    if(k.includes('w')) x0=Math.min(u,x1-0.3); if(k.includes('e')) x1=Math.max(u,x0+0.3); if(k.includes('s')) y0=Math.min(v,y1-0.3); if(k.includes('n')) y1=Math.max(v,y0+0.3);
+    z.x=r3(x0); z.y=r3(y0); z.w=r3(x1-x0); z.h=r3(y1-y0); drag.moved=true; drawPlan(); renderSide(); return; }
+  if(drag.k==='edge'){ const o=F().outline, a=drag.i, b=(drag.i+1)%o.length;
+    if(drag.horiz){ const v=snap(m[1]); o[a][1]=r3(v); o[b][1]=r3(v); } else { const u=snap(m[0]); o[a][0]=r3(u); o[b][0]=r3(u); }
+    drag.moved=true; drawPlan(); renderSide(); return; }
+  if(drag.k==='draw'){ drag.cur=[snap(m[0]),snap(m[1])]; const gt=$('gTop'); drawTop();
+    const x=Math.min(drag.start[0],drag.cur[0]), y=Math.min(drag.start[1],drag.cur[1]), w=Math.abs(drag.cur[0]-drag.start[0]), h=Math.abs(drag.cur[1]-drag.start[1]);
+    el('rect',{x,y:-(y+h),width:w,height:h,class:'rubber','vector-effect':'non-scaling-stroke'},gt);
+    const t=el('text',{x:x+w/2,y:-(y+h)-6*px(),'font-size':11*px(),'text-anchor':'middle',fill:css('--accent'),'font-weight':700},gt); t.textContent=`${fmt(w,2)} × ${fmt(h,2)} = ${fmt(w*h,1)}㎡`; }
+});
+svg.addEventListener('pointerleave',()=>{ if(hoverWall){ hoverWall=null; drawTop(); } });
+function endDrag(e){
+  if(!drag) return; const d=drag; drag=null; svg.classList.remove('panning');
+  if(d.k==='pan') return;
+  if(d.k==='box'){
+    if(!d.moved){ if(!d.add){ setSel([]); renderSide(); drawPlan(); renderFloors(); } return; }
+    const x0=Math.min(d.start[0],d.cur[0]), x1=Math.max(d.start[0],d.cur[0]), y0=Math.min(d.start[1],d.cur[1]), y1=Math.max(d.start[1],d.cur[1]); const f=F(), found=[];
+    const inB=(x,y)=>x>=x0-1e-6&&x<=x1+1e-6&&y>=y0-1e-6&&y<=y1+1e-6;
+    f.zones.forEach(z=>{ if(tool==='wall'){ ['S','E','N','W'].forEach(sd=>{ const g=wallSeg(z,sd); if(inB(g[0],g[1])&&inB(g[2],g[3])) found.push({k:'wall',fid:f.id,id:z.id,side:sd}); }); }
+      else if(ov(z,{x:x0,y:y0,w:x1-x0,h:y1-y0})>0.01) found.push({k:'zone',fid:f.id,id:z.id}); });
+    setSel(d.add? [...sel,...found] : found); renderSide(); drawPlan(); renderFloors();
+    if(found.length) toast(`${found.length}개 ${tool==='wall'?'벽':'실'} 선택 — C 또는 ✦ 버튼으로 요청`); return; }
+  if(d.k==='draw'){ const x=Math.min(d.start[0],d.cur[0]), y=Math.min(d.start[1],d.cur[1]), w=Math.abs(d.cur[0]-d.start[0]), h=Math.abs(d.cur[1]-d.start[1]);
+    if(w<0.6||h<0.6){ drawPlan(); return; }
+    commit(); const z={id:newId(),type:tool,name:autoName(tool),x:r3(x),y:r3(y),w:r3(w),h:r3(h)};
+    if(tool==='unit') z.unitType=unitPreset; if(tool==='parking') z.parkingDir='auto';
+    F().zones.push(z); setSel([{k:'zone',fid:F().id,id:z.id}]); changed(); return; }
+  if(!d.moved){ undo.pop(); return; }
+  changed();
+}
+svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointercancel',endDrag);
+svg.addEventListener('wheel',e=>{ e.preventDefault(); const m=toM(e); const mx=m[0],my=-m[1]; const k=Math.exp(e.deltaY*0.0015);
+  const nw=Math.max(5,Math.min(500,vb.w*k)), f=nw/vb.w; vb={x:mx-(mx-vb.x)*f,y:my-(my-vb.y)*f,w:vb.w*f,h:vb.h*f}; applyVB(); },{passive:false});
+function autoName(t){ const f=F();
+  if(t==='unit'){ const lv=f.level; const nums=f.zones.filter(z=>z.type==='unit').map(z=>parseInt(String(z.name).slice(-2))||0); const n=(nums.length?Math.max(...nums):0)+1; return lv>0? `${lv}${String(n).padStart(2,'0')}` : `U${n}`; }
+  const c=f.zones.filter(z=>z.type===t).length+1; return `${TYPES[t].label} ${c}`; }
+const typing=e=>['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ if($('composer').classList.contains('on')){ closeComposer(); return; } if(typing(e)) return; if(sel.length){ setSel([]); renderAll(); return; } setTool('select'); return; }
+  if(typing(e)) return;
+  if(e.key===' '){ e.preventDefault(); if(!spaceDown){ spaceDown=true; svg.style.cursor='grab'; } return; }
+  const mod=e.metaKey||e.ctrlKey;
+  if(mod&&e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?doRedo():doUndo(); return; }
+  if(mod&&e.key.toLowerCase()==='d'){ e.preventDefault(); dupSel(); return; }
+  if(mod&&e.key.toLowerCase()==='a' && tab==='plan'){ e.preventDefault(); setSel(F().zones.map(z=>({k:'zone',fid:F().id,id:z.id}))); renderAll(); return; }
+  if(!mod && (e.key==='c'||e.key==='C')){ e.preventDefault(); openComposer(); return; }
+  if(!mod && (e.key==='w'||e.key==='W')){ setTool('wall'); return; }
+  if(!mod && (e.key==='v'||e.key==='V')){ setTool('select'); return; }
+  if(e.key==='f'||e.key==='F'){ fit(); return; }
+  if(e.key==='PageUp'){ e.preventDefault(); selectFloor(Math.min(doc.floors.length-1,cur+1)); return; }
+  if(e.key==='PageDown'){ e.preventDefault(); selectFloor(Math.max(0,cur-1)); return; }
+  const zs=F().zones.filter(z=>isSelZone(z.id)); if(!zs.length) return;
+  if(e.key==='Delete'||e.key==='Backspace'){ e.preventDefault(); delSel(); return; }
+  const st=(+$('snap').value)*(e.shiftKey?10:1); const mv={ArrowLeft:[-st,0],ArrowRight:[st,0],ArrowUp:[0,st],ArrowDown:[0,-st]}[e.key];
+  if(mv){ e.preventDefault(); commit(); zs.forEach(z=>{ z.x=r3(z.x+mv[0]); z.y=r3(z.y+mv[1]); }); changed(); }
+});
+document.addEventListener('keyup',e=>{ if(e.key===' '){ spaceDown=false; svg.style.cursor=''; } if(e.key==='Shift') $('askBtn').classList.remove('ghosted'); });
+document.addEventListener('keydown',e=>{ if(e.key==='Shift' && !typing(e)) $('askBtn').classList.add('ghosted'); });
+window.addEventListener('blur',()=>{ $('askBtn').classList.remove('ghosted'); spaceDown=false; });
+document.addEventListener('pointermove',e=>{ if(!e.shiftKey) $('askBtn').classList.remove('ghosted'); else $('askBtn').classList.add('ghosted'); },{passive:true});
+function delSel(){ const f=F(); const ids=new Set(sel.filter(s=>s.k==='zone'&&s.fid===f.id).map(s=>s.id)); if(!ids.size) return; commit(); f.zones=f.zones.filter(z=>!ids.has(z.id)); setSel([]); changed(); }
+function dupSel(){ const z=selId&&zoneById(selId); if(!z) return; commit(); const n={...clone(z),id:newId(),name:autoName(z.type)};
+  if(z.type==='unit' && z.h>z.w) n.x=r3(z.x+z.w); else if(z.type==='unit') n.y=r3(z.y+z.h); else n.x=r3(z.x+z.w);
+  F().zones.push(n); setSel([{k:'zone',fid:F().id,id:n.id}]); changed(); }
+function setTool(t){ tool=t; hoverWall=null; svg.classList.toggle('drawing',!!TYPES[t]); renderPalette(); syncSeg3(); drawPlan(); }
+function syncSeg3(){ [...$('seg3').children].forEach(b=>b.classList.toggle('on',b.dataset.t===(tool==='wall'?'wall':'select'))); }
+$('seg3').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setTool(b.dataset.t); });
+
+/* ---------- Claude 요청 (comments) ---------- */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let askPt=null;
+function updateAsk(){
+  const b=$('askBtn'); const n=sel.length; $('askHdrN').textContent=(doc.comments||[]).filter(c=>c.status!=='done').length;
+  $('askHdr').classList.toggle('idle',!n); $('askHdr').innerHTML = n? `✦ 선택 ${n}개 요청하기 <b id="askHdrN">${(doc.comments||[]).filter(c=>c.status!=='done').length}</b>` : `💬 수정 요청 <b id="askHdrN">${(doc.comments||[]).filter(c=>c.status!=='done').length}</b>`;
+  if(!n || tab==='sum'){ b.classList.remove('on'); askPt=null; return; }
+  const C=$('center').getBoundingClientRect(); let pt=null;
+  if(tab==='plan'){ const here=sel.filter(s=>s.fid===F().id).map(targetInfo).filter(Boolean);
+    if(here.length){ let mx=-1e9,my=-1e9; here.forEach(i=>{ if(i.kind==='wall'){ mx=Math.max(mx,i.seg[0],i.seg[2]); my=Math.max(my,i.seg[1],i.seg[3]); } else { mx=Math.max(mx,i.rect.x+i.rect.w); my=Math.max(my,i.rect.y+i.rect.h); } });
+      const p=svg.createSVGPoint(); p.x=mx; p.y=-my; const q=p.matrixTransform(svg.getScreenCTM()); pt=[q.x-C.left+8, q.y-C.top-4]; } }
+  else if(tab==='3d' && R){ const pts=sel.map(t=>anchor3D(targetInfo(t))).filter(Boolean).map(v=>{ const q=v.clone().project(R.cam); return [(q.x+1)/2*C.width,(1-q.y)/2*C.height,q.z]; }).filter(q=>q[2]<1);
+    if(pts.length){ pt=[Math.max(...pts.map(q=>q[0]))+14, Math.min(...pts.map(q=>q[1]))-8]; } }
+  if(!pt) pt=[C.width-300,74];
+  pt=[Math.max(10,Math.min(C.width-290,pt[0])), Math.max(64,Math.min(C.height-10,pt[1]))];
+  askPt=pt; b.style.left=pt[0]+'px'; b.style.top=pt[1]+'px'; b.querySelector('.cnt').textContent=`${n}개`; b.classList.add('on');
+  if($('composer').classList.contains('on')) placeComposer();
+}
+function placeComposer(){ const C=$('center').getBoundingClientRect(), cm=$('composer'); const w=Math.min(390,C.width-20), h=cm.offsetHeight||260;
+  let x=(askPt?askPt[0]:C.width-w-10), y=(askPt?askPt[1]+8:80); if(x+w>C.width-10) x=C.width-w-10; if(y+h>C.height-10) y=Math.max(10,(askPt?askPt[1]-h-56:10));
+  cm.style.left=Math.max(10,x)+'px'; cm.style.top=y+'px'; }
+function suggestions(){ const ws=sel.filter(s=>s.k==='wall').length, zs=sel.filter(s=>s.k==='zone').length; const out=[];
+  if(ws){ out.push('이 벽을 1m 옮겨줘','이 벽에 창을 넣어줘','이 벽을 없애고 양쪽 실을 합쳐줘','이 벽을 내력벽/코어벽으로'); }
+  if(zs===1){ out.push('크기를 조정해줘','용도를 바꿔줘','둘로 나눠줘','투룸으로 바꿔줘'); }
+  if(zs>1){ out.push('하나로 합쳐줘','같은 크기로 맞춰줘','배치를 다시 짜줘'); }
+  out.push('위·아래 층에도 똑같이 적용해줘','검토만 해줘 (변경 X)'); return out; }
+function openComposer(){
+  if(!sel.length){ toast('먼저 평면이나 3D에서 실·벽을 선택하세요 (Shift+클릭으로 여러 개)'); return; }
+  if(tab==='sum') setTab('plan');
+  const infos=sel.map(t=>({t,i:targetInfo(t)})).filter(x=>x.i);
+  $('cmpChips').innerHTML=infos.map(({t,i},k)=>`<span class="chip ${t.k==='wall'?'wall':''}">${t.k==='wall'?'▭':'■'} ${esc(i.label)}<button data-rm="${k}" title="빼기">×</button></span>`).join('');
+  $('cmpSugg').innerHTML=suggestions().map(s=>`<button>${esc(s)}</button>`).join('');
+  $('cmpNote').textContent=`${infos.length}개 객체`;
+  $('composer').classList.add('on'); updateAsk(); placeComposer(); setTimeout(()=>$('cmpText').focus(),0);
+}
+function closeComposer(){ $('composer').classList.remove('on'); }
+$('cmpChips').addEventListener('click',e=>{ const b=e.target.closest('button[data-rm]'); if(!b) return; const k=+b.dataset.rm; const list=sel.filter((_,i)=>i!==k); setSel(list,{keepComposer:true}); if(!sel.length){ closeComposer(); renderAll(); return; } renderSide(); drawPlan(); if(tab==='3d') rebuild3D(); openComposer(); });
+$('cmpSugg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const ta=$('cmpText'); ta.value=(ta.value.trim()? ta.value.trim()+'\n':'')+b.textContent; ta.focus(); });
+$('cmpText').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); submitComment(); } });
+$('cmpSend').onclick=submitComment; $('cmpCancel').onclick=closeComposer;
+$('askBtn').onclick=openComposer;
+$('askHdr').onclick=()=>{ if(sel.length) openComposer(); else { document.querySelector('aside').scrollTo({top:0,behavior:'smooth'}); toast('객체를 선택한 뒤 다시 누르면 요청을 남길 수 있습니다'); } };
+function submitComment(){
+  const text=$('cmpText').value.trim(); if(!text){ $('composer').classList.remove('shake'); void $('composer').offsetWidth; $('composer').classList.add('shake'); $('cmpText').focus(); return; }
+  const targets=sel.map(targetInfo).filter(Boolean); if(!targets.length) return;
+  commit(); doc.comments=doc.comments||[]; const n=doc.comments.reduce((m,c)=>Math.max(m,c.n||0),0)+1;
+  doc.comments.push({id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),n,text,status:'open',created:new Date().toISOString(),view:tab==='3d'?'3d':'2d',author:'사용자',targets});
+  $('cmpText').value=''; closeComposer(); setSel([]); changed(); toast(`요청 #${n} 저장됨 — 대화창에서 “요청 반영해줘”라고 하면 Claude가 처리합니다`);
+}
+function renderComments(){
+  const list=(doc.comments||[]).slice().sort((a,b)=>(a.status==='done')-(b.status==='done')||b.n-a.n); const open=list.filter(c=>c.status!=='done').length;
+  $('cmtCount').textContent=`열림 ${open} · 전체 ${list.length}`; $('cmtFilter').textContent=cmtFilterOpen?'완료도 보기':'열린 것만';
+  const shown=cmtFilterOpen? list.filter(c=>c.status!=='done') : list;
+  $('cmtList').innerHTML = shown.length? shown.map(c=>`<div class="cm ${c.status==='done'?'done':''}" data-id="${c.id}">
+     <div class="cmh"><span class="cmn">#${c.n}</span><span class="cmt">${new Date(c.created).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})} · ${c.view==='3d'?'3D':'평면'}</span><span class="cms">${c.status==='done'?'반영됨':'대기 중'}</span></div>
+     <div class="cmx">${esc(c.text)}</div>
+     <div class="chips">${(c.targets||[]).map(t=>{ const alive=targetInfo({k:t.kind,fid:t.floor,id:t.zoneId,side:t.side}); return `<span class="chip ${t.kind==='wall'?'wall':''}" style="${alive?'':'opacity:.5;text-decoration:line-through'}">${t.kind==='wall'?'▭':'■'} ${esc(t.label)}</span>`; }).join('')}</div>
+     ${c.reply?`<div class="cmr"><b style="color:var(--askc)">✦ Claude</b> ${esc(c.reply)}</div>`:''}
+     <div class="btns"><button class="btn sm" data-a="go">위치 보기</button><button class="btn sm" data-a="done">${c.status==='done'?'다시 열기':'완료 처리'}</button><button class="btn sm danger" data-a="del">삭제</button></div></div>`).join('')
+   : `<div class="empty">${list.length?'열린 요청이 없습니다.':'아직 요청이 없습니다.'}</div>`;
+}
+$('cmtFilter').onclick=()=>{ cmtFilterOpen=!cmtFilterOpen; renderComments(); drawPins(); if(tab==='3d') rebuildPins3D(); };
+$('cmtList').addEventListener('click',e=>{ const b=e.target.closest('button[data-a]'); const card=e.target.closest('.cm'); if(!b||!card) return; const c=(doc.comments||[]).find(x=>x.id===card.dataset.id); if(!c) return;
+  if(b.dataset.a==='go') focusComment(c.id,true);
+  if(b.dataset.a==='done'){ commit(); c.status=c.status==='done'?'open':'done'; if(c.status==='done') c.resolvedAt=new Date().toISOString(); changed(); }
+  if(b.dataset.a==='del'){ if(!confirm(`요청 #${c.n}을 삭제할까요?`)) return; commit(); doc.comments=doc.comments.filter(x=>x.id!==c.id); changed(); } });
+function focusComment(id,fromList){ const c=(doc.comments||[]).find(x=>x.id===id); if(!c) return;
+  const ts=(c.targets||[]).map(t=>({k:t.kind,fid:t.floor,id:t.zoneId,side:t.side})).filter(t=>targetInfo(t));
+  if(ts.length && tab!=='3d'){ const fi=floorIdx(ts[0].fid); if(fi>=0) cur=fi; }
+  setSel(ts); if(tab==='sum') setTab('plan'); renderAll();
+  const card=document.querySelector(`.cm[data-id="${id}"]`); if(card){ card.classList.add('flash'); if(!fromList) card.scrollIntoView({block:'nearest',behavior:'smooth'}); setTimeout(()=>card.classList.remove('flash'),1600); } }
+
+/* ---------- palette ---------- */
+function renderPalette(){
+  const p=$('palette');
+  p.innerHTML=`<button class="tool ${tool==='select'?'on':''}" data-t="select" title="V">↖ 실 선택</button><button class="tool wall ${tool==='wall'?'on':''}" data-t="wall" title="W">▭ 벽 선택</button><button class="tool ${tool==='outline'?'on':''}" data-t="outline">⬚ 외곽선</button>`+
+   Object.entries(TYPES).map(([k,v],i)=>`<button class="tool ${i===0?'sep ':''}${tool===k?'on':''}" data-t="${k}"><i style="background:${v.color}"></i>${v.label}</button>`).join('')+
+   (tool==='unit'?`<select class="tool" id="unitPreset">${Object.keys(UNIT_TYPES).map(k=>`<option ${k===unitPreset?'selected':''}>${k}</option>`).join('')}</select>`:'');
+  const up=$('unitPreset'); if(up) up.onchange=()=>{unitPreset=up.value;};
+}
+$('palette').addEventListener('click',e=>{ const b=e.target.closest('button.tool'); if(b) setTool(b.dataset.t); });
+
+/* ---------- floors list ---------- */
+function elevOf(i){ // FL elevation (1F=0)
+  const f=doc.floors[i]; let z=0;
+  if(f.level>0){ for(let k=0;k<doc.floors.length;k++){ const g=doc.floors[k]; if(g.level>0&&g.level<f.level) z+=g.height; } }
+  else { for(let k=0;k<doc.floors.length;k++){ const g=doc.floors[k]; if(g.level<0&&g.level>=f.level) z-=g.height; } }
+  return z;
+}
+function renderFloors(){
+  const list=doc.floors.map((f,i)=>({f,i})).sort((a,b)=>b.f.level-a.f.level);
+  $('floors').innerHTML=`<h2>층 (${doc.floors.length})</h2>`+list.map(({f,i})=>{ const s=floorStats(f);
+    const nc=(doc.comments||[]).filter(c=>c.status!=='done'&&(c.targets||[]).some(t=>t.floor===f.id)).length;
+    const badge = (nc?`<span class="bd" style="background:var(--askc);color:#fff">💬${nc}</span>`:'') + (s.bad? `<span class="bd bad">${s.bad}</span>` : f.level<0? `<span class="bd">${s.stalls}대</span>` : s.units? `<span class="bd">${s.units}세대</span>` : '');
+    return `<div class="fl ${i===cur?'on':''} ${f.level===1?'gl':''}" data-i="${i}"><b>${f.id}</b><span>${fmt(f.height,1)}m · ${fmt(s.area,0)}㎡</span><span style="display:flex;gap:3px">${badge}</span></div>`; }).join('')+
+   `<div class="btns" style="margin:10px 4px"><button class="btn sm" id="addUp">+ 위층</button><button class="btn sm" id="addDown">+ 지하층</button><button class="btn sm danger" id="delFloor">층 삭제</button></div>`;
+  $('addUp').onclick=()=>addFloor(1); $('addDown').onclick=()=>addFloor(-1); $('delFloor').onclick=delFloor;
+}
+$('floors').addEventListener('click',e=>{ const d=e.target.closest('.fl'); if(d) selectFloor(+d.dataset.i); });
+function selectFloor(i){ cur=i; setSel(sel.filter(s=>tab==='3d'||s.fid===doc.floors[i].id)); renderAll(); }
+function addFloor(dir){ commit();
+  if(dir>0){ const top=doc.floors.reduce((a,f)=>f.level>a.level?f:a); const lv=top.level+1; const n=clone(top); n.id=lv+'F'; n.name=lv+'층'; n.level=lv;
+    n.zones.forEach(z=>{ z.id=newId(); if(z.type==='unit') z.name=`${lv}${String(z.name).slice(-2)}`; }); doc.floors.push(n); cur=doc.floors.length-1; }
+  else { const bot=doc.floors.reduce((a,f)=>f.level<a.level?f:a); const lv=Math.min(-1,bot.level-1); const n=clone(bot.level<0?bot:bot); n.level=lv; n.id='B'+(-lv); n.name='지하'+(-lv)+'층'; n.zones.forEach(z=>z.id=newId()); doc.floors.push(n); cur=doc.floors.length-1; }
+  doc.floors.sort((a,b)=>a.level-b.level); cur=doc.floors.findIndex(f=>f.level===(dir>0?Math.max(...doc.floors.map(f=>f.level)):Math.min(...doc.floors.map(f=>f.level)))); changed(); }
+function delFloor(){ const f=F(); if(f.level===1){ toast('1층은 삭제할 수 없습니다'); return; }
+  const top=Math.max(...doc.floors.map(g=>g.level)), bot=Math.min(...doc.floors.map(g=>g.level));
+  if(f.level!==top && f.level!==bot){ toast('맨 위층 또는 맨 아래 지하층만 삭제할 수 있습니다'); return; }
+  commit(); doc.floors.splice(cur,1); cur=Math.max(0,Math.min(cur,doc.floors.length-1)); pruneSel(); changed(); }
+
+/* ---------- side panel ---------- */
+function selPanel(){
+  const infos=sel.map(t=>({t,i:targetInfo(t)})).filter(x=>x.i);
+  if(infos.length===1 && infos[0].t.k==='wall'){ const i=infos[0].i;
+    return `<div class="wallinfo"><span>벽</span><b>${esc(i.zoneName)} · ${i.sideLabel}</b><span>층</span><div>${i.floor}</div><span>길이</span><div>${fmt(i.length,2)} m</div>
+      <span>구분</span><div>${i.exteriorLength>0.01?`외벽 (${fmt(i.exteriorLength,2)}m 외기 면)`:'내벽'}</div><span>맞닿은 실</span><div>${i.neighbor?esc(i.neighbor):(i.exteriorLength>0.01?'외부':'—')}</div>
+      <span>좌표 (u,v)</span><div style="font-variant-numeric:tabular-nums">${i.seg.map(v=>fmt(v,2)).join(', ')}</div></div>
+      <button class="sendbtn big" id="askSide">✦ Claude에게 이 벽 수정 요청</button>
+      <div class="btns"><button class="btn sm" id="selClear">선택 해제</button></div>`; }
+  const nz=infos.filter(x=>x.t.k==='zone').length, nw=infos.length-nz; const area=infos.filter(x=>x.t.k==='zone').reduce((a,x)=>a+x.i.area,0);
+  return `<div class="mini"><div><b>${nz}</b><span>실 · ${fmt(area,1)}㎡</span></div><div><b>${nw}</b><span>벽</span></div></div>
+    <div class="chips" style="margin-top:8px">${infos.map(({t,i})=>`<span class="chip ${t.k==='wall'?'wall':''}">${t.k==='wall'?'▭':'■'} ${esc(i.label)}</span>`).join('')}</div>
+    <button class="sendbtn big" id="askSide">✦ Claude에게 선택 ${infos.length}개 수정 요청</button>
+    <div class="btns"><button class="btn sm" id="selClear">선택 해제</button>${nz?`<button class="btn sm danger" id="selDel">선택한 실 삭제 (이 층)</button>`:''}</div>`;
+}
+function renderSide(){
+  const f=F(), z=selId&&zoneById(selId), iss=zoneIssues(f);
+  $('selTitle').textContent= z? `선택한 구역 · ${TYPES[z.type].label}` : sel.length? `선택 ${sel.length}개` : '선택한 구역';
+  if(!z && sel.length){ $('zoneProps').innerHTML=selPanel(); $('askSide').onclick=openComposer; $('selClear').onclick=()=>{ setSel([]); renderAll(); }; if($('selDel')) $('selDel').onclick=delSel; }
+  else if(!z){ $('zoneProps').innerHTML=`<div class="empty">평면·3D에서 실을 클릭하세요. Shift+클릭이나 빈 곳 드래그로 여러 개, <b>▭ 벽 선택</b>(W)으로 벽만 고를 수 있습니다. 용도 팔레트를 고르면 새 구역을 그립니다.</div>`; }
+  else {
+    const st= z.type==='parking'? stalls(z):null;
+    $('zoneProps').innerHTML=`<div class="prop">
+      <label>용도</label><select data-k="type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${k===z.type?'selected':''}>${v.label}</option>`).join('')}</select>
+      <label>이름</label><input data-k="name" value="${String(z.name).replace(/"/g,'&quot;')}">
+      ${z.type==='unit'?`<label>유닛 타입</label><select data-k="unitType">${Object.keys(UNIT_TYPES).map(k=>`<option ${k===z.unitType?'selected':''}>${k}</option>`).join('')}</select>`:''}
+      ${z.type==='parking'?`<label>배치 방식</label><select data-k="parkingMode"><option value="bay" ${z.parkingMode!=='row'?'selected':''}>구획+차로 포함</option><option value="row" ${z.parkingMode==='row'?'selected':''}>주차열만 (차로 별도)</option></select>`:''}
+      ${z.type==='ramp'?(()=>{const ri=rampInfo(z);return `<label>하강 방향</label><select data-k="rampDown">${[['N','북 (v+)'],['S','남 (v−)'],['E','동 (u+)'],['W','서 (u−)']].map(([k,l])=>`<option value="${k}" ${ri.d===k?'selected':''}>${l}</option>`).join('')}</select><label>착지 길이</label><input type="number" step="0.5" min="0" data-k="landing" value="${ri.land}"><label>총 길이</label><input type="number" step="0.5" min="0" data-k="runLength" value="${z.runLength||''}" placeholder="구역 길이 ${fmt(ri.along,1)}"><label>경사 추정</label><div>${ri.slope==null?'최하층 (다음 층 없음)':`${ri.lowId}까지 ${fmt(ri.drop,2)}m ÷ ${fmt((ri.run||ri.along)-ri.land,1)}m → 본체 <b style="color:${ri.slope>17.05?'var(--bad)':'inherit'}">${fmt(ri.slope,1)}%</b>`}</div>`;})():''}
+      ${z.type==='parking'&&z.parkingMode==='row'?`<label>주차 구획</label><select data-k="stallType"><option value="일반형" ${z.stallType!=='확장형'?'selected':''}>일반형 2.5×5.0</option><option value="확장형" ${z.stallType==='확장형'?'selected':''}>확장형 2.6×5.2</option></select><label>장애인 구획</label><input type="number" step="1" min="0" data-k="accessible" value="${z.accessible||0}" title="3.3×5.0, 열의 처음부터">`:''}
+      ${z.type==='parking'?`<label>주차 방향</label><select data-k="parkingDir"><option value="auto" ${!z.parkingDir||z.parkingDir==='auto'?'selected':''}>자동 (${st.dir==='u'?'가로줄':'세로줄'})</option><option value="u" ${z.parkingDir==='u'?'selected':''}>가로줄</option><option value="v" ${z.parkingDir==='v'?'selected':''}>세로줄</option></select>`:''}
+      <label>위치 u·v</label><div class="two"><input type="number" step="0.1" data-k="x" value="${z.x}"><input type="number" step="0.1" data-k="y" value="${z.y}"></div>
+      <label>크기 W·D</label><div class="two"><input type="number" step="0.1" min="0.3" data-k="w" value="${z.w}"><input type="number" step="0.1" min="0.3" data-k="h" value="${z.h}"></div>
+      <label>면적</label><div><b>${fmt(zA(z),2)}㎡</b>${st?` · <b>${st.n}대</b>`:''}</div>
+    </div>
+    ${iss[z.id]?iss[z.id].msgs.map(m=>`<div class="st ${iss[z.id].bad?'bad':'warn'}"><i></i><span>${m}</span></div>`).join(''):''}
+    <button class="sendbtn big" id="askSide">✦ Claude에게 이 실 수정 요청</button>
+    <div class="btns"><button class="btn sm" id="zDup">복제 ⌘D</button><button class="btn sm danger" id="zDel">삭제 ⌫</button></div>
+    <div class="rowsel">같은 위치로 복사: <select id="cpFrom">${floorOpts(cur)}</select>~<select id="cpTo">${floorOpts(cur)}</select><button class="btn sm" id="zCopy">복사</button></div>`;
+    $('zoneProps').querySelectorAll('[data-k]').forEach(inp=>inp.addEventListener('change',()=>{ commit(); const k=inp.dataset.k; let v=inp.value;
+      if(k==='landing'){ v=Math.max(0,parseFloat(v)||0); }
+      if(k==='accessible'){ v=Math.max(0,parseInt(v)||0); }
+      if(k==='runLength'){ v=parseFloat(v); if(!isFinite(v)||v<=0){ delete z.runLength; changed(); return; } }
+      if(['x','y','w','h'].includes(k)){ v=parseFloat(v); if(!isFinite(v)) return renderSide(); if((k==='w'||k==='h')&&v<0.3) v=0.3; v=r3(v); }
+      z[k]=v; if(k==='type'){ if(v==='unit'&&!z.unitType) z.unitType='원룸'; if(v==='parking'&&!z.parkingDir) z.parkingDir='auto'; }
+      changed(); }));
+    $('zDup').onclick=dupSel; $('zDel').onclick=delSel; $('askSide').onclick=openComposer;
+    $('zCopy').onclick=()=>copyZoneToRange(z,+$('cpFrom').value,+$('cpTo').value);
+  }
+  // floor props
+  const s=floorStats(f), oa=polyArea(f.outline);
+  $('floorProps').innerHTML=`<div class="prop">
+      <label>층</label><div><b>${f.name}</b> (${f.id}) · FL ${elevOf(cur)>=0?'+':''}${fmt(elevOf(cur),2)}m${f.planType?`<br><span style="color:var(--muted)">${f.planType}</span>`:''}</div>
+      <label>층고</label><input type="number" step="0.05" min="2.4" id="fH" value="${f.height}">
+    </div>
+    <div class="mini" style="margin-top:8px">
+      <div><b>${fmt(oa,1)}</b><span>바닥면적 ㎡</span></div>
+      <div><b>${fmt(oa-s.zoned,1)}</b><span>미배정 ㎡</span></div>
+      ${f.level>0?`<div><b>${s.units}</b><span>주거유닛 (${Object.entries(s.byUnit).map(([k,v])=>k+' '+v).join(' · ')||'—'})</span></div><div><b>${s.units?fmt(s.unitArea/oa*100,1)+'%':'—'}</b><span>전용률 (유닛÷바닥)</span></div>`
+        :`<div><b>${s.stalls}</b><span>주차 대수 (추정)</span></div><div><b>${fmt((s.byType.parking||0),0)}</b><span>주차구역 ㎡</span></div>`}
+    </div>
+    <div class="rowsel">이 층 전체를 → <select id="fcFrom">${floorOpts(cur,true)}</select>~<select id="fcTo">${floorOpts(cur,true)}</select><button class="btn sm" id="fCopy">덮어쓰기</button></div>
+    <div class="btns"><button class="btn sm" id="fOutTower">지상 기준 외곽선 적용</button><button class="btn sm" id="fOutBase">지하 기준 외곽선 적용</button></div>`;
+  $('fH').onchange=()=>{ const v=parseFloat($('fH').value); if(!isFinite(v)||v<2.4) return renderSide(); commit(); f.height=r3(v); changed(); };
+  $('fCopy').onclick=()=>copyFloorToRange(+$('fcFrom').value,+$('fcTo').value);
+  $('fOutTower').onclick=()=>{ commit(); f.outline=clone(refOutline(1)); changed(); };
+  $('fOutBase').onclick=()=>{ commit(); f.outline=clone(refOutline(-1)); changed(); };
+  renderChecks();
+}
+function refOutline(sign){ const d=DEFAULT.floors.find(f=>sign>0? f.level===3 : f.level===-1); return d.outline; }
+function floorOpts(selIdx,excludeSelf){ return doc.floors.map((f,i)=>({f,i})).sort((a,b)=>b.f.level-a.f.level).filter(({i})=>!excludeSelf||i!==selIdx).map(({f,i})=>`<option value="${i}" ${i===selIdx?'selected':''}>${f.id}</option>`).join(''); }
+function rangeIdx(a,b){ const la=doc.floors[a].level, lb=doc.floors[b].level, lo=Math.min(la,lb), hi=Math.max(la,lb); return doc.floors.map((f,i)=>({f,i})).filter(({f})=>f.level>=lo&&f.level<=hi).map(({i})=>i); }
+function copyZoneToRange(z,a,b){ commit(); let n=0; rangeIdx(a,b).forEach(i=>{ if(i===cur) return; const f=doc.floors[i];
+    f.zones=f.zones.filter(o=>!(Math.abs(o.x-z.x)<0.01&&Math.abs(o.y-z.y)<0.01&&Math.abs(o.w-z.w)<0.01&&Math.abs(o.h-z.h)<0.01));
+    const c={...clone(z),id:newId()}; if(z.type==='unit'&&f.level>0) c.name=`${f.level}${String(z.name).slice(-2)}`; f.zones.push(c); n++; });
+  changed(); toast(`${n}개 층에 같은 위치로 복사`); }
+function copyFloorToRange(a,b){ const src=F(); const idx=rangeIdx(a,b).filter(i=>i!==cur); if(!idx.length) return;
+  if(!confirm(`${src.id}의 외곽선·조닝으로 ${idx.map(i=>doc.floors[i].id).join(', ')} 층을 덮어씁니다. 계속할까요? (되돌리기 가능)`)) return;
+  commit(); idx.forEach(i=>{ const f=doc.floors[i]; f.outline=clone(src.outline); f.zones=src.zones.map(z=>{ const c={...clone(z),id:newId()}; if(z.type==='unit'&&f.level>0) c.name=`${f.level}${String(z.name).slice(-2)}`; return c; }); });
+  changed(); toast(`${idx.length}개 층 덮어쓰기 완료`); }
+
+/* ---------- building totals & checks ---------- */
+function totals(){
+  const P=doc.params, site=doc.project.siteAreaOfficial; const T={gfa:0,farGfa:0,parkAbove:0,openRamp:0,units:0,unitArea:0,byUnit:{},stalls:0,retail:0,pub:0,maxCov:0,H:0,floorsAbove:0,floorsBelow:0,byType:{}};
+  doc.floors.forEach((f,i)=>{ const s=floorStats(f); if(f.level>0){ const up=doc.floors.find(g=>g.level===f.level+1);
+      // 건축면적: 위층이 덮지 않는 지하주차장 경사로는 제외 (건축법 시행령 제119조①2다8)
+      const open=up? f.zones.filter(z=>z.type==='ramp').reduce((a,z)=>a+zA(z)-rectPolyArea(z,up.outline),0) : 0;
+      // 용적률 연면적: 지상층 주차용(램프·주차·차로) 면적 제외 (같은 조 ①4나)
+      const park=f.zones.filter(z=>['ramp','parking','aisle'].includes(z.type)).reduce((a,z)=>a+zA(z),0);
+      T.gfa+=s.area; T.farGfa+=s.area-park; T.parkAbove+=park; T.openRamp+=open; T.maxCov=Math.max(T.maxCov,s.area-open); T.H+=f.height; T.floorsAbove++; } else T.floorsBelow++;
+    T.units+=s.units; T.unitArea+=s.unitArea; for(const k in s.byUnit) T.byUnit[k]=(T.byUnit[k]||0)+s.byUnit[k]; T.stalls+=s.stalls;
+    if(f.level>0){ T.retail+=(s.byType.retail||0); T.pub+=(s.byType.public||0); } for(const k in s.byType) T.byType[k]=(T.byType[k]||0)+s.byType[k]; });
+  T.far=T.farGfa/site*100; T.cov=T.maxCov/site*100; T.nonRes=(T.retail+T.pub)/T.gfa*100;
+  T.reqPark=Math.ceil(T.units*P.parkingPerUnit + T.retail/P.retailM2PerStall);
+  return T;
+}
+function stackCheck(type){ // same-position check across floors for cores/ramps
+  const sig=f=>f.zones.filter(z=>z.type===type).map(z=>[z.x,z.y,z.w,z.h].map(v=>v.toFixed(2)).join(',')).sort().join('|');
+  const fl=doc.floors.filter(f=>f.zones.some(z=>z.type===type)); if(!fl.length) return null;
+  const ref=(fl.find(f=>f.level===1)||fl[0]).zones.filter(z=>z.type===type);
+  if(type==='ramp') return fl.filter(f=>{ if(f.level===1) return false; const upLv=f.level===-1?1:f.level+1; const up=doc.floors.find(g=>g.level===upLv);
+      const ur=up? up.zones.filter(z=>z.type==='ramp') : []; if(!ur.length) return true;
+      return !f.zones.filter(z=>z.type==='ramp').every(z=>ur.some(r=>ov(z,r)>=0.5*Math.min(zA(z),zA(r)))); }).map(f=>f.id);
+  const key=z=>[z.x,z.y,z.w,z.h].map(v=>(+v).toFixed(2)).join(',');
+  return fl.filter(f=>{ if(f.level===1) return false; const adjLv = f.level>1? f.level-1 : (f.level===-1? 1 : f.level+1); const adj=doc.floors.find(g=>g.level===adjLv); if(!adj) return true;
+    const ak=new Set(adj.zones.filter(z=>z.type===type).map(key)); return !f.zones.filter(z=>z.type===type).every(z=>ak.has(key(z))); }).map(f=>f.id);
+}
+function renderChecks(){
+  const T=totals(), P=doc.params, items=[], f=F(), iss=zoneIssues(f);
+  const nb=Object.values(iss).filter(v=>v.bad).length, nw=Object.values(iss).filter(v=>!v.bad).length;
+  items.push(nb?['bad',`이 층: 겹침·외곽선 이탈 ${nb}건`]:['ok','이 층: 겹침·외곽선 이탈 없음']);
+  if(nw) items.push(['warn',`이 층: 크기 기준 확인 ${nw}건 (유닛·램프·복도)`]);
+  items.push(T.cov<=P.coverageLimit+0.01?['ok',`건폐율 ${fmt(T.cov,2)}% (최대 층 기준, 한도 ${P.coverageLimit}%${T.openRamp>0.05?` · 지하주차장 경사로 ${fmt(T.openRamp,1)}㎡ 제외`:''})`]:['bad',`건폐율 ${fmt(T.cov,2)}% 초과`]);
+  items.push(T.far<=P.farTarget+0.05?['ok',`용적률 ${fmt(T.far,1)}% (목표 ${P.farTarget}%${T.parkAbove>0.05?` · 지상 주차용 ${fmt(T.parkAbove,0)}㎡ 제외`:''})`]:['bad',`용적률 ${fmt(T.far,1)}% — 목표 ${P.farTarget}% 초과`]);
+  items.push(T.H<=P.maxHeight?['ok',`지상 높이 ${fmt(T.H,1)}m (한도 ${P.maxHeight}m, 옥탑 제외)`]:['bad',`높이 ${fmt(T.H,1)}m 초과`]);
+  items.push(T.stalls>=T.reqPark?['ok',`주차 ${T.stalls}대 / 필요 ${T.reqPark}대 (가정)`]:['warn',`주차 ${T.stalls}대 / 필요 ${T.reqPark}대 (가정) — ${T.reqPark-T.stalls}대 부족`]);
+  items.push((T.nonRes>=10&&T.nonRes<=20)?['ok',`비주거(근생+공공) ${fmt(T.nonRes,1)}%`]:['warn',`비주거(근생+공공) ${fmt(T.nonRes,1)}% — 10~20% 기준 확인`]);
+  const cs=stackCheck('core'); if(cs) items.push(cs.length?['warn',`코어가 아래(지하는 위)층과 이어지지 않는 층: ${cs.join(', ')}`]:['ok','코어가 1층까지 끊김 없이 이어짐']);
+  const rs=stackCheck('ramp'); if(rs) items.push(rs.length?['warn',`램프 위치가 다른 층: ${rs.join(', ')}`]:['ok','램프가 층마다 같은 위치']);
+  const above=doc.floors.filter(g=>g.level>0); if(above.some(g=>g.outline.some(p=>p[1]<-0.01))) items.push(['bad','지상층 외곽선이 건축한계선(v=0)을 넘음']);
+  $('checks').innerHTML=items.map(([k,t])=>`<div class="st ${k==='ok'?'':k}"><i></i><span>${t}</span></div>`).join('');
+  $('ifcBox').innerHTML = `이 화면의 조닝이 ${HTTP?'자동 저장되는':'저장될'} JSON 파일을 기준으로 Claude가 IFC4 모델을 만듭니다.<br>
+   ${HTTP?'<b>저장 위치</b> <code>zoning/상봉동_116-49_zoning.json</code>':'<b>지금은 파일로 열려 있어 자동 저장이 안 됩니다.</b> 로컬 서버 주소로 열거나 JSON을 내보내 주세요.'}<br>
+   층 → IfcBuildingStorey, 외곽선 → IfcSlab·외벽, 구역 → IfcSpace(용도·이름·면적), 좌표 → EPSG:5186.`;
+}
+
+/* ---------- summary pane ---------- */
+function renderSummary(){
+  const T=totals(), P=doc.params; const rows=doc.floors.map((f,i)=>({f,i,s:floorStats(f)})).sort((a,b)=>b.f.level-a.f.level);
+  const types=['원룸','1.5룸','투룸','쓰리룸'];
+  $('sumPane').innerHTML=`<div class="kpis">
+    <div><b>${T.units}</b><span>총 세대수 (${types.filter(t=>T.byUnit[t]).map(t=>t+' '+T.byUnit[t]).join(' · ')})</span></div>
+    <div><b>${fmt(T.gfa,1)}</b><span>지상 연면적 ㎡</span></div>
+    <div><b>${fmt(T.far,1)}%</b><span>용적률 (목표 ${P.farTarget}%)</span></div>
+    <div><b>${fmt(T.cov,2)}%</b><span>건폐율 (최대 층)</span></div>
+    <div><b>${T.floorsAbove} / B${T.floorsBelow}</b><span>지상 / 지하 층수</span></div>
+    <div><b>${fmt(T.H,1)}m</b><span>지상 높이 (옥탑 제외)</span></div>
+    <div><b>${T.stalls} / ${T.reqPark}</b><span>주차 확보 / 필요 (가정)</span></div>
+    <div><b>${fmt(T.units?T.unitArea/T.units:0,1)}㎡</b><span>유닛 평균 면적</span></div>
+    <div><b>${fmt(T.unitArea/T.gfa*100,1)}%</b><span>전용률 (유닛÷지상 연면적)</span></div>
+    <div><b>${fmt(T.nonRes,1)}%</b><span>비주거 (근생+공공)</span></div>
+  </div>
+  <div class="prop" style="max-width:520px;grid-template-columns:200px 1fr 200px 1fr;margin-bottom:12px">
+    <label>주차 대수/세대 (가정)</label><input type="number" step="0.05" id="pPU" value="${P.parkingPerUnit}">
+    <label>근생 ㎡당 1대 (가정)</label><input type="number" step="1" id="pRM" value="${P.retailM2PerStall}">
+    <label>목표 용적률 %</label><input type="number" step="10" id="pFar" value="${P.farTarget}">
+    <label>최고높이 m</label><input type="number" step="1" id="pMaxH" value="${P.maxHeight}">
+  </div>
+  <table class="sum"><thead><tr><th>층</th><th>FL</th><th>층고</th><th>바닥면적</th><th>원룸</th><th>1.5룸</th><th>투룸</th><th>쓰리룸</th><th>유닛 계</th><th>유닛 면적</th><th>코어</th><th>복도</th><th>근생</th><th>공공</th><th>주민공동</th><th>주차(대)</th><th>미배정</th><th>오류</th></tr></thead>
+  <tbody>${rows.map(({f,i,s})=>`<tr class="${i===cur?'cur':''}" data-i="${i}" style="cursor:pointer"><td><b>${f.id}</b></td><td>${fmt(elevOf(i),2)}</td><td>${fmt(f.height,2)}</td><td>${fmt(s.area,1)}</td>${types.map(t=>`<td>${s.byUnit[t]||''}</td>`).join('')}<td>${s.units||''}</td><td>${s.unitArea?fmt(s.unitArea,1):''}</td><td>${s.byType.core?fmt(s.byType.core,1):''}</td><td>${s.byType.corridor?fmt(s.byType.corridor,1):''}</td><td>${s.byType.retail?fmt(s.byType.retail,1):''}</td><td>${s.byType.public?fmt(s.byType.public,1):''}</td><td>${s.byType.community?fmt(s.byType.community,1):''}</td><td>${s.stalls||''}</td><td>${fmt(s.area-s.zoned,1)}</td><td style="color:var(--bad)">${s.bad||''}</td></tr>`).join('')}</tbody>
+  <tfoot><tr><td>합계</td><td></td><td>${fmt(T.H,1)}</td><td>${fmt(T.gfa,1)}<br><span style="font-weight:400;color:var(--muted)">지상</span></td>${types.map(t=>`<td>${T.byUnit[t]||''}</td>`).join('')}<td>${T.units}</td><td>${fmt(T.unitArea,1)}</td><td>${fmt(T.byType.core||0,0)}</td><td>${fmt(T.byType.corridor||0,0)}</td><td>${fmt(T.retail,0)}</td><td>${fmt(T.pub,0)}</td><td>${fmt(T.byType.community||0,0)}</td><td>${T.stalls}</td><td></td><td></td></tr></tfoot></table>
+  <p style="color:var(--muted);font-size:12px">주차 필요 대수와 근생 기준은 편집 가능한 가정값입니다(주차장 조례·완화 기준 확인 필요). 연면적은 지상층 외곽선 면적 합으로, 용적률 산입 제외 항목은 반영하지 않았습니다.</p>`;
+  $('sumPane').querySelectorAll('tr[data-i]').forEach(tr=>tr.onclick=()=>{ selectFloor(+tr.dataset.i); setTab('plan'); });
+  [['pPU','parkingPerUnit'],['pRM','retailM2PerStall'],['pFar','farTarget'],['pMaxH','maxHeight']].forEach(([id,k])=>$(id).onchange=()=>{ const v=parseFloat($(id).value); if(!isFinite(v)) return; commit(); doc.params[k]=v; changed(); });
+}
+
+/* ---------- 3D ---------- */
+let R=null, tab='plan';
+function init3D(){
+  if(R||!window.THREE) return; const host=$('v3d');
+  const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(2,devicePixelRatio)); host.insertBefore(renderer.domElement,host.firstChild);
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(css('--canvas')||'#fbfaf7');
+  const cam=new THREE.PerspectiveCamera(35,1,0.5,3000); const ctl=new THREE.OrbitControls(cam,renderer.domElement);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x9aa09a,0.75)); const dl=new THREE.DirectionalLight(0xffffff,0.55); dl.position.set(-60,120,90); scene.add(dl);
+  const grp=new THREE.Group(); scene.add(grp);
+  R={renderer,scene,cam,ctl,grp,pick:[],pins:[]};
+  cam.position.set(-70,80,110); ctl.target.set(12,20,-20);
+  const ray=new THREE.Raycaster(); let down=null;
+  renderer.domElement.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
+  renderer.domElement.addEventListener('pointerup',e=>{ if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>4) return; down=null; const r=renderer.domElement.getBoundingClientRect();
+    ray.setFromCamera({x:(e.clientX-r.left)/r.width*2-1,y:-(e.clientY-r.top)/r.height*2+1},cam); const hit=ray.intersectObjects(R.pick,false)[0];
+    const add=e.shiftKey||e.metaKey||e.ctrlKey;
+    if(hit && hit.object.userData.zid){ const ud=hit.object.userData, f=doc.floors[ud.fi]; let t={k:'zone',fid:f.id,id:ud.zid};
+      if(tool==='wall'||e.altKey){ const n=hit.face.normal; const side= Math.abs(n.y)>0.5? null : Math.abs(n.x)>Math.abs(n.z)? (n.x>0?'E':'W') : (n.z<0?'N':'S');
+        if(side) t={k:'wall',fid:f.id,id:ud.zid,side}; else { const z=f.zones.find(q=>q.id===ud.zid); const p=hit.point; t={k:'wall',fid:f.id,id:ud.zid,side:nearestSide(z,[p.x,-p.z])[0]}; } }
+      cur=ud.fi; add? toggleSel(t) : setSel([t]); renderAll(); }
+    else if(hit){ cur=hit.object.userData.fi; if(!add) setSel([]); renderAll(); }
+    else { if(!add){ setSel([]); renderAll(); } } });
+  renderer.domElement.addEventListener('dblclick',()=>{ setTab('plan'); });
+  (function loop(){ requestAnimationFrame(loop); if(tab!=='3d') return; ctl.update(); renderer.render(scene,cam); positionPins3D(); if(sel.length) updateAsk(); })();
+}
+function anchor3D(i){ if(!i||!window.THREE) return null; const slab=0.25; return new THREE.Vector3(i.anchor[0], i.floorElev+slab+(i.kind==='wall'? i.floorHeight*0.55 : i.floorHeight-0.05), -i.anchor[1]); }
+function rebuild3D(){
+  if(!R) return; const {grp}=R; while(grp.children.length){ const c=grp.children.pop(); c.geometry&&c.geometry.dispose(); } R.pick=[];
+  const cutOn=$('cutOn').checked, unitsOnly=$('unitsOnly').checked, curLv=F().level; const AC=new THREE.Color(css('--askc')||'#f0507a');
+  const shape=pts=>{ const s=new THREE.Shape(); pts.forEach((p,i)=>i?s.lineTo(p[0],p[1]):s.moveTo(p[0],p[1])); return s; };
+  const ext=(pts,h,base,mat)=>{ const g=new THREE.ExtrudeGeometry(shape(pts),{depth:h,bevelEnabled:false}); g.rotateX(-Math.PI/2); g.translate(0,base,0); return new THREE.Mesh(g,mat); };
+  const site=new THREE.Line(new THREE.BufferGeometry().setFromPoints([...doc.site.uv,doc.site.uv[0]].map(p=>new THREE.Vector3(p[0],0.02,-p[1]))),new THREE.LineBasicMaterial({color:0xc6402b})); grp.add(site);
+  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(400,400),new THREE.MeshLambertMaterial({color:0xdde0db,transparent:true,opacity:0.55,side:THREE.DoubleSide})); gnd.rotation.x=-Math.PI/2; gnd.position.set(10,-0.01,-20); grp.add(gnd);
+  const slabMat=new THREE.MeshLambertMaterial({color:0xbfc4c6}); const edge=new THREE.LineBasicMaterial({color:0x334046,transparent:true,opacity:0.5});
+  const selEdge=new THREE.LineBasicMaterial({color:AC});
+  const mats={}; const mat=t=>mats[t]||(mats[t]=new THREE.MeshLambertMaterial({color:new THREE.Color(typeColor(t)),transparent:unitsOnly&&t!=='unit',opacity:unitsOnly&&t!=='unit'?0.18:1}));
+  const wallMat=new THREE.MeshBasicMaterial({color:AC,transparent:true,opacity:0.9});
+  doc.floors.forEach((f,fi)=>{ if(cutOn && f.level>curLv) return;
+    const base=elevOf(fi), slab=0.25;
+    const sm=ext(f.outline,slab,base,slabMat); sm.userData={fi}; grp.add(sm); R.pick.push(sm);
+    f.zones.forEach(z=>{ const h=Math.max(0.2,f.height-slab-0.05); const e4=0.04, pts=[[z.x+e4,z.y+e4],[z.x+z.w-e4,z.y+e4],[z.x+z.w-e4,z.y+z.h-e4],[z.x+e4,z.y+z.h-e4]];
+      const isSel=sel.some(s=>s.k==='zone'&&s.fid===f.id&&s.id===z.id);
+      const mm= isSel? new THREE.MeshLambertMaterial({color:new THREE.Color(typeColor(z.type)),emissive:AC,emissiveIntensity:0.55}) : mat(z.type);
+      const m=ext(pts,h,base+slab,mm); m.userData={fi,zid:z.id}; grp.add(m); R.pick.push(m);
+      if(isSel){ grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry),selEdge)); }
+      else if(z.type!=='unit'||f.level===curLv){ grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry),edge)); }
+      sel.filter(s=>s.k==='wall'&&s.fid===f.id&&s.id===z.id).forEach(s=>{ const g=wallSeg(z,s.side), L=segLen(g), horiz=g[1]===g[3];
+        const b=new THREE.Mesh(new THREE.BoxGeometry(horiz?L:0.22, h+0.1, horiz?0.22:L), wallMat); b.position.set((g[0]+g[2])/2, base+slab+h/2, -(g[1]+g[3])/2); grp.add(b); });
+    });
+  });
+  rebuildPins3D();
+}
+function rebuildPins3D(){
+  if(!R) return; const host=$('pins3d'); host.innerHTML=''; R.pins=[]; const cutOn=$('cutOn').checked, curLv=F().level;
+  (doc.comments||[]).forEach(c=>{ if(c.status==='done'&&cmtFilterOpen) return; const t=(c.targets||[])[0]; if(!t) return;
+    const fi=floorIdx(t.floor); if(fi<0) return; if(cutOn && doc.floors[fi].level>curLv) return;
+    const live=targetInfo({k:t.kind,fid:t.floor,id:t.zoneId,side:t.side}) || t; const v=anchor3D(live); if(!v) return;
+    const d=document.createElement('div'); d.className='pin3d'+(c.status==='done'?' done':''); d.textContent=`#${c.n}${c.targets.length>1?' +'+(c.targets.length-1):''}`; d.title=c.text;
+    d.onclick=()=>focusComment(c.id); host.appendChild(d); R.pins.push({d,v}); });
+  positionPins3D();
+}
+function positionPins3D(){ if(!R||!R.pins) return; const C=$('center').getBoundingClientRect();
+  R.pins.forEach(({d,v})=>{ const q=v.clone().project(R.cam); if(q.z>1){ d.style.display='none'; return; } d.style.display=''; d.style.left=((q.x+1)/2*C.width)+'px'; d.style.top=((1-q.y)/2*C.height)+'px'; }); }
+function resize3D(){ if(!R) return; const r=$('center').getBoundingClientRect(); R.renderer.setSize(r.width,r.height); R.cam.aspect=r.width/r.height; R.cam.updateProjectionMatrix(); }
+['cutOn','unitsOnly'].forEach(id=>$(id).addEventListener('change',rebuild3D));
+
+/* ---------- tabs & misc ---------- */
+function setTab(t){ tab=t; [...$('tabs').children].forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  $('planPane').classList.toggle('on',t==='plan'); $('v3d').classList.toggle('on',t==='3d'); $('sumPane').classList.toggle('on',t==='sum');
+  if(t==='3d'){ if(!window.THREE){ $('v3d').innerHTML='<div style="padding:24px;color:var(--muted)">3D 라이브러리(three.js)를 불러오지 못했습니다. 인터넷 연결을 확인하세요.</div>'; return; } init3D(); resize3D(); rebuild3D(); }
+  if(t==='sum') renderSummary(); if(t==='plan') drawPlan(); closeComposer(); updateAsk(); }
+$('tabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setTab(b.dataset.t); });
+let tt; function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>e.classList.remove('on'),2200); }
+function renderAll(opts={}){ renderFloors(); renderPalette(); syncSeg3(); renderSide(); renderComments(); if(opts.fit) fit(); else drawPlan(); drawNorth();
+  if(tab==='3d') rebuild3D(); if(tab==='sum') renderSummary(); updateAsk(); $('undoBtn').disabled=!undo.length; $('redoBtn').disabled=!redo.length; }
+function drawNorth(){ // north arrow in uv view: north (display -y) expressed in uv
+  const fr=doc.frame; const u=fr.uAxisDisplay, v=fr.vAxisDisplay; const N=[0,-1]; const nu=N[0]*u[0]+N[1]*u[1], nv=N[0]*v[0]+N[1]*v[1];
+  const a=Math.atan2(nu,nv)*180/Math.PI; $('north').innerHTML=`<circle r="21" fill="var(--panel)" stroke="var(--line)"/><g transform="rotate(${a})"><path d="M0,-16 L6,8 L0,4 L-6,8Z" fill="var(--ink)"/><text y="-17" font-size="9" text-anchor="middle" fill="var(--ink)" font-weight="700" transform="translate(0,-1)">N</text></g>`; }
+$('fitBtn').onclick=fit; $('undoBtn').onclick=doUndo; $('redoBtn').onclick=doRedo;
+['ghostOn','stallOn'].forEach(id=>$(id).addEventListener('change',drawPlan));
+$('themeBtn').onclick=()=>{ const r=document.documentElement; const c=r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); r.dataset.theme=c==='dark'?'light':'dark'; renderAll(); if(R){ R.scene.background=new THREE.Color(css('--canvas')); } };
+$('expBtn').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(doc,null,1)],{type:'application/json'})); a.download='상봉동_116-49_zoning.json'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); };
+$('impFile').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; try{ const d=JSON.parse(await f.text()); if(d.schema!==DEFAULT.schema) throw new Error('스키마가 다릅니다'); commit(); doc=d; cur=0; setSel([]); changed({fit:true}); toast('불러왔습니다'); }catch(err){ toast('불러오기 실패: '+err.message); } e.target.value=''; };
+$('resetBtn').onclick=()=>{ if(!confirm('기본 초안으로 되돌립니다. (되돌리기 가능)')) return; commit(); const keep=doc.comments||[]; doc=clone(DEFAULT); doc.comments=keep; cur=doc.floors.findIndex(f=>f.id==='3F'); setSel([]); changed({fit:true}); };
+window.addEventListener('resize',()=>{ updateAsk(); if(tab==='plan'){ const B=box(), r=B.w/B.h, cx=vb.x+vb.w/2, cy=vb.y+vb.h/2; vb.h=vb.w/r; vb.y=cy-vb.h/2; applyVB(); } resize3D(); });
+
+renderAll({fit:true}); loadFromServer();
+svg.addEventListener('contextmenu',e=>e.preventDefault());
+</script>
+<script>
+window.requestDescribe=el=>{ try{ const h=el.closest('[data-id]'); if(h&&doc){ const z=F().zones.find(q=>q.id===h.getAttribute('data-id')); if(z) return {label:`${F().id} · ${z.name}`,floor:F().id,zoneId:z.id}; } return null; }catch(e){ return null; } };
+window.requestFocus=t=>{ try{ if(!t.floor||!t.zoneId) return false; const fi=doc.floors.findIndex(f=>f.id===t.floor); if(fi<0) return false; cur=fi; setSel([{k:'zone',fid:t.floor,id:t.zoneId}]); renderAll({}); return true; }catch(e){ return false; } };
+</script>
+<script src="assets/request-dock.js" data-page="zoning" data-title="조닝 편집기"></script>
+</body>
+</html>

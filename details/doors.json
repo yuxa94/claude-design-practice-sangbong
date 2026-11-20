@@ -1,0 +1,23 @@
+{
+  "schema": "details-doors/1",
+  "note": "문 크기와 사양. sizes 는 생성기가 문을 놓을 때 쓰는 폭(m)이고, types 는 이름에 따라 문짝·방화·문틀·도면 태그를 정합니다. 위에서부터 처음 맞는 규칙을 씁니다.",
+  "height": 2.1,
+  "sizes": {
+    "entrance": {"w": 1.0, "label": "세대 현관문 (방화 갑종)"},
+    "bath": {"w": 0.8, "label": "욕실문"},
+    "bedroom": {"w": 0.9, "label": "실내문 (침실·드레스룸·다용도실)"},
+    "storage": {"w": 0.8, "label": "수납문"},
+    "alcoveMax": {"w": 2.4, "label": "미닫이 칸막이문 (알코브) 최대 폭"},
+    "common": {"w": 0.9, "label": "공용부 실내문·출입문"}
+  },
+  "types": [
+    {"match": ["승강기"], "leaf": "승강기 2짝 미닫이", "leaves": 2, "tag": "ED"},
+    {"sliding": true, "leaf": "미닫이", "leaves": 1, "tag": "SLD"},
+    {"minWidth": 1.5, "leaf": "양개 여닫이", "leaves": 2, "tag": "WD"},
+    {"leaf": "외여닫이", "leaves": 1, "tag": "WD"}
+  ],
+  "fire": [
+    {"match": ["방화", "현관문"], "fire": "갑종 (60분+)", "frame": "강재 문틀", "tag": "FSD"}
+  ],
+  "frameDefault": "목재 문틀"
+}

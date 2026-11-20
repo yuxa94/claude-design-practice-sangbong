@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>작업 허브</title>
+<style>
+:root{
+  --bg:#f4f2ee; --panel:#fff; --ink:#1d2326; --muted:#5f6b70; --line:#d9d5cc; --chip:#eef1f3;
+  --accent:#1f4fd1; --ok:#1f7a4c; --warn:#b26a00; --bad:#d92d20; --askc:#f0507a; --ask1:#ff7a45; --ask2:#e8467c;
+  --s-done:#1f7a4c; --s-active:#1f4fd1; --s-planned:#8a949a;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#15191b; --panel:#1d2225; --ink:#e7ecee; --muted:#9aa6ab; --line:#333b3f; --chip:#262d31;
+  --accent:#7aa2ff; --ok:#5fd39a; --warn:#f0b44c; --bad:#ff6b5e; --s-done:#5fd39a; --s-active:#7aa2ff; --s-planned:#7d878c;}}
+:root[data-theme="dark"]{
+  --bg:#15191b; --panel:#1d2225; --ink:#e7ecee; --muted:#9aa6ab; --line:#333b3f; --chip:#262d31;
+  --accent:#7aa2ff; --ok:#5fd39a; --warn:#f0b44c; --bad:#ff6b5e; --s-done:#5fd39a; --s-active:#7aa2ff; --s-planned:#7d878c;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Segoe UI",sans-serif}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 20px 60px}
+header{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+header h1{margin:0;font-size:24px;letter-spacing:-.01em}
+header .sub{color:var(--muted);font-size:13px}
+.sp{flex:1}
+.srv{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 12px;font-size:12.5px}
+.srv i{width:9px;height:9px;border-radius:50%;background:var(--muted)} .srv.on i{background:var(--ok)} .srv.off i{background:var(--bad)} .srv.busy i{background:var(--warn)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 11px;cursor:pointer;text-decoration:none;color:var(--ink);font-size:13px;display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+.btn:hover{border-color:var(--muted)} .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.btn:disabled,.btn.dis{opacity:.45;pointer-events:none}
+h2{font-size:15px;margin:30px 0 12px;display:flex;align-items:center;gap:8px}
+h2 small{color:var(--muted);font-weight:400;font-size:12.5px}
+.draft{font-size:11px;font-weight:700;color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);border-radius:999px;padding:1px 8px}
+/* pipeline */
+.pipe{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:26px;position:relative}
+.stage{position:relative;background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:13px 13px 12px;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-height:236px;transition:border-color .15s, box-shadow .15s}
+.stage:hover{border-color:var(--muted)}
+.stage.sel{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.stage.planned{border-style:dashed;background:transparent}
+.stage:not(:last-child)::after{content:"";position:absolute;right:-24px;top:34px;width:22px;height:2px;background:var(--line)}
+.stage:nth-child(6n)::after,.stage:nth-child(6n)::before{display:none}
+.stage:not(:last-child)::before{content:"";position:absolute;right:-25px;top:30px;border:5px solid transparent;border-left:7px solid var(--line);border-right:0}
+.no{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;background:var(--s-planned);flex:none}
+.done .no{background:var(--s-done)} .active .no{background:var(--s-active)}
+.st-h{display:flex;align-items:center;gap:8px}
+.st-h b{font-size:15px}
+.chip{font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.chip.done{color:var(--s-done);background:color-mix(in srgb,var(--s-done) 14%,transparent)} .chip.active{color:var(--s-active);background:color-mix(in srgb,var(--s-active) 14%,transparent)}
+.outs{margin:0;padding-left:16px;color:var(--muted);font-size:12.5px}
+.outs li{margin:1px 0}
+.met{display:flex;flex-wrap:wrap;gap:4px}
+.m{font-size:11.5px;background:var(--chip);border-radius:6px;padding:1px 7px;font-variant-numeric:tabular-nums}
+.m b{font-weight:800}
+.m.ask{background:var(--askc);color:#fff} .m.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)} .m.bad{background:var(--bad);color:#fff} .m.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.stage .acts{margin-top:auto;display:flex;gap:6px;flex-wrap:wrap}
+.store{font-size:11.5px;color:var(--muted)}
+/* detail */
+.detail{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:1.1fr 1fr;gap:18px}
+.detail h3{margin:0 0 8px;font-size:16px;display:flex;gap:8px;align-items:center}
+.kv{display:grid;grid-template-columns:96px 1fr;gap:5px 10px;font-size:13px}
+.kv span{color:var(--muted)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--chip);border-radius:5px;padding:1px 5px;word-break:break-all}
+.say{display:flex;align-items:center;gap:8px;border:1.5px solid color-mix(in srgb,var(--askc) 45%,transparent);background:color-mix(in srgb,var(--askc) 7%,var(--panel));border-radius:10px;padding:9px 11px;margin-top:10px}
+.say q{font-weight:800;quotes:"“" "”"}
+.ins{display:flex;gap:6px;flex-wrap:wrap}
+.ins a{text-decoration:none}
+/* flow */
+.flow{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;overflow-x:auto}
+.flow svg{display:block;width:100%;min-width:900px;height:auto}
+.fn{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.fn.page{stroke:var(--accent)} .fn.data{fill:color-mix(in srgb,var(--ok) 9%,var(--panel));stroke:var(--ok)} .fn.tool{fill:color-mix(in srgb,var(--warn) 9%,var(--panel));stroke:var(--warn)} .fn.you{fill:color-mix(in srgb,var(--askc) 10%,var(--panel));stroke:var(--askc)} .fn.plan{stroke-dasharray:6 4}
+.ft{fill:var(--ink);font-size:13px;font-weight:700}
+.fs{fill:var(--muted);font-size:11.5px}
+.fe{stroke:var(--muted);stroke-width:1.6;fill:none}
+.fe.ask{stroke:var(--askc);stroke-dasharray:5 4} .fe.auto{stroke:var(--ok)} .fe.plan{stroke-dasharray:4 4}
+.fl{fill:var(--muted);font-size:11px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:8px 4px 2px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;border:1.5px solid;vertical-align:-2px;margin-right:5px}
+
+/* data map */
+.dwrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.dmap{position:relative;min-width:1320px;padding:14px 16px 18px}
+#dedges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.lanes{position:relative;display:grid;grid-template-columns:repeat(var(--nl,5),minmax(0,1fr));gap:40px;z-index:1}
+.lane{display:flex;flex-direction:column;gap:22px;justify-content:space-around}
+.lane h5{margin:0 0 -8px;font-size:11.5px;color:var(--muted);font-weight:700;letter-spacing:.02em}
+.dnode{background:var(--panel);border:1.6px solid var(--line);border-radius:12px;padding:8px 9px 9px;cursor:pointer;transition:opacity .15s,border-color .15s,box-shadow .15s}
+.dnode:hover{border-color:var(--muted)}
+.dnode.page{border-color:color-mix(in srgb,var(--accent) 70%,var(--line))} .dnode.data{border-color:color-mix(in srgb,var(--ok) 70%,var(--line))} .dnode.tool{border-color:color-mix(in srgb,var(--warn) 70%,var(--line))} .dnode.you{border-color:color-mix(in srgb,var(--askc) 70%,var(--line))} .dnode.planned{border-style:dashed}
+.dnode.sel{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 28%,transparent)}
+.dmap.focus .dnode:not(.hl){opacity:.32}
+.dthumb{height:104px;border-radius:8px;background:var(--bg);overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.dthumb svg{width:100%;height:100%;display:block}
+.dt{font-size:13px;font-weight:800;display:flex;gap:6px;align-items:center}
+.dk{font-size:10.5px;font-weight:700;border-radius:999px;padding:0 7px;background:var(--chip);color:var(--muted)}
+.dp{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;color:var(--muted);margin-top:2px;word-break:break-all;line-height:1.35}
+.de{fill:none;stroke-width:1.8;transition:opacity .15s}
+.de.auto{stroke:var(--ok)} .de.manual{stroke:var(--muted)} .de.claude{stroke:var(--askc);stroke-dasharray:6 4} .de.planned{stroke:var(--muted);stroke-dasharray:2 4}
+.dmap.focus .de:not(.hl){opacity:.12}
+.dl{font-size:11px;font-weight:700;paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round;opacity:0}
+.dl.auto{fill:var(--ok)} .dl.manual{fill:var(--muted)} .dl.claude{fill:var(--askc)} .dl.planned{fill:var(--muted)}
+.dmap.focus .dl.hl{opacity:1}
+.dpanel{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;grid-template-columns:1fr 1.15fr;gap:20px}
+.dpanel h3{margin:0 0 6px;font-size:16px;display:flex;gap:8px;align-items:center}
+.chain{list-style:none;margin:6px 0 0;padding:0;font-size:13px}
+.chain li{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.chain li i{font-style:normal;font-weight:800;text-align:center}
+.mode{font-size:10.5px;font-weight:700;border-radius:999px;padding:0 7px;margin-left:4px}
+.mode.auto{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)} .mode.manual{color:var(--muted);background:var(--chip)} .mode.claude{color:var(--askc);background:color-mix(in srgb,var(--askc) 12%,transparent)} .mode.planned{color:var(--muted);background:var(--chip)}
+pre.snip{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:11.5px;line-height:1.45;max-height:360px;overflow:auto;white-space:pre}
+.snip .k{color:var(--accent)} .snip .s{color:var(--ok)} .snip .n{color:var(--warn)} .snip .c{color:var(--muted)}
+@media (max-width:1100px){ .dpanel{grid-template-columns:1fr} }
+/* tables & template */
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card h4{margin:0 0 6px;font-size:13.5px}
+.card ul{margin:0;padding-left:17px;font-size:13px}
+.card li{margin:3px 0}
+.foot{color:var(--muted);font-size:12px;margin-top:26px}
+/* md viewer */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modal.on{display:flex}
+.sheet{background:var(--panel);border-radius:14px;max-width:900px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.sheet header{margin:0;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center}
+.md{overflow:auto;padding:6px 26px 26px;font-size:14px}
+.md table{font-size:12.5px;margin:10px 0}
+.md h1{font-size:21px} .md h2{font-size:17px;margin-top:24px} .md h3{font-size:15px}
+@media (max-width:1100px){ .pipe{grid-template-columns:repeat(3,minmax(0,1fr))} .stage:nth-child(3n)::after,.stage:nth-child(3n)::before{display:none} .detail{grid-template-columns:1fr} }
+@media (max-width:640px){ .pipe{grid-template-columns:1fr} .stage::after,.stage::before{display:none} .cols{grid-template-columns:1fr} .wrap{padding:16px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="sub" id="pAddr">불러오는 중…</div>
+      <h1 id="pName">작업 허브</h1>
+    </div>
+    <span class="sp"></span>
+    <span class="srv" id="srv"><i></i><span>서버 확인 중…</span></span>
+    <a class="btn" href="workflow.json" target="_blank" title="이 허브가 읽는 워크플로 정의 (초안)">workflow.json</a>
+    <button class="btn" id="themeBtn" title="밝게/어둡게">◐</button>
+  </header>
+
+  <h2>워크플로 <small>왼쪽에서 오른쪽으로 — 앞 단계의 결과가 다음 단계의 입력이 됩니다. 카드를 누르면 자세히 보입니다.</small></h2>
+  <div class="pipe" id="pipe"></div>
+  <div class="detail" id="detail"></div>
+
+  <h2>데이터 흐름 <small>카드를 누르면 그 데이터가 어디서 오고, 여기서 고치면 무엇이 어떻게 이어서 바뀌는지 보입니다</small></h2>
+  <div class="dwrap"><div class="dmap" id="dmap"><svg id="dedges" aria-hidden="true"></svg><div class="lanes" id="lanes"></div></div></div>
+  <div class="legend"><span><i style="border-color:var(--accent)"></i>작업 페이지 (편집하는 곳)</span><span><i style="border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)"></i>데이터 (원본·결과)</span><span><i style="border-color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent)"></i>생성기</span><span><i style="border-color:var(--askc);background:color-mix(in srgb,var(--askc) 12%,transparent)"></i>Claude</span>
+    <span><b style="color:var(--ok)">━</b> 자동</span><span><b style="color:var(--muted)">━</b> 수동으로 옮김</span><span><b style="color:var(--askc)">┅</b> 요청 → Claude 반영</span><span><b style="color:var(--muted)">┈</b> 예정</span></div>
+  <div class="dpanel" id="dpanel"></div>
+
+  <h2>로컬 서버 <small id="srvNote"></small></h2>
+  <div class="card"><table><thead><tr><th style="width:110px">방식</th><th style="width:220px">주소</th><th>하는 일</th></tr></thead><tbody id="eps"></tbody></table></div>
+
+  <h2>템플릿화 메모 <span class="draft">초안 · 확정 전</span> <small>작업하면서 계속 다듬습니다</small></h2>
+  <div class="cols" id="tpl"></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<div class="modal" id="modal"><div class="sheet"><header><b id="mdTitle"></b><span class="sp"></span><a class="btn" id="mdRaw" target="_blank">원문</a><button class="btn" id="mdClose">닫기</button></header><div class="md" id="mdBody"></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>(+n).toLocaleString('ko-KR');
+const when=t=>t?new Date(t).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}):'—';
+const STATUS={done:'완료',active:'진행 중',planned:'예정'};
+let WF=null, SUM=null, STAT=null, selId=null;
+try{ selId=localStorage.getItem('hub-sel'); }catch(e){}
+
+async function load(){
+  try{ WF=await (await fetch('workflow.json',{cache:'no-store'})).json(); }catch(e){ $('pipe').innerHTML='<div class="card">workflow.json을 읽지 못했습니다. 로컬 서버 주소(http://localhost:8766/)로 열어 주세요.</div>'; return; }
+  $('pName').textContent=WF.project.name+' · 작업 허브'; $('pAddr').textContent=`${WF.project.address} · ${WF.project.zone}`;
+  document.title=WF.project.prefix.replace(/_/g,' ')+' 작업 허브';
+  if(!selId||!WF.stages.some(s=>s.id===selId)) selId=(WF.stages.find(s=>s.status==='active')||WF.stages[0]).id;
+  renderEps(); renderTpl(); render(); dmLoad(); refresh(); setTimeout(refresh,1500); setInterval(refresh,10000);
+}
+async function refresh(){
+  try{ STAT=await (await fetch('/api/status',{cache:'no-store'})).json(); SUM=await (await fetch('/api/summary',{cache:'no-store'})).json(); }
+  catch(e){ STAT=null; SUM=null; }
+  const s=$('srv'); s.className='srv '+(!STAT?'off':STAT.regenerating?'busy':'on');
+  s.querySelector('span').textContent=!STAT?'로컬 서버 꺼짐 — Claude에게 “로컬호스트 다시 띄워줘”':STAT.regenerating?'계획설계 다시 생성 중…':'로컬 서버 켜짐 · '+location.host;
+  $('srvNote').textContent=STAT?`마지막 자동 재생성 ${STAT.lastAuto||'—'} · 계획설계는 조닝 ${STAT.planZoning===STAT.zoningUpdated?'최신 기준':'이전 기준 (다시 생성 필요)'}`:'꺼져 있으면 저장·재생성이 되지 않습니다';
+  render();
+}
+function metrics(st){ const z=SUM&&SUM.zoning, p=SUM&&SUM.plan, lg=SUM&&SUM.legal, rq=(SUM&&SUM.requests)||{}; const m=[];
+  const fs=p&&p.disciplines&&p.disciplines.fire;
+  if(st.id==='fire'&&fs){ m.push(fs.warn?`<span class="m warn">경고 ${fs.warn}</span>`:`<span class="m ok">경고 0</span>`); m.push(`<span class="m">보행거리 <b>${(+fs.maxTravel).toFixed(1)}</b>/${fs.travelLimit}m</span>`); m.push(`<span class="m">방화문 지정 ${fs.doorChanges}</span>`); m.push(`<span class="m">헤드 ${fs.sprinklers.toLocaleString()}</span>`); }
+  const ms=p&&p.disciplines&&p.disciplines.mep, ss=p&&p.disciplines&&p.disciplines.struct;
+  if(st.id==='mep'&&ms){ m.push(ms.warn?`<span class="m warn">경고 ${ms.warn}</span>`:`<span class="m ok">경고 0</span>`); m.push(`<span class="m">변압기 <b>${(ms.transformer||0).toLocaleString()}</b>kVA</span>`); m.push(`<span class="m">저수조 ${Math.round(ms.tank)}m³</span>`); m.push(`<span class="m">입상관 어긋남 ${ms.offsets}/${ms.stacks}</span>`); }
+  if(st.id==='struct'&&ss){ m.push(ss.warn?`<span class="m warn">경고 ${ss.warn}</span>`:`<span class="m ok">경고 0</span>`); m.push(`<span class="m">${ss.transferFloor} 전이 · 보 ${ss.transfers}</span>`); m.push(`<span class="m">${ss.underFloor} 천장고 <b>${(+ss.clear).toFixed(2)}</b>/${ss.clearMin}m</span>`); m.push(`<span class="m">기둥 ${ss.columns}</span>`); }
+  const cs=p&&p.disciplines&&p.disciplines.cost;
+  if(st.id==='cost'&&cs){ m.push(`<span class="m">총 <b>${(cs.total/1e8).toFixed(0)}</b>억</span>`); m.push(`<span class="m">평당 ${Math.round(cs.perPyeong/1e4).toLocaleString()}만</span>`); m.push(`<span class="m">기본형건축비 ${Math.round(cs.benchRatio*100)}%</span>`); }
+  if(st.id==='legal'&&lg&&lg.total){ m.push(lg.bad?`<span class="m bad">부적합 ${lg.bad}</span>`:`<span class="m ok">부적합 0</span>`); if(lg.chk) m.push(`<span class="m warn">확인 필요 ${lg.chk}</span>`); if(lg.proc) m.push(`<span class="m">절차 ${lg.proc}</span>`); m.push(`<span class="m">적합 <b>${lg.ok}</b> / ${lg.total}</span>`); }
+  if(st.dockPage&&rq[st.dockPage]) m.push(`<span class="m ask">요청 바 ${rq[st.dockPage]}</span>`);
+  if(st.id==='zoning'&&z&&!z.error){ m.push(`<span class="m">층 <b>${z.floors}</b></span>`,`<span class="m">구역 <b>${fmt(z.zones)}</b></span>`,`<span class="m">세대 <b>${z.units}</b></span>`); if(z.openComments) m.push(`<span class="m ask">요청 ${z.openComments}</span>`); }
+  if(st.id==='plan'&&p&&!p.error){ m.push(`<span class="m">세대 <b>${p.units}</b></span>`,`<span class="m">벽 <b>${fmt(p.walls)}</b></span>`,`<span class="m">문 <b>${fmt(p.doors)}</b> · 창 <b>${fmt(p.windows)}</b></span>`,`<span class="m">가구 <b>${fmt(p.fixtures)}</b></span>`,`<span class="m">주차 <b>${p.stalls}</b></span>`,`<span class="m">타입 <b>${p.types}</b> (편집 ${p.typesEdited})</span>`);
+    m.push(p.warn?`<span class="m warn">경고 ${p.warn}</span>`:`<span class="m ok">경고 0</span>`); if(p.conflicts) m.push(`<span class="m bad">⚡ 충돌 ${p.conflicts}</span>`); if(p.openComments) m.push(`<span class="m ask">요청 ${p.openComments}</span>`); }
+  return m.join(''); }
+function stageCard(st){ const href=st.page?encodeURI(st.page):null, isDoc=st.kind==='doc';
+  return `<div class="stage ${st.status} ${st.id===selId?'sel':''}" data-id="${st.id}">
+    <div class="st-h"><span class="no">${st.no}</span><b>${esc(st.title)}</b></div>
+    <div><span class="chip ${st.status}">${STATUS[st.status]||st.status}</span></div>
+    <ul class="outs">${st.outputs.slice(0,3).map(o=>`<li>${esc(o)}</li>`).join('')}${st.outputs.length>3?`<li>외 ${st.outputs.length-3}개</li>`:''}</ul>
+    <div class="met">${metrics(st)}</div>
+    <div class="store">${esc(st.storage||'')}</div>
+    <div class="acts">${href?(isDoc?`<button class="btn primary" data-doc="${esc(st.page)}" data-title="${esc(st.title)}">문서 보기</button>`:`<a class="btn primary" href="${href}" target="_blank">열기 ↗</a>`):`<span class="btn dis">아직 없음</span>`}</div>
+  </div>`; }
+function render(){ if(!WF) return; $('pipe').innerHTML=WF.stages.map(stageCard).join(''); renderDetail(); }
+function renderDetail(){ const st=WF.stages.find(s=>s.id===selId); if(!st) return; const z=SUM&&SUM.zoning, p=SUM&&SUM.plan, H=SUM&&SUM.history||{};
+  const ins=st.inputs.map(i=>WF.stages.find(s=>s.id===i)).filter(Boolean), outs=WF.stages.filter(s=>s.inputs.includes(st.id));
+  const link=s=>`<a class="btn" href="#" data-go="${s.id}">${s.no}. ${esc(s.title)}</a>`;
+  let live='';
+  if(st.id==='zoning'&&z&&!z.error) live=`<div class="kv" style="margin-top:10px"><span>마지막 저장</span><div>${when(z.updated)}</div><span>요청</span><div>열림 ${z.openComments} · 전체 ${z.comments}</div><span>버전 기록</span><div>${H.zoning?H.zoning.count+'개 · 최근 '+when(H.zoning.last):'—'}</div></div>`;
+  if(st.id==='plan'&&p&&!p.error) live=`<div class="kv" style="margin-top:10px"><span>마지막 생성</span><div>${when(p.generated)} (조닝 ${when(p.zoningUpdated)} 기준)</div><span>규모</span><div>실 ${fmt(p.rooms)} · 벽 ${fmt(p.walls)} · 문 ${fmt(p.doors)} · 창 ${fmt(p.windows)} · 계단 ${p.stairs} · 승강기 ${p.elevators}</div><span>이슈</span><div>경고 ${p.warn} · 참고 ${p.info}${p.conflicts?` · <b style="color:var(--bad)">조닝 충돌 ${p.conflicts}</b>`:''}</div><span>요청</span><div>열림 ${p.openComments} · 전체 ${p.comments}</div><span>버전 기록</span><div>${H.plan?H.plan.count+'개 · 최근 '+when(H.plan.last):'—'}</div></div>`;
+  $('detail').innerHTML=`<div>
+      <h3><span class="no" style="background:var(--s-${st.status})">${st.no}</span>${esc(st.title)} <span class="chip ${st.status}">${STATUS[st.status]}</span></h3>
+      <div class="kv">
+        <span>입력</span><div class="ins">${ins.length?ins.map(link).join(''):'—'}</div>
+        <span>다음 단계</span><div class="ins">${outs.length?outs.map(link).join(''):'—'}</div>
+        <span>만드는 것</span><div>${st.outputs.map(esc).join('<br>')}</div>
+        <span>저장 방식</span><div>${esc(st.storage||'—')}</div>
+        ${st.auto?`<span>자동 연결</span><div>${esc(st.auto)}</div>`:''}
+      </div>${live}
+    </div>
+    <div>
+      <div class="kv">
+        ${st.page?`<span>페이지</span><div><code>${esc(st.page)}</code></div>`:''}
+        ${st.source?`<span>원자료</span><div><code>${esc(st.source)}</code></div>`:''}
+        ${st.data?`<span>데이터</span><div><code>${esc(st.data)}</code></div>`:''}
+        ${st.history?`<span>버전 기록</span><div><code>${esc(st.history)}</code></div>`:''}
+        ${st.api?`<span>API</span><div><code>${esc(st.api)}</code></div>`:''}
+        ${st.generator?`<span>생성기</span><div><code>${esc(st.generator)}</code></div>`:''}
+        ${st.comments?`<span>수정 요청</span><div>페이지에서 객체를 고르고 <b>✦ Claude에게 수정 요청</b></div>`:''}
+      </div>
+      ${st.ask?`<div class="say"><span>대화창에서</span><q>${esc(st.ask)}</q><span class="sp"></span><button class="btn" data-copy="${esc(st.ask)}">복사</button></div>`:''}
+    </div>`; }
+function renderEps(){ $('eps').innerHTML=WF.services.endpoints.map(([m,u,d])=>`<tr><td><code>${esc(m)}</code></td><td><code>${esc(u)}</code></td><td>${esc(d)}</td></tr>`).join('')+
+  `<tr><td colspan="3" style="color:var(--muted)">서버: <code>${esc(WF.services.server)}</code> · 실행: <code>${esc(WF.services.launch)}</code></td></tr>`; }
+function renderTpl(){ const T=WF.templateDraft; const col=(t,arr)=>`<div class="card"><h4>${t}</h4><ul>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  $('tpl').innerHTML=col('그대로 가져갈 것 (공통)',T.generic)+col('프로젝트마다 바뀌는 것',T.projectSpecific)+col('아직 정할 것',T.open);
+  $('foot').innerHTML=`${esc(WF.note)} · 스키마 <code>${esc(WF.schema)}</code>`; }
+document.addEventListener('click',async e=>{
+  const go=e.target.closest('[data-go]'); if(go){ e.preventDefault(); select(go.dataset.go); return; }
+  const cp=e.target.closest('[data-copy]'); if(cp){ try{ await navigator.clipboard.writeText(cp.dataset.copy); cp.textContent='복사됨'; setTimeout(()=>cp.textContent='복사',1200); }catch(err){} return; }
+  const dc=e.target.closest('[data-doc]'); if(dc){ openDoc(dc.dataset.doc,dc.dataset.title); return; }
+  if(e.target.closest('a,button')) return;
+  const card=e.target.closest('.stage'); if(card) select(card.dataset.id);
+  const nd=e.target.closest('.nd'); if(nd) select(nd.dataset.s);
+});
+function select(id){ selId=id; try{ localStorage.setItem('hub-sel',id); }catch(e){} render(); $('detail').scrollIntoView({block:'nearest',behavior:'smooth'}); }
+async function openDoc(path,title){ $('mdTitle').textContent=title; $('mdRaw').href=encodeURI(path); $('mdBody').innerHTML='불러오는 중…'; $('modal').classList.add('on');
+  try{ const t=await (await fetch(encodeURI(path),{cache:'no-store'})).text(); $('mdBody').innerHTML=window.marked?marked.parse(t):`<pre style="white-space:pre-wrap">${esc(t)}</pre>`; }
+  catch(e){ $('mdBody').textContent='문서를 읽지 못했습니다: '+e.message; } }
+$('mdClose').onclick=()=>$('modal').classList.remove('on'); $('modal').onclick=e=>{ if(e.target.id==='modal') $('modal').classList.remove('on'); };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') $('modal').classList.remove('on'); });
+$('themeBtn').onclick=()=>{ const r=document.documentElement; const c=r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); r.dataset.theme=c==='dark'?'light':'dark'; };
+/* ---------- 데이터 지도 ---------- */
+const DM={z:null,p:null,gen:null,md:null,ctx:null,legal:null,reqs:null,zipSize:null,sel:null};
+const ZC={unit:'#dbe8fb',corridor:'#efece5',core:'#c7cdd3',lobby:'#d6e8de',community:'#cfe8d6',retail:'#f7dcb6',public:'#e6d6f1',parking:'#e3e7ea',aisle:'#efebe2',ramp:'#f6cdc2',mep:'#d8dcd4'};
+const RC={'거실':'#dbe8fb','거실·주방':'#dbe8fb','거실·침실':'#dbe8fb','침실1':'#e6defb','침실2':'#e6defb','침실(알코브)':'#ece6fb','주방·식당':'#fbefd6','주방':'#fbefd6','욕실':'#d4eff0','현관':'#ebebeb','수납':'#efefef','다용도실':'#efefef','드레스룸':'#efefef','복도(세대)':'#f2f2f2'};
+const MODE={auto:'자동',manual:'수동',claude:'Claude',planned:'예정'};
+const KIND={page:'페이지',data:'데이터',tool:'생성기',you:'대화',doc:'문서',file:'원자료',planned:'예정'};
+async function dmLoad(){
+  const get=async(u,t)=>{ try{ const r=await fetch(u,{cache:'no-store'}); if(!r.ok) return null; return t? await r.text() : await r.json(); }catch(e){ return null; } };
+  [DM.z,DM.gen,DM.md,DM.ctx]=await Promise.all([get('/api/zoning'),get('tools/gen_plan.py',1),get(encodeURI(WF.stages[0].page),1),get(encodeURI((WF.dataflow.nodes.find(n=>n.id==='ctx')||{}).path||'x'))]);
+  try{ const r=await fetch(encodeURI(WF.dataflow.nodes.find(n=>n.id==='raw').path),{method:'HEAD'}); DM.zipSize=+r.headers.get('content-length'); }catch(e){}
+  [DM.legal,DM.reqs]=await Promise.all([get('/api/legal'),get('/api/requests')]); renderDM(); DM.p=await get('/api/plan'); renderDM(); }
+// ---- 썸네일 (실제 데이터로 그림)
+function fitter(pts,W=220,H=104,pad=8){ const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]); const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys); const k=Math.min((W-2*pad)/((x1-x0)||1),(H-2*pad)/((y1-y0)||1)); const ox=(W-(x1-x0)*k)/2, oy=(H-(y1-y0)*k)/2;
+  return { P:(x,y)=>[ox+(x-x0)*k, H-(oy+(y-y0)*k)], k }; }
+const poly=(F,pts,attr)=>`<polygon points="${pts.map(p=>F.P(p[0],p[1]).map(v=>v.toFixed(1)).join(',')).join(' ')}" ${attr}/>`;
+const rectS=(F,x,y,w,h,attr)=>{ const a=F.P(x,y+h), b=F.P(x+w,y); return `<rect x="${a[0].toFixed(1)}" y="${a[1].toFixed(1)}" width="${(b[0]-a[0]).toFixed(1)}" height="${(b[1]-a[1]).toFixed(1)}" ${attr}/>`; };
+const SV=(inner,bg='')=>`<svg viewBox="0 0 220 104" xmlns="http://www.w3.org/2000/svg">${bg}${inner}</svg>`;
+const flo=id=>DM.z&&DM.z.floors.find(f=>f.id===id);
+const pflo=id=>DM.p&&DM.p.floors.find(f=>f.id===id);
+const chrome=inner=>SV(`<rect x="0" y="0" width="220" height="12" fill="var(--chip)"/><circle cx="7" cy="6" r="2.2" fill="#ff6159"/><circle cx="14" cy="6" r="2.2" fill="#ffbd2e"/><circle cx="21" cy="6" r="2.2" fill="#28c941"/><g transform="translate(0,8) scale(1,0.92)">${inner}</g>`);
+function thumb(n){ const z=DM.z;
+  switch(n.thumb){
+  case 'zip': return SV(`<g transform="translate(88,18)"><path d="M0,0 h32 l12,12 v56 h-44z" fill="var(--panel)" stroke="var(--muted)" stroke-width="1.5"/><path d="M32,0 v12 h12" fill="none" stroke="var(--muted)" stroke-width="1.5"/>${[0,1,2,3,4].map(i=>`<rect x="18" y="${14+i*9}" width="6" height="5" fill="var(--muted)"/>`).join('')}<text x="22" y="64" font-size="8" text-anchor="middle" fill="var(--muted)" font-weight="700">ZIP</text></g><text x="110" y="98" font-size="9" text-anchor="middle" fill="var(--muted)">${DM.zipSize?(DM.zipSize/1048576).toFixed(1)+' MB':''}</text>`);
+  case 'legal': { const sm=DM.legal&&DM.legal.summary; const rows=[['bad','부적합','var(--bad)'],['chk','확인 필요','var(--warn)'],['proc','절차','#6b4fd1'],['ok','적합','var(--ok)']];
+    return chrome(rows.map(([k,t,c],i)=>`<rect x="14" y="${12+i*21}" width="190" height="16" rx="4" fill="var(--panel)" stroke="var(--line)"/><rect x="18" y="${15+i*21}" width="44" height="10" rx="5" fill="${c}"/><text x="40" y="${23.5+i*21}" font-size="7.5" fill="#fff" text-anchor="middle" font-weight="700">${t}</text><text x="196" y="${24+i*21}" font-size="10" fill="var(--ink)" text-anchor="end" font-weight="800">${sm?sm[k]:'–'}</text>`).join('')); }
+  case 'fire': { const f=pflo('4F'); if(!f||!f.fire) return chrome(''); const F=fitter(f.outline); const co=['#4dabf7','#f783ac','#69db7c','#fab005','#9775fa','#20c997'];
+    const cof={}; f.fire.compartments.forEach((c,i)=>c.rooms.forEach(r=>cof[r]=c.kind==='세대'?co[i%6]:c.kind==='공용 복도·로비'?'#4dabf7':'#ced4da'));
+    let inner=f.rooms.map(r=>rectS(F,r.x,r.y,r.w,r.h,`fill="${cof[r.id]||'#eee'}" fill-opacity=".45" stroke="none"`)).join('');
+    inner+=f.walls.filter(w=>w.fire&&w.fire.boundary&&!w.fire.party).map(w=>{ const a=F.P(...w.a), b=F.P(...w.b); return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="#e03131" stroke-width="1.1"/>`; }).join('');
+    const pa=f.fire.egress&&f.fire.egress.worst&&f.fire.egress.worst.path; if(pa) inner+=`<polyline points="${pa.map(q=>F.P(q[0],q[1]).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#1971c2" stroke-width="1.6" stroke-dasharray="3 1.5"/>`;
+    return chrome(inner); }
+  case 'reqs': { const R=(DM.reqs&&DM.reqs.requests)||[]; const open=R.filter(r=>r.status!=='done');
+    return SV(`<rect x="30" y="66" width="160" height="26" rx="13" fill="var(--panel)" stroke="var(--askc)" stroke-width="1.5"/><text x="44" y="83" font-size="9" fill="var(--muted)">수정 요청을 입력하세요…</text><circle cx="176" cy="79" r="8" fill="var(--askc)"/>`+open.slice(0,3).map((r,i)=>`<rect x="${40+i*6}" y="${10+i*16}" width="140" height="13" rx="6" fill="color-mix(in srgb,var(--askc) 14%,var(--panel))" stroke="var(--askc)" stroke-width=".6"/><text x="${46+i*6}" y="${19.5+i*16}" font-size="7.5" fill="var(--ink)">#${r.n} ${esc(r.text.slice(0,18))}</text>`).join('')+(open.length?'':`<text x="110" y="34" font-size="9" fill="var(--muted)" text-anchor="middle">열린 요청 없음</text>`)); }
+  case 'mep': { const f=pflo('2F')||pflo('4F'); if(!f||!f.mep) return chrome(''); const F=fitter(f.outline); const sc={elec:'#e8a200',plumb:'#1971c2',duct:'#2f9e44'};
+    let inner=f.rooms.map(r=>rectS(F,r.x,r.y,r.w,r.h,'fill="var(--chip)" stroke="var(--line)" stroke-width=".4"')).join('');
+    inner+=f.mep.shafts.map(s=>rectS(F,s.x,s.y,s.w,s.h,`fill="${sc[s.systems[0]]}" stroke="none"`)).join('');
+    inner+=f.mep.collectors.map(c=>`<polyline points="${c.path.map(q=>F.P(q[0],q[1]).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#e03131" stroke-width="1" stroke-dasharray="2 1"/>`).join('');
+    return chrome(inner); }
+  case 'struct': { const f=pflo('2F'); if(!f||!f.struct) return chrome(''); const F=fitter(f.outline);
+    let inner=f.rooms.map(r=>rectS(F,r.x,r.y,r.w,r.h,'fill="var(--chip)" stroke="none"')).join('');
+    inner+=(f.struct.transfers||[]).map(m=>{ const a=F.P(...m.a), b=F.P(...m.b); return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="#d6336c" stroke-opacity=".6" stroke-width="${m.kind==='primary'?2:1.2}"/>`; }).join('');
+    inner+=(f.struct.columns||[]).map(c=>{ const p=F.P(c.x,c.y); return `<rect x="${(p[0]-2).toFixed(1)}" y="${(p[1]-2).toFixed(1)}" width="4" height="4" fill="${c.conflict.length?'#e03131':c.shift?'#e8a200':'#495057'}"/>`; }).join('');
+    return chrome(inner); }
+  case 'cost': { const c=DM.p&&DM.p.disciplines&&DM.p.disciplines.cost; if(!c) return SV(''); const G=c.groups.slice(0,6), mx=G[0].amount; const col=['#1f4fd1','#d6336c','#e8590c','#e8a200','#2f9e44','#0ca678'];
+    return SV(G.map((g,i)=>`<text x="8" y="${18+i*14}" font-size="8" fill="var(--muted)">${g.grp}</text><rect x="80" y="${10+i*14}" width="${g.amount/mx*120}" height="9" rx="2" fill="${col[i]}"/>`).join('')+`<text x="212" y="98" font-size="10" text-anchor="end" fill="var(--ink)" font-weight="700">${(c.summary.total/1e8).toFixed(0)}억</text>`); }
+  case 'next': return SV(['사업성'].map((t,i)=>`<rect x="85" y="38" width="50" height="26" rx="6" fill="none" stroke="var(--muted)" stroke-dasharray="3 2"/><text x="110" y="55" font-size="8.5" fill="var(--muted)" text-anchor="middle">${t}</text>`).join(''));
+  case 'ctx': { const c=DM.ctx; if(!c||!z) return SV(''); const pts=c.buildings.flatMap(b=>b.pts).concat(z.site.uv); const F=fitter(pts.filter(p=>Math.abs(p[0])<120&&Math.abs(p[1]-20)<110));
+    return SV(`<defs><clipPath id="cc"><rect width="220" height="104"/></clipPath></defs><g clip-path="url(#cc)">`+c.roads.map(r=>poly(F,r.pts,'fill="#7a8085" fill-opacity=".55" stroke="none"')).join('')+c.rail.map(r=>poly(F,r.pts,'fill="#8b8178" fill-opacity=".45" stroke="none"')).join('')+c.buildings.filter(b=>!b.onSite).map(b=>poly(F,b.pts,`fill="var(--muted)" fill-opacity="${Math.min(.85,.25+(b.floors||1)*.04)}" stroke="var(--panel)" stroke-width=".5"`)).join('')+poly(F,z.site.uv,'fill="color-mix(in srgb,var(--accent) 35%,transparent)" stroke="var(--accent)" stroke-width="1.2"')+`</g>`); }
+  case 'site': { if(!z) return SV(''); const s=z.site.uv, e=z.site.envelopeUv||[]; const F=fitter(s); return SV(poly(F,s,'fill="color-mix(in srgb,var(--ok) 10%,transparent)" stroke="#c6402b" stroke-width="1.4" stroke-dasharray="4 2"')+(e.length?poly(F,e,'fill="none" stroke="var(--accent)" stroke-width="1"'):'')+`<text x="6" y="98" font-size="8.5" fill="var(--muted)">대지 경계 · 건축 가능 범위</text>`); }
+  case 'outline': { if(!z) return chrome(''); const s=z.site.uv, o=(flo('3F')||z.floors[0]).outline; const F=fitter(s); return chrome(poly(F,s,'fill="none" stroke="#c6402b" stroke-width="1" stroke-dasharray="4 2"')+poly(F,o,'fill="color-mix(in srgb,var(--accent) 22%,transparent)" stroke="var(--accent)" stroke-width="1.6"')+o.map(p=>{ const q=F.P(p[0],p[1]); return `<circle cx="${q[0]}" cy="${q[1]}" r="2.4" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.2"/>`; }).join('')); }
+  case 'mass': { if(!z) return chrome(''); const fl=z.floors.filter(f=>f.level>0).sort((a,b)=>a.level-b.level); const el={}; let h=0; fl.forEach(f=>{ el[f.id]=h; h+=f.height; });
+    const iso=(u,v,zz)=>[(u-v)*0.866,(u+v)*0.5-zz]; const all=fl.flatMap(f=>f.outline.map(p=>iso(p[0],p[1],el[f.id]))).concat(fl.flatMap(f=>f.outline.map(p=>iso(p[0],p[1],el[f.id]+f.height))));
+    const xs=all.map(p=>p[0]), ys=all.map(p=>p[1]); const k=Math.min(200/(Math.max(...xs)-Math.min(...xs)),86/(Math.max(...ys)-Math.min(...ys))); const X=p=>[(p[0]-Math.min(...xs))*k+10,(p[1]-Math.min(...ys))*k+8+4];
+    const pg=(pts,a)=>`<polygon points="${pts.map(p=>X(p).map(v=>v.toFixed(1)).join(',')).join(' ')}" ${a}/>`;
+    return chrome(fl.map(f=>pg(f.outline.map(p=>iso(p[0],p[1],el[f.id]+f.height)),`fill="${f.level===1?'#f7dcb6':f.level===2?'#e6d6f1':'#dbe8fb'}" fill-opacity=".55" stroke="var(--muted)" stroke-width=".5"`)).join('')); }
+  case 'zoning': case 'zoning-data': { const f=flo('4F'); if(!f) return SV(''); const F=fitter(f.outline); const data=n.thumb==='zoning-data';
+    const inner=poly(F,f.outline,`fill="none" stroke="var(--ink)" stroke-width="1.2"`)+f.zones.map(q=>rectS(F,q.x,q.y,q.w,q.h,data?`fill="none" stroke="${q.type==='unit'?'var(--accent)':'var(--muted)'}" stroke-width=".7"`:`fill="${ZC[q.type]||'#eee'}" stroke="#fff" stroke-width=".6"`)).join('');
+    return data? SV(inner+`<text x="6" y="98" font-size="8.5" fill="var(--ok)" font-weight="700">{ floors[19] › zones[${f.zones.length}] }</text>`) : chrome(inner); }
+  case 'chat': return SV(`<rect x="22" y="14" width="128" height="30" rx="12" fill="color-mix(in srgb,var(--askc) 16%,var(--panel))" stroke="var(--askc)"/><text x="34" y="33" font-size="10" fill="var(--ink)" font-weight="700">요청 반영해줘</text><rect x="70" y="52" width="130" height="38" rx="12" fill="var(--panel)" stroke="var(--line)"/><text x="82" y="68" font-size="9" fill="var(--muted)">✦ 반영했습니다 —</text><text x="82" y="81" font-size="9" fill="var(--muted)">조닝·규칙·타입 수정</text>`);
+  case 'code': { const lines=(DM.gen||'').split('\n').filter(l=>/^(WALL|    '(exterior|party|partition|core)'|UNIT_ROOMS|def (plan_unit|unit_layout|fixtures_for|daylight_check|build_floor))/.test(l)).slice(0,9);
+    return SV(`<rect x="0" y="0" width="220" height="104" fill="#1d2326"/>`+lines.map((l,i)=>`<text x="8" y="${14+i*10.5}" font-size="8" font-family="ui-monospace,Menlo,monospace" fill="${/^def /.test(l)?'#7aa2ff':/^ /.test(l)?'#9ad8a4':'#f0b44c'}">${esc(l.slice(0,46))}</text>`).join('')); }
+  case 'type': { const T=DM.p&&(DM.p.types.find(t=>t.edited&&t.cat==='unit')||DM.p.types[0]); if(!T) return SV(''); const pts=[[0,0],[T.W,T.D]]; const F=fitter(pts,220,92,10);
+    return SV(T.rooms.map(r=>rectS(F,r.t0,r.d0,r.t1-r.t0,r.d1-r.d0,`fill="${RC[r.name]||'#f0f0f0'}" stroke="var(--muted)" stroke-width=".8"`)).join('')+`<text x="6" y="100" font-size="8.5" fill="var(--muted)">${esc(T.code)} · ${T.instances.length}곳 공통</text>`); }
+  case 'plan': case 'plan-data': { const f=pflo('4F'); if(!f) return n.thumb==='plan'?chrome(''):SV(`<text x="110" y="56" font-size="10" text-anchor="middle" fill="var(--muted)">불러오는 중…</text>`); const F=fitter(f.outline); const data=n.thumb==='plan-data';
+    let inner=f.rooms.map(r=>rectS(F,r.x,r.y,r.w,r.h,data?`fill="none" stroke="var(--line)" stroke-width=".4"`:`fill="${r.kind==='unitroom'?(RC[r.name]||'#f0f0f0'):(ZC[r.ztype]||'#e3e7ea')}" stroke="none"`)).join('');
+    inner+=f.walls.filter(w=>['exterior','party','unit_corr','core'].includes(w.kind)).map(w=>{ const a=F.P(...w.a), b=F.P(...w.b); return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${data?'var(--ok)':'#2b343a'}" stroke-width="${w.kind==='exterior'?1.1:.6}"/>`; }).join('');
+    return data? SV(inner+`<text x="6" y="98" font-size="8.5" fill="var(--ok)" font-weight="700">{ rooms ${f.rooms.length} · walls ${f.walls.length} · openings ${f.openings.length} }</text>`) : chrome(inner); }
+  case 'ifc': return SV(`<g transform="translate(110,52)" fill="none" stroke="var(--muted)" stroke-dasharray="3 3" stroke-width="1.3"><path d="M0,-34 L34,-17 L34,20 L0,37 L-34,20 L-34,-17Z"/><path d="M0,-34 L0,3 M0,3 L34,-14 M0,3 L-34,-14"/></g><text x="110" y="98" font-size="9" text-anchor="middle" fill="var(--muted)">IFC4 · 예정</text>`);
+  } return SV(''); }
+// ---- 구조 미리보기 (실제 데이터를 잘라서)
+function prune(v,d=0){ if(Array.isArray(v)){ if(v.length&&v.every(x=>typeof x==='number')) return v.length>4?[...v.slice(0,3),'…']:v; const lim=d>1?1:2; const out=v.slice(0,lim).map(x=>prune(x,d+1)); if(v.length>lim) out.push(`… 외 ${v.length-lim}개`); return out; }
+  if(v&&typeof v==='object'){ const ks=Object.keys(v), lim=d>2?6:d>1?9:14; const o={}; ks.slice(0,lim).forEach(k=>o[k]=prune(v[k],d+1)); if(ks.length>lim) o['…']=`키 ${ks.length-lim}개 더`; return o; }
+  if(typeof v==='string'&&v.length>44) return v.slice(0,42)+'…'; if(typeof v==='number') return Math.round(v*1000)/1000; return v; }
+function jsonView(o){ let t=JSON.stringify(prune(o),null,2); t=t.replace(/\[\s*\n\s*([^\[\]{}]*?)\s*\n\s*\]/g,(m,a)=>'['+a.replace(/\s*\n\s*/g,' ')+']'); return t; }
+function hl(t){ return esc(t).replace(/(&quot;[^&]*?&quot;)(\s*:)/g,'<span class="k">$1</span>$2').replace(/:\s(&quot;[^&]*?&quot;)/g,': <span class="s">$1</span>').replace(/:\s(-?[\d.]+)/g,': <span class="n">$1</span>').replace(/(… [^&<]*)/g,'<span class="c">$1</span>'); }
+function snippet(n){ const z=DM.z, p=DM.p;
+  switch(n.snippet){
+  case 'zip': return {lang:'text',t:`원자료 패키지${DM.zipSize?` · ${(DM.zipSize/1048576).toFixed(1)} MB`:''}\n(토지대장·지적·용도지역·도로·법규 조사 자료)\n\n→ Claude가 읽고 대지·법규 정리(.md)를 만듦`};
+  case 'legal': { const L=DM.legal; if(!L) return {lang:'text',t:'불러오는 중…'}; return {lang:'json',t:'// legal/…_legal.json — 판정은 페이지에서 계산, 여기는 가정값·사람 판정·요약만\n'+jsonView({schema:L.schema,updated:L.updated,assumptions:L.assumptions,overrides:L.overrides,summary:L.summary})}; }
+  case 'fire': { if(!p) return {lang:'text',t:'불러오는 중…'}; const f=pflo('4F'); const fi=f&&f.fire; if(!fi) return {lang:'text',t:'소방 결과 없음'};
+    const door=f.openings.find(o=>/→ 방화문/.test(o.type)); const wall=f.walls.find(w=>w.fire&&w.fire.boundary&&!w.fire.party);
+    return {lang:'json',t:'// plan.json — 소방 결과는 같은 파일 안에 (생성기 › fire_model.py)\n'+jsonView({disciplineInputs:p.disciplineInputs,'disciplines.fire.summary':p.disciplines.fire.summary,'floors[4F].fire':{compartments:fi.compartments,egress:{limit:fi.egress.limit,max:fi.egress.max,worst:fi.egress.worst&&{unit:fi.egress.worst.unit,dist:fi.egress.worst.dist,stair:fi.egress.worst.stair},stairSep:fi.egress.stairSep},hydrants:fi.hydrants,changes:fi.changes},'floors[4F].walls[…] (소방이 씀)':wall,'floors[4F].openings[…] (소방이 바꿈)':door})}; }
+  case 'din': { if(!p) return {lang:'text',t:'불러오는 중…'}; return {lang:'json',t:'// plan.json › disciplineInputs — 재생성해도 보존, POST /api/plan/inputs\n'+jsonView({disciplineInputs:p.disciplineInputs||{},'적용된 소방 기준 (기본값 포함)':p.disciplines&&p.disciplines.fire&&p.disciplines.fire.params,'적용된 설비 기준':p.disciplines&&p.disciplines.mep&&p.disciplines.mep.params,'적용된 구조 기준':p.disciplines&&p.disciplines.struct&&p.disciplines.struct.params})}; }
+  case 'reqs': { const R=DM.reqs; return {lang:'json',t:'// requests/requests.json — 모든 페이지 아래 가운데 요청 바\n'+jsonView(R||{requests:[]})}; }
+  case 'mep': { if(!p) return {lang:'text',t:'불러오는 중…'}; const f=pflo('2F'); const m=p.disciplines&&p.disciplines.mep; if(!m) return {lang:'text',t:'설비 결과 없음'};
+    const f5=pflo('5F'); return {lang:'json',t:'// plan.json — 설비 결과도 같은 파일 안에 (생성기 › mep_model.py)\n'+jsonView({'disciplines.mep.summary':m.summary,'disciplines.mep.loads':m.loads,'floors[2F].mep.collectors[0]':f&&f.mep.collectors[0],'floors[5F].mep.stacks[0]':f5&&f5.mep.stacks[0],'floors[5F].rooms[욕실].mep (설비가 씀)':f5&&(f5.rooms.find(r=>r.mep&&r.mep.wet==='bath')||{}).mep})}; }
+  case 'struct': { if(!p) return {lang:'text',t:'불러오는 중…'}; const f=pflo('2F'); const s=p.disciplines&&p.disciplines.struct; if(!s) return {lang:'text',t:'구조 결과 없음'}; const f3=pflo('3F');
+    return {lang:'json',t:'// plan.json — 구조 결과도 같은 파일 안에 (생성기 › struct_model.py)\n'+jsonView({'disciplines.struct.summary':Object.assign({},s.summary,{grid:undefined}),'floors[2F].struct.ceiling':f&&f.struct.ceiling,'floors[2F].struct.columns[0]':f&&f.struct.columns[0],'floors[2F].struct.transfers[0]':f&&f.struct.transfers[0],'floors[3F].walls[…].struct (구조가 씀)':f3&&(f3.walls.find(w=>w.struct&&w.struct.transfer)||{}).struct})}; }
+  case 'cost': { if(!p) return {lang:'text',t:'불러오는 중…'}; const c=p.disciplines&&p.disciplines.cost; if(!c) return {lang:'text',t:'공사비 결과 없음'};
+    return {lang:'json',t:'// plan.json › disciplines.cost (생성기 › cost_model.py)\n'+jsonView({summary:c.summary,lines:c.lines,'groups[0..3]':c.groups.slice(0,4),'items[0..2]':c.items.slice(0,3)})}; }
+  case 'next': return {lang:'text',t:'예정 단계 (추천 순서)\n  7 소방·피난 — ✓ 완료 (같은 plan.json 공유)\n  8 설비 — ✓ 완료\n  9 구조 — ✓ 완료\n 10 공사비 — ✓ 완료 (plan.json 물량 × 단가)\n 11 사업타당성 — 수입·비용·금융 → 수익률·민감도\n\n설비·구조는 소방처럼 생성기 안의 분야 모듈로 plan.json을 공유합니다.\n어느 분야에서 문제가 나와도 원인(조닝·타입·기준값)을 고치면 전체가 다시 맞춰집니다.'};
+  case 'ctx': { const c=DM.ctx; if(!c) return {lang:'text',t:'불러오는 중…'}; return {lang:'json',t:'// site/…_context.json (u·v 좌표, 일부)\n'+jsonView({schema:c.schema,source:c.source,buildings:c.buildings.filter(b=>!b.onSite),roads:c.roads,rail:c.rail,parcels:c.parcels,zoning:c.zoning})}; }
+  case 'md': return {lang:'text',t:(DM.md||'').split('\n').filter(l=>/^#{1,3} /.test(l)).slice(0,22).join('\n')||'문서를 읽지 못했습니다'};
+  case 'outline': { let o=null; try{ o=JSON.parse(localStorage.getItem('site-1126010200101160049-footprint-v1-plans')||'null'); }catch(e){}
+    return {lang:'json',t:o?'// 브라우저 저장 (localStorage)\n'+jsonView(o):'// 브라우저 저장 (localStorage: site-1126010200101160049-footprint-v1-plans)\n'+jsonView({cov:60,plans:[{id:'user',name:'사용자안',pts:[[6,0],[31.8,0],[31.8,41]]},{id:'alt1',name:'대안 1',pts:[[6,0],[31.8,0]]}]})+'\n// 이 브라우저에서 외곽선 편집기를 http로 열면 실제 값이 보입니다'}; }
+  case 'mass': return {lang:'json',t:'// 페이지 안에 포함된 데이터 (사용자안 기준)\n'+jsonView({floors:(z?z.floors:[]).filter(f=>f.level>0).map(f=>({id:f.id,level:f.level,height:f.height,outline:f.outline}))})};
+  case 'zedit': return {lang:'text',t:'편집 도구\n  선택 · 벽 선택(W) · 외곽선 편집\n  구역 팔레트: 세대 / 복도 / 코어 / 로비 / 커뮤니티 / 근생 / 공공 / 주차 / 차로 / 램프 / 설비\n  Shift 여러 개 · 범위 선택 · ✦ Claude에게 수정 요청 (C)\n\n저장: 바뀔 때마다 POST /api/zoning → zoning.json\n확인: 건폐율·용적률·주차·비주거·세대 면적·창·복도 접함·코어 적층·램프 경사'};
+  case 'zoning': { if(!z) return {lang:'text',t:'불러오는 중…'}; const f=flo('4F'); return {lang:'json',t:'// zoning.json (4F만 펼침)\n'+jsonView({schema:z.schema,updated:z.updated,project:{name:z.project.name},params:z.params,floors:[f],comments:z.comments})}; }
+  case 'claude': { const c=p&&[...p.comments].reverse().find(c=>c.reply); return {lang:'json',t:c?'// 계획설계 요청 하나 (plan.json › comments)\n'+jsonView(c):'요청이 없습니다'}; }
+  case 'gen': { const L=(DM.gen||'').split('\n'); const pick=[]; const grab=(re,n)=>{ const i=L.findIndex(l=>re.test(l)); if(i>=0) pick.push(...L.slice(i,i+n),''); };
+    grab(/^WALL = \{/,11); grab(/^UNIT_ROOMS = /,2); grab(/^FIX = \{/,8); pick.push('# 주요 함수', ...L.filter(l=>/^def /.test(l)).map(l=>l.replace(/:\s*$/,''))); return {lang:'py',t:pick.join('\n')}; }
+  case 'typeEdits': { if(!p) return {lang:'text',t:'불러오는 중…'}; const k=Object.keys(p.typeEdits||{}).find(k=>k.startsWith('U|'))||Object.keys(p.typeEdits||{})[0]; return {lang:'json',t:k?`// plan.json › typeEdits["${k}"]\n`+jsonView(p.typeEdits[k]):'편집된 타입이 없습니다'}; }
+  case 'plan': { if(!p) return {lang:'text',t:'불러오는 중…'}; const f=pflo('4F'); return {lang:'json',t:'// plan.json (4F만 펼침)\n'+jsonView({schema:p.schema,generated:p.generated,source:p.source,wallTypes:p.wallTypes,floors:[f],types:p.types,typeEdits:'{ … }',issues:p.issues,comments:p.comments,conflicts:p.conflicts})}; }
+  case 'pview': return {lang:'text',t:'탭\n  평면 — 실·벽·문·창·계단·승강기·가구·주차 (선택 → 요청)\n  3D — 현재 층 상세 / 아래층 매스 / 건물 전체 (현재 층에서 자르기)\n  타입 — 같은 타입 일괄 편집 (실 이동·칸막이·실 배치·문 이동·미리보기)\n  세대·이슈 — 세대 구성표, 조닝 충돌, 창호·문 일람표, 전체 이슈\n\n읽기: GET /api/plan · 저장: /api/plan/comments, /api/plan/typeedit'};
+  case 'ifc': return {lang:'text',t:'층 → IfcBuildingStorey · 실 → IfcSpace · 세대 → IfcZone\n벽 → IfcWall(+Type) · 문·창 → IfcOpeningElement + IfcDoor/IfcWindow\n계단 → IfcStair · 승강기 → IfcTransportElement · 가구 → IfcFurnishingElement'};
+  } return {lang:'text',t:''}; }
+// ---- 그리기
+function renderDM(){ const D=WF.dataflow; if(!D) return; const L=$('lanes');
+  L.style.setProperty('--nl',D.lanes.length); L.innerHTML=D.lanes.map((ln,i)=>`<div class="lane"><h5>${esc(ln)}</h5>${D.nodes.filter(n=>n.lane===i).map(n=>`<div class="dnode ${n.kind} ${n.id===DM.sel?'sel':''}" data-n="${n.id}"><div class="dthumb">${thumb(n)}</div><div class="dt">${esc(n.title)}<span class="dk">${KIND[n.kind]||n.kind}</span></div><div class="dp">${esc(n.path)}</div></div>`).join('')}</div>`).join('');
+  requestAnimationFrame(drawEdges); if(!DM.sel) DM.sel='zedit'; focusNode(DM.sel,false); }
+function chainFrom(id,dir){ const E=WF.dataflow.edges, seen=new Set([id]), steps=[]; const q=[id];
+  const kindOf=x=>(WF.dataflow.nodes.find(n=>n.id===x)||{}).kind; const actor=x=>['page','you'].includes(kindOf(x)); // 페이지·Claude는 '고치는 주체' — 사슬의 시작으로만
+  while(q.length){ const cur=q.shift(); if(cur!==id&&actor(cur)&&dir<0) continue;
+    E.filter(e=>(dir>0?e[0]===cur:e[1]===cur)&&(cur===id||(dir>0?!actor(e[0]):e[3]!=='claude'))).forEach(e=>{ const nx=dir>0?e[1]:e[0]; if(seen.has(nx)) return; steps.push(e); seen.add(nx); q.push(nx); }); }
+  return {nodes:seen,steps}; }
+function drawEdges(){ const svg=$('dedges'), box=$('dmap').getBoundingClientRect(); const R=id=>{ const el=document.querySelector(`.dnode[data-n="${id}"]`); if(!el) return null; const r=el.getBoundingClientRect(); return {l:r.left-box.left,r:r.right-box.left,t:r.top-box.top,b:r.bottom-box.top,cx:(r.left+r.right)/2-box.left,cy:(r.top+r.bottom)/2-box.top}; };
+  svg.setAttribute('viewBox',`0 0 ${box.width} ${box.height}`);
+  const defs=`<defs>${['auto','manual','claude','planned'].map(m=>`<marker id="m-${m}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10z" fill="${m==='auto'?'var(--ok)':m==='claude'?'var(--askc)':'var(--muted)'}"/></marker>`).join('')}</defs>`;
+  const used={};
+  svg.innerHTML=defs+WF.dataflow.edges.map((e,i)=>{ const a=R(e[0]), b=R(e[1]); if(!a||!b) return ''; let d, mx, my;
+    const k=(used[e[0]]=(used[e[0]]||0)+1), off=(k-1)*10-5;
+    if(b.l>a.r+4){ const y1=a.cy+off, y2=b.cy; d=`M${a.r},${y1} C${(a.r+b.l)/2},${y1} ${(a.r+b.l)/2},${y2} ${b.l-2},${y2}`; mx=(a.r+b.l)/2; my=(y1+y2)/2; }
+    else if(b.r<a.l-4){ const y1=a.cy+off, y2=b.cy; d=`M${a.l},${y1} C${(a.l+b.r)/2},${y1} ${(a.l+b.r)/2},${y2} ${b.r+2},${y2}`; mx=(a.l+b.r)/2; my=(y1+y2)/2; }
+    else if(b.t>a.b){ d=`M${a.cx+off},${a.b} C${a.cx+off},${(a.b+b.t)/2} ${b.cx},${(a.b+b.t)/2} ${b.cx},${b.t-2}`; mx=b.cx+6; my=(a.b+b.t)/2; }
+    else { d=`M${a.cx+off},${a.t} C${a.cx+off},${(a.t+b.b)/2} ${b.cx},${(a.t+b.b)/2} ${b.cx},${b.b+2}`; mx=b.cx+6; my=(a.t+b.b)/2; }
+    return `<path class="de ${e[3]}" data-e="${i}" d="${d}" marker-end="url(#m-${e[3]})"/><text class="dl ${e[3]}" data-e="${i}" x="${mx}" y="${my-4}" text-anchor="middle">${esc(e[2])}</text>`; }).join('');
+  markFocus(); }
+function markFocus(){ const id=DM.sel; if(!id) return; const dn=chainFrom(id,1), up=chainFrom(id,-1); const nodes=new Set([...dn.nodes,...up.nodes]); const E=WF.dataflow.edges; const es=new Set([...dn.steps,...up.steps].map(e=>E.indexOf(e)));
+  $('dmap').classList.add('focus'); document.querySelectorAll('.dnode').forEach(el=>{ el.classList.toggle('hl',nodes.has(el.dataset.n)); el.classList.toggle('sel',el.dataset.n===id); });
+  document.querySelectorAll('#dedges [data-e]').forEach(el=>el.classList.toggle('hl',es.has(+el.dataset.e))); }
+function focusNode(id,scroll=true){ DM.sel=id; const n=WF.dataflow.nodes.find(x=>x.id===id); if(!n) return; markFocus();
+  const byId=x=>WF.dataflow.nodes.find(q=>q.id===x); const dn=chainFrom(id,1), up=chainFrom(id,-1);
+  const step=(e,i)=>`<li><i>${i+1}</i><div><b>${esc(byId(e[0]).title)}</b> → <b>${esc(byId(e[1]).title)}</b><span class="mode ${e[3]}">${MODE[e[3]]}</span><br><span style="color:var(--muted)">${esc(e[2])}</span></div></li>`;
+  const sn=snippet(n);
+  $('dpanel').innerHTML=`<div>
+      <h3>${esc(n.title)} <span class="dk">${KIND[n.kind]||n.kind}</span></h3>
+      <div class="kv"><span>위치</span><div><code>${esc(n.path)}</code></div><span>담는 것</span><div>${esc(n.what)}</div><span>고치는 곳</span><div><b>${esc(n.edit)}</b></div></div>
+      <h4 style="margin:14px 0 2px;font-size:13.5px">여기서 고치면 이어서 바뀌는 것</h4>
+      ${dn.steps.length?`<ol class="chain">${dn.steps.map(step).join('')}</ol>`:'<div class="empty" style="color:var(--muted);font-size:13px">이어지는 단계 없음 (최종 결과)</div>'}
+      <h4 style="margin:14px 0 2px;font-size:13.5px">이 데이터를 만드는 것</h4>
+      ${up.steps.length?`<ol class="chain">${up.steps.map(step).join('')}</ol>`:'<div style="color:var(--muted);font-size:13px">시작점 (원자료)</div>'}
+    </div>
+    <div><h4 style="margin:0 0 6px;font-size:13.5px">구성 미리보기 <span style="font-weight:400;color:var(--muted);font-size:12px">— 실제 데이터에서 일부만 잘라 보여 줌</span></h4><pre class="snip">${sn.lang==='json'?hl(sn.t):esc(sn.t)}</pre></div>`;
+  if(scroll) $('dpanel').scrollIntoView({block:'nearest',behavior:'smooth'}); }
+document.addEventListener('click',e=>{ const n=e.target.closest('.dnode'); if(n) focusNode(n.dataset.n); });
+window.addEventListener('resize',()=>requestAnimationFrame(drawEdges));
+
+load();
+</script>
+<script src="assets/request-dock.js" data-page="hub" data-title="작업 허브"></script>
+</body>
+</html>
