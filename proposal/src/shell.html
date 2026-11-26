@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title><!--TITLE--></title>
+<style>/*FONTS*/</style>
+<style>/*CSS*/</style>
+</head>
+<body>
+<main id="stage">
+<!--SLIDES-->
+</main>
+<nav class="toolbar" aria-label="발표 도구"><button id="prev" aria-label="이전 장표">←</button><span id="counter" aria-live="polite"></span><button id="next" aria-label="다음 장표">→</button><span class="divider"></span><button id="overview-open">목차 <kbd>O</kbd></button><button id="notes-open">상세 설명 <kbd>N</kbd></button><button id="fullscreen">전체 화면 <kbd>F</kbd></button><button id="print">인쇄</button><span class="divider"></span><button id="edit-toggle" aria-pressed="false">편집</button><button id="comment-toggle" aria-pressed="false">코멘트 <kbd>C</kbd><span class="c-badge" hidden></span></button></nav><div class="progress"><div></div></div>
+<dialog id="overview"><div class="dialog-head"><h2>전체 장표</h2><button data-close>닫기 ×</button></div><div id="overview-grid"></div></dialog>
+<dialog id="details"><div class="dialog-head"><div><small id="detail-ch"></small><h2 id="detail-title"></h2></div><button data-close>닫기 ×</button></div><div id="detail-body"></div><p id="detail-source"></p></dialog>
+<dialog id="lightbox"><div class="dialog-head"><h2 id="lightbox-caption"></h2><button data-close>닫기 ×</button></div><img id="lightbox-img" alt="확대 이미지"></dialog>
+<aside id="deck-editor" hidden aria-label="편집 패널"><div class="editor-head"><b>편집</b><button id="edit-close" aria-label="편집 종료">×</button></div>
+<p class="tip">점선으로 표시된 제목·문장·표·수치를 클릭해 바로 고칩니다. 장표의 3D 모델과 자동 생성 차트는 데이터에서 만들어지므로 편집 대상이 아닙니다.</p>
+<p class="tip">상세 설명(발표 노트)은 아래 버튼으로 열어 고친 뒤 닫으면 반영됩니다.</p>
+<div class="editor-row"><button id="edit-notes">상세 설명 편집</button></div>
+<div class="editor-save"><button id="edit-save">수정본 HTML 저장</button><small id="edit-status">자동 저장은 없습니다. 저장한 새 파일에도 3D와 편집 기능이 그대로 들어 있습니다.</small></div></aside>
+<aside id="comment-panel" hidden aria-label="코멘트 패널"><div class="editor-head"><b>코멘트</b><button id="comment-close" aria-label="코멘트 닫기">×</button></div>
+<p class="tip">장표에서 고칠 곳(제목·문장·표 칸·수치·그림·3D 모델)을 클릭하면 번호 핀과 함께 코멘트를 남길 수 있습니다. 3D를 클릭하면 그 자리의 실·세대와 보기 상태가 함께 기록됩니다.</p>
+<label class="c-author">작성자 <input id="comment-author" placeholder="이름 (선택)"></label>
+<div class="c-scope"><button data-scope="page" aria-pressed="true">이 쪽</button><button data-scope="all" aria-pressed="false">전체</button><span id="comment-count"></span></div>
+<ul id="comment-list"></ul>
+<div class="c-export"><button id="comment-copy" class="c-primary">수정 요청 복사 (미반영)</button><div class="c-row2"><button id="comment-md">Markdown 저장</button><button id="comment-json">JSON 저장</button><label class="c-file">JSON 불러오기<input type="file" id="comment-import" accept=".json,application/json"></label></div><button id="comment-html">코멘트 포함 HTML 저장</button><button id="comment-clear-done" class="c-ghost">반영 완료 항목 정리</button>
+<small>코멘트는 이 브라우저에 자동 보관됩니다. 다른 사람에게 보낼 때는 ‘코멘트 포함 HTML 저장’ 또는 JSON을 전달하세요.</small></div></aside>
+<div id="toast" role="status"></div>
+<script>/*THREE*/</script>
+<script id="deck-data">/*DATA*/</script>
+<script type="application/json" id="deck-comments">{"comments":[],"seq":0}</script>
+<script>/*SCENE*/</script>
+<script>/*APP*/</script>
+<script>/*COMMENTS*/</script>
+</body>
+</html>

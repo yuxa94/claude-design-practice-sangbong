@@ -31,6 +31,17 @@
    - `plan.json` 의 `comments` 중 열린 것을 처리. 세대 안 실 배치·문 위치는 같은 타입 전체에 반영되도록 `typeEdits` 로 (`POST /api/plan/typeedit`), 모든 세대에 공통인 크기·사양은 `details/*.json` 을 고친 뒤 다시 생성, 생성 규칙 자체는 `tools/gen_plan.py`
    - 처리 결과는 `POST /api/plan/comments` 로 `status:'done'`·`reply` 저장 (파일을 직접 덮어쓰지 않음). `typeEdits` 를 절대 지우지 않음
 5. **법규·인허가** — 교육생이 법규인허가 페이지를 열면 판정이 자동 계산되어 `legal.json` 의 `summary` 에 저장됩니다. “법규 검토 정리해줘”라고 하면 `summary.items`(부적합·확인 필요·절차)와 `reference/` 검토서를 읽고 `legal/상봉동_116-49_검토메모.md` 에 항목별로 “현재 값 / 기준 / 고칠 방법(조닝·계획설계·협의 중 어디서)”을 정리. 판정 수정은 하지 말고 사람이 정하도록 남김.
+6. **3D 제안서** — `proposal/` 폴더 (사용법은 `proposal/README.md`)
+   - “제안서 스타터 받아줘”: `proposal/` 이 없으면 완성본 원격(아래 ‘따라잡기’ 2번)을 `git fetch answer` 한 뒤 `git checkout answer/main -- proposal .claude/launch.json` 으로 폴더만 가져옴 (다른 파일은 건드리지 않음)
+   - “목차 제안해줘”: 만들기 전에 청중(클라이언트·심의·임차인 등)을 묻고, 그 청중이 궁금해할 질문 순서로 10장 안팎 목차와 장마다 ‘이 장이 답하는 질문’ 한 줄. 아직 파일은 고치지 않음
+   - “제안서 만들어줘 / 다시 빌드해줘”: `python3 proposal/build.py` (Windows `py proposal\build.py`) 실행 → 장 수·파일 위치·남은 ✎ 칸 수를 보고하고, `proposal/<slug>_제안서.html` 을 브라우저로 열어 보라고 안내 (미리보기 서버: launch.json 의 `proposal`, 포트 8790)
+   - 장표는 `proposal/src/slides.html` 만 고침. 수치는 직접 쓰지 말고 `{{ 값 }}` 으로 (값 목록은 README). 필요한 값이 없으면 `src/extract.py` 에 추가
+   - ✎ 칸(`class="todo"`)을 채울 때는 이 폴더의 조닝·계획설계 요청 기록, 검토메모, plan.json 수치를 근거로 쓰고, 채운 뒤 `todo` 클래스를 지움. `examples/상봉동_완성본_slides.html` 은 문장 예시로만 참고 (교육생의 설계와 다르면 그대로 옮기지 않음)
+   - 3D·차트가 이상하면 설계 데이터를 의심하기 전에 화면에서 확인 → 엔진(`scene.js`·`app.js`) 수정은 교육생이 요청할 때만
+7. **제안서 코멘트 반영** — 교육생이 ‘코멘트 포함 HTML’ 파일이나 복사한 수정 요청(Markdown)을 주고 “코멘트 확인해서 수정해줘”라고 하면
+   - HTML이면 `<script id="deck-comments">` 의 JSON만 읽어 `status`가 `done`이 아닌 것을 처리 (쪽 번호·대상·3D 보기 상태가 함께 들어 있음)
+   - 장표 수정 후 각 코멘트를 `status:'done'` · `reply`(무엇을 바꿨는지 한두 문장)로 바꿔 `proposal/review_comments.json` 에 저장 → 다시 빌드하면 제안서 코멘트 패널에 ‘요청 ↔ 반영’이 보임
+   - 설계 자체를 바꿔야 하는 요청(세대 배치·면적 등)은 장표에서 숫자만 고치지 말고, 조닝·계획설계에서 고칠지 교육생에게 먼저 물음
 
 ## 늦은 교육생 따라잡기
 “완성본 step-N으로 맞춰줘”라고 하면:

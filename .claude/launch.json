@@ -8,6 +8,18 @@
         "tools/zoning_server.py"
       ],
       "port": 8770
+    },
+    {
+      "name": "proposal",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8790",
+        "--directory",
+        "proposal"
+      ],
+      "port": 8790
     }
   ]
 }

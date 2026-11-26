@@ -1,0 +1,302 @@
+<!--
+  제안서 장표 원본 (스타터).  python3 proposal/build.py 로 HTML을 만듭니다.
+
+  · {{ 이름 }}        계획 데이터에서 계산한 값으로 바뀝니다.  예) {{ units }} → 285
+  · {{ 이름 | n2 }}   숫자 형식: n0 n1 n2(천 단위 쉼표, 소수 자리) · int · join(쉼표로 잇기) · first · last
+  · {{#each 목록}} … {{ .필드 }} … {{/each}}   목록만큼 반복 (층 묶음, 세대 타입)
+  · {{#if 이름}} … {{else}} … {{/if}}          값이 있을 때만
+  · <span class="todo">✎ …</span>              설계자가 채울 문장. 다 채우면 class="todo"를 지웁니다.
+  · data-ch="이름" / data-goto="이름"          목차 버튼이 장 이름으로 이동 (장 수가 바뀌어도 그대로)
+  쓸 수 있는 값 목록: proposal/README.md
+-->
+<section class="slide cinematic cinema-cover" aria-label="표지">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>건축계획 설명</span></header>
+<div class="slide-body"><div class="cinema-image scene-host" data-scene='{"mode":"cinema","view":"hero","auto":true,"autoSpeed":0.35,"intro":true}'></div><div class="cinema-shade"></div>
+<div class="cinema-copy"><p class="cinema-kicker">{{ site }} / ARCHITECTURAL PROPOSAL</p><h1><span class="todo">✎ 한 줄 콘셉트</span><br>{{ units }}세대의 집</h1><p class="cinema-sub">{{ address }} · {{ scale }} · 연면적 {{ gfa | n0 }}㎡</p><button class="primary" data-go="2">설명 시작 <span>→</span></button></div>
+<div class="cinema-ctrl"><button data-cinema="auto">회전 정지</button></div></div>
+<footer><span>표지: 계획 모델로 생성한 실시간 3D · 하늘과 조명은 연출</span><span class="pg"></span></footer>
+<aside class="notes"><p>{{ title }} 건축계획을 설명드리겠습니다. 대지가 어떤 땅이고 법적으로 얼마나 지을 수 있는지에서 시작해, 그 면적을 어떻게 나누었는지, 세대는 어떤 모습인지, 주차는 어떻게 작동하는지 순서대로 보여 드립니다.</p><p>화면의 모든 3D 모델은 실제 계획 데이터로 만든 것이라 마우스로 돌려 보시면서 들으셔도 됩니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="설명 순서">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>설명 순서</span></header>
+<h2>이 순서로 설명드립니다</h2>
+<div class="slide-body"><div class="agenda" style="height:470px"><button class="jump" data-goto="site">01  대지와 법적 조건 <span>↗</span></button><button class="jump" data-goto="scale">02  건축 규모와 연면적 <span>↗</span></button><button class="jump" data-goto="floors">03  층별 구성 <span>↗</span></button><button class="jump" data-goto="units">04  세대 타입 <span>↗</span></button><button class="jump" data-goto="areas">05  전용면적과 공용면적 <span>↗</span></button>{{#if hasParking}}<button class="jump" data-goto="parking">06  지하주차장 <span>↗</span></button>{{/if}}<button class="jump" data-goto="check">07  안전 · 사업비 · 확인 사항 <span>↗</span></button><button class="jump" data-goto="explore">모델 직접 둘러보기 <span>↗</span></button></div>
+<p class="footnote">← → 장표 이동　·　목차 O　·　상세 설명 N　·　전체 화면 F　·　3D: 드래그 회전 · 휠 확대 · 마우스를 올리면 실·세대 정보</p></div>
+<footer><span>건축계획 설명 자료</span><span class="pg"></span></footer>
+<aside class="notes"><p>먼저 땅의 조건과 법적 한도를 확인하고, 그 한도를 어떻게 썼는지, 그리고 실제로 사는 사람 입장에서 세대와 주차가 어떤지를 보여 드리는 순서입니다.</p></aside>
+</section>
+
+<!-- ============ 01 대지와 법적 조건 (대지 사실은 모든 학생이 같습니다) ============ -->
+<section class="slide" aria-label="대지 위치와 입지" data-ch="site">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>01 대지와 법적 조건</span></header>
+<h2>상봉역과 망우로가 만나는 대지</h2>
+<div class="slide-body"><div class="split"><figure><div class="scene-host" data-scene='{"mode":"context","view":"aerial","pan":true}' data-ui="views:aerial,iso,top|legend:context"></div><figcaption>대지와 주변 건물·도로·철도 · 천천히 움직이는 시점 (드래그하면 멈춤) · 붉은 선: 일반상업지역 경계</figcaption></figure>
+<div class="text-col"><div class="numbers" style="margin:0;padding:18px 0;gap:26px"><div><strong style="font-size:46px">{{ siteArea | n0 }}㎡</strong><span>대지면적 (약 {{ siteArea | pyeong }}평)</span></div><div><strong style="font-size:46px">5필지</strong><span>공동개발</span></div></div>
+<div class="explain"><h3>위치</h3><p>{{ address }}</p></div>
+<div class="explain"><h3>교통</h3><p>상봉역(7호선·경의중앙선·경춘선) 인접 역세권 · 남측 망우로(대로) 접도</p></div>
+<div class="explain"><h3>주변</h3><p>북측 철도 · 서측 저층 상가 · 동측 20층 이상 아파트 단지</p></div></div></div></div>
+<footer><span>토지이음 · 건축물대장 · VWorld 공간정보 (조사 기준일 2026.11.06)</span><span class="pg"></span></footer>
+<aside class="notes"><p>대지는 다섯 필지를 공동개발하는 {{ siteArea | n0 }}㎡입니다. 남쪽은 망우로에 접하고 북쪽은 철도와 맞닿아 있어, 가로 쪽은 상업·공공시설로, 안쪽은 주거로 쓰기 좋은 땅입니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="용도지역과 지구단위계획">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>01 대지와 법적 조건</span></header>
+<h2>주거지역에서 일반상업지역으로</h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1.25fr 1fr;gap:40px"><figure><div class="plan-box" data-runtime="site-svg"></div>
+<div class="plan-legend"><span><i class="ln" style="border-color:#2f5a4c"></i>대지경계선</span><span><i class="ln" style="border-color:#2a2a2a"></i>도로경계선 (망우로)</span><span><i class="ln" style="border-color:#c0563b"></i>건축한계선 3m</span><span><i class="hatch"></i>전면공지</span><span><i class="ln dash" style="border-color:#6f8f69"></i>건축가능영역</span><span><i class="sq" style="background:#2f5a4c66;border-color:#2f5a4c"></i>건축물 외곽선 (기준층 {{ typFloor }})</span><span><i class="ln dash" style="border-color:#c0563b"></i>일반상업지역 경계</span><span><i class="sq" style="background:#ecd3c5"></i>철도</span></div>
+<figcaption>대지조사 좌표(연속지적 · 도시계획 도형)와 계획 외곽선으로 그린 배치도 · 도로경계는 현재 지적 기준 참고선</figcaption></figure>
+<div class="text-col" style="justify-content:flex-start;gap:16px"><div class="zone-change v"><div><small>변경 전</small><b>제3종일반주거지역</b></div><i>↓</i><div class="to"><small>2022.08 서울시고시 제2022-331호</small><b>일반상업지역</b><span>역세권 청년주택 공급촉진지구</span></div></div>
+<table class="compact"><tbody>
+<tr><td>지정 용도</td><td>청년주택 주거복합</td></tr>
+<tr><td>밀도</td><td>건폐율 {{ limits.coverage }}% · 용적률 {{ limits.farBase }}/{{ limits.far }}% · 높이 {{ limits.height }}m</td></tr>
+<tr><td>용도 비율</td><td>주거 80–90% · 비주거 {{ districtPlan.nonResMin }}–{{ districtPlan.nonResMax }}%</td></tr>
+<tr><td>주택 규모</td><td>전용 {{ districtPlan.unitMin }}–{{ districtPlan.unitMax }}㎡ 내외</td></tr>
+<tr><td>공공시설</td><td>도서관 기부채납 {{ districtPlan.publicArea | n2 }}㎡</td></tr>
+<tr><td>건축선</td><td>건축한계선 3m · 전면공지 3m</td></tr></tbody></table></div></div></div>
+<footer><span>서울시고시 제2022-331호 외 · 대지조사 정리 · context.json · plan.json</span><span class="pg"></span></footer>
+<aside class="notes"><p>원래 제3종일반주거지역이던 땅이 2022년 역세권 청년주택 공급촉진지구로 지정되면서 일반상업지역으로 바뀌었습니다. 그 대가로 공공임대 주택과 도서관 같은 공공기여를 제공하는 구조입니다.</p><p>배치도에서 검은 선이 망우로 도로경계선, 붉은 선이 3m 물러난 건축한계선이고, 그 사이 빗금이 전면공지입니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="건폐율 용적률 높이">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>01 대지와 법적 조건</span></header>
+<h2>법적 한도를 이만큼 썼습니다</h2>
+<div class="slide-body"><div class="rule-cards v2">
+<div><small>건폐율 · 땅을 얼마나 덮는가</small><div class="viz" data-runtime="bcr-svg"></div><b>{{ coverageTyp | n2 }}%</b><p>법정 {{ limits.coverage }}% · 기준층 {{ typFloor }}</p><ul><li>대지 <em>{{ siteArea | n2 }}㎡</em></li><li>허용 건축면적 <em>{{ coverageCapArea | n2 }}㎡</em></li><li>기준층 <em>{{ typArea | n2 }}㎡</em></li><li>가장 넓은 층 ({{ buildingAreaFloor }}) <em>{{ coverageMax | n2 }}%</em></li></ul></div>
+<div class="wide"><small>용적률 · 바닥을 몇 배 쌓는가</small><div class="viz" data-runtime="far-svg"></div><b>{{ far | n2 }}%</b><p>상한 {{ limits.far }}% = {{ farCapArea | n2 }}㎡ · 계획 지상 연면적 {{ gfaUp | n2 }}㎡</p>
+<ul class="cols"><li>기본공공기여율 25% 이상</li><li>주거 80–90% · 비주거 {{ districtPlan.nonResMin }}–{{ districtPlan.nonResMax }}%</li><li>전용 {{ districtPlan.unitMin }}–{{ districtPlan.unitMax }}㎡ 내외 주택</li><li>건축물 형태 항목 2가지 이상</li><li>주민공동시설 {{ districtPlan.communityMin }}㎡ 이상</li><li>상한: 완화분의 50% 이상 공공임대</li></ul></div>
+<div><small>높이 · 얼마나 올라가는가</small><div class="viz" data-runtime="height-svg"></div><b>{{ height | n1 }}m</b><p>법정 {{ limits.height }}m (가로구역별 최고높이)</p><ul><li>여유 <em>{{ heightMargin | n1 }}m</em></li><li>지상 <em>{{ floorsUp }}층</em></li></ul></div></div></div>
+<footer><span>지구단위계획 결정조서 · 민간부문 시행지침 · 계획 모델</span><span class="pg"></span></footer>
+<aside class="notes"><p>건폐율은 땅의 {{ limits.coverage }}%까지 건물로 덮을 수 있다는 뜻입니다. 기준층 바닥은 대지의 {{ coverageTyp | n2 }}%입니다.</p><p>용적률은 바닥을 몇 배까지 쌓을 수 있는지입니다. 지상 {{ floorsUp }}개 층의 바닥을 이어 붙이면 대지의 {{ far | n0 }}%에 이릅니다.</p><p>높이는 최고높이 {{ limits.height }}m 중 {{ height | n1 }}m를 사용했습니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="배치와 동선">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>01 대지와 법적 조건</span></header>
+<h2><span class="todo">✎ 배치를 한 문장으로 (예: 건축한계선에 맞춰 ㄱ자로 앉힌 건물)</span></h2>
+<div class="slide-body"><div class="split"><figure><div class="scene-host" data-scene='{"mode":"flows","view":"flows"}' data-ui="flows|views:flows,iso,top"></div><figcaption>건물을 반투명으로 두고 동선을 표시 · 아래 버튼으로 동선별 켜고 끄기</figcaption></figure>
+<div class="text-col"><p class="lead"><span class="todo">✎ 배치 의도 두 줄</span></p>
+<div class="explain"><h3>보행</h3><p><span class="todo">✎ 주거·공공시설·상가 입구를 어디에 두었는지</span></p></div>
+<div class="explain"><h3>차량</h3><p><span class="todo">✎ 램프 위치와 보행 분리</span></p></div>
+<div class="explain"><h3>코어 · 수직 동선</h3><p>계단 {{ stairs }}개소 · 승강기 {{ elevators }}대 (비상용 {{ emergencyElevators }}대)가 지하에서 {{ topFloor }}까지 연결</p></div></div></div></div>
+<footer><span>계획 모델 1층 구획 · 램프 · 승강기 좌표로 그린 동선</span><span class="pg"></span></footer>
+<aside class="notes"><p><span class="todo">✎ 외곽선 대안 중 이 배치를 고른 이유를 두세 문장으로</span></p></aside>
+</section>
+
+<!-- ============ 02 건축 규모 ============ -->
+<section class="slide cinematic" aria-label="건축 규모" data-ch="scale">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>02 건축 규모와 연면적</span></header>
+<div class="slide-body"><div class="cinema-image scene-host" data-scene='{"mode":"cinema","view":"low","auto":true,"autoSpeed":-0.3,"intro":true}'></div><div class="cinema-shade"></div>
+<div class="cinema-copy"><p class="cinema-kicker">02 / SCALE</p><h1>용적률 {{ far | n0 }}%를<br>{{ floorsUp }}층에 담았습니다</h1><p class="cinema-sub">최고높이 {{ limits.height }}m 중 {{ height | n1 }}m 사용 · <span class="todo">✎ 규모 전략 한 줄</span></p><div class="cinema-rule"></div></div>
+<div class="cinema-ctrl"><button data-cinema="auto">회전 정지</button></div></div>
+<footer><span>실시간 3D · 해질녘 조명 연출</span><span class="pg"></span></footer>
+<aside class="notes"><p>같은 용적률이라도 바닥을 좁히면 높아지고, 넓히면 낮아집니다. <span class="todo">✎ 이 계획이 높이와 바닥을 어떻게 정했는지</span> 같은 대지의 기존 준공안은 24층·79.9m였습니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="건축 개요">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>02 건축 규모와 연면적</span></header>
+<h2>건축 개요</h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1fr 1fr;gap:60px"><table class="compact spec"><tbody>
+<tr><td>대지위치</td><td>{{ address }}</td></tr>
+<tr><td>지역지구</td><td>{{ zone }} · 역세권 청년주택 공급촉진지구</td></tr>
+<tr><td>주용도</td><td>{{ use }}</td></tr>
+<tr><td>대지면적</td><td>{{ siteArea | n2 }}㎡</td></tr>
+<tr><td>건축면적</td><td>{{ typArea | n2 }}㎡ (기준층 {{ typFloor }})</td></tr>
+<tr><td>건폐율</td><td>{{ coverageTyp | n2 }}% (법정 {{ limits.coverage }}%)</td></tr>
+<tr><td>규모</td><td>{{ scale }}</td></tr></tbody></table>
+<table class="compact spec"><tbody>
+<tr><td>연면적</td><td>{{ gfa | n2 }}㎡</td></tr>
+<tr><td>　지상</td><td>{{ gfaUp | n2 }}㎡</td></tr>
+<tr><td>　지하</td><td>{{ gfaDown | n2 }}㎡</td></tr>
+<tr><td>용적률</td><td>{{ far | n2 }}% (상한 {{ limits.far }}%)</td></tr>
+<tr><td>높이</td><td>{{ height | n1 }}m (법정 {{ limits.height }}m)</td></tr>
+<tr><td>세대수</td><td>{{ units }}세대 ({{ unitMix }})</td></tr>
+<tr><td>주차</td><td>{{ stalls }}면{{#if basementLabel}} ({{ basementLabel }}){{/if}}</td></tr>
+<tr><td>구조</td><td>철근콘크리트{{#if transferFloor}} · {{ transferFloor }} 전이 (하부 라멘 + 상부 벽식){{/if}}</td></tr></tbody></table></div>
+<p class="footnote">면적은 계획 모델의 층 외곽선(벽 중심선) 기준 산술값이며, 법정 면적은 인허가 도서 작성 시 확정됩니다.</p></div>
+<footer><span>계획 모델 (plan.json) 기준</span><span class="pg"></span></footer>
+<aside class="notes"><p>건축 개요입니다. 지상 연면적이 용적률 산정 연면적이 되며, 지하는 주차장과 기계·전기실입니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="연면적 구성">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>02 건축 규모와 연면적</span></header>
+<h2>{{ gfaUp | n0 }}㎡는 이렇게 쌓았습니다</h2>
+<div class="slide-body"><div class="split chart-split"><div><div id="mass-chart" data-runtime="mass"></div></div><figure><div class="scene-host" data-scene='{"mode":"exterior","view":"side","highlightFloors":{{ typGroupIds | json }}}' id="mass-scene"></div><figcaption>구간을 선택하면 해당 층을 녹색으로 표시</figcaption></figure></div></div>
+<footer><span>계획 모델 층별 외곽 면적</span><span class="pg"></span></footer>
+<aside class="notes"><p>지상 연면적은 {{ gfaUp | n2 }}㎡, 지하는 {{ gfaDown | n2 }}㎡입니다. <span class="todo">✎ 층고와 층 구성의 이유</span></p></aside>
+</section>
+
+<!-- ============ 03 층별 구성 ============ -->
+<section class="slide program-page" aria-label="수직 구성" data-ch="floors">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>03 층별 구성</span></header>
+<h2><span class="todo">✎ 수직 구성을 한 문장으로 (예: 아래는 모두의 공간, 위는 주거)</span></h2>
+<div class="slide-body"><div class="split program-grid"><figure><div class="scene-host" data-scene='{"mode":"program","view":"iso","explode":true}' data-ui="explode|views:iso,north,side" id="program-scene"></div><figcaption>층을 벌려 본 구성 · 블록에 마우스를 올리면 실 이름</figcaption></figure>
+<div class="text-col tag-panel"><p class="tag-hint">항목을 누르면 해당 공간만 강조합니다.</p><div class="tag-list" data-runtime="tags"></div><p class="tag-note" id="tag-note">전체 프로그램을 표시하고 있습니다.</p></div></div></div>
+<footer><span>계획 모델 실·세대 구획</span><span class="pg"></span></footer>
+<aside class="notes">{{#each groups}}<p>{{ .label }} · {{ .sub }} · {{ .mix }}</p>{{/each}}</aside>
+</section>
+
+{{#each podiumGroups}}
+<section class="slide" aria-label="{{ .label }}">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>03 층별 구성</span></header>
+<h2>{{ .label }} · <span class="todo">✎ 이 층의 역할</span></h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1.3fr 1fr"><figure><div class="scene-host" data-scene='{"mode":"floor","floor":"{{ .ids | first }}","view":"floor"}' data-ui="floors:{{ .btnIds | join }}|views:floor,plan|legend:floor"></div><figcaption>{{ .mix }} · 실에 마우스를 올리면 이름</figcaption></figure>
+<div class="text-col" style="justify-content:flex-start;gap:14px"><p class="lead" style="font-size:26px"><span class="todo">✎ 가로·입구에 대한 설명 두 줄</span></p><table class="compact zones" data-runtime="zones" data-floor="{{ .ids | first }}"></table></div></div></div>
+<footer><span>계획 모델 {{ .label }} 구획 · 층고 {{ .h }}m</span><span class="pg"></span></footer>
+<aside class="notes"><p><span class="todo">✎ 이 층에 무엇을 왜 두었는지</span></p></aside>
+</section>
+{{/each}}
+
+{{#each resGroups}}
+<section class="slide" aria-label="{{ .label }}">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>03 층별 구성</span></header>
+<h2>{{ .label }} · {{ .units }}세대/층</h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1.3fr 1fr"><figure><div class="scene-host" data-scene='{"mode":"floor","floor":"{{ .ids | first }}","view":"plan"}' data-ui="floors:{{ .btnIds | join }}|views:plan,floor|legend:units"></div><figcaption>{{ .sub }} · 세대에 마우스를 올리면 호수·타입·면적</figcaption></figure>
+<div class="text-col" style="justify-content:flex-start;gap:14px"><div class="ab-cards"><div><b>{{ .label }}</b><span>{{ .units }}세대/층 · <span class="todo">✎ 누구를 위한 층인가</span></span><small>{{ .mix }}</small></div></div><table class="compact zones" data-runtime="zones" data-floor="{{ .ids | first }}"></table></div></div></div>
+<footer><span>계획 모델 {{ .label }} 구획</span><span class="pg"></span></footer>
+<aside class="notes"><p><span class="todo">✎ 세대 조합과 복도·코어 배치의 이유</span></p></aside>
+</section>
+{{/each}}
+
+{{#if basementLabel}}
+<section class="slide" aria-label="지하층">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>03 층별 구성</span></header>
+<h2>{{ basementLabel }} · 주차와 설비</h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1.3fr 1fr"><figure><div class="scene-host" data-scene='{"mode":"floor","floor":"{{ firstBasement }}","view":"floor"}' data-ui="floors:{{ basementIds | join }}|views:floor,plan|legend:floor"></div><figcaption>층 버튼으로 지하 각 층 전환</figcaption></figure>
+<div class="text-col" style="justify-content:flex-start;gap:14px"><p class="lead" style="font-size:26px"><span class="todo">✎ 지하 배치 원칙 두 줄</span></p><table class="compact zones" data-runtime="zones" data-floor="{{ firstBasement }}"></table></div></div></div>
+<footer><span>계획 모델 {{ basementLabel }} 구획</span><span class="pg"></span></footer>
+<aside class="notes"><p>지하 {{ floorsDown }}개 층에 주차 {{ stalls }}면을 두었습니다. 기존 준공안은 지하 5층이었습니다.</p></aside>
+</section>
+{{/if}}
+
+<!-- ============ 04 세대 타입 ============ -->
+<section class="slide" aria-label="세대 구성" data-ch="units">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>04 세대 타입</span></header>
+<h2>{{ units }}세대 · {{ unitTypeCount }}개 타입, {{ planCount }}개 평면</h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1fr 1.25fr;gap:44px"><div class="text-col" style="justify-content:flex-start;gap:18px"><div class="unit-cards" data-runtime="units"></div><p class="footnote" style="margin:0">카드를 누르면 오른쪽 표에서 해당 타입 평면만 보여 줍니다. 다음 장부터 타입별로 한 세대씩 3D로 보여 드립니다.</p></div>
+<div class="schedule-scroll" style="height:600px"><table class="compact"><thead><tr><th>평면</th><th>세대수</th><th>전용(모델)</th><th>배치 층</th></tr></thead><tbody data-runtime="subtypes"></tbody></table></div></div></div>
+<footer><span>계획 모델 세대 타입 (typeEdits 반영)</span><span class="pg"></span></footer>
+<aside class="notes"><p>{{ unitMix }}. 같은 타입도 건물 안 위치에 따라 평면이 달라 {{ planCount }}개 평면이 있습니다.</p></aside>
+</section>
+
+{{#each unitTypeList}}
+<section class="slide unit-page" aria-label="{{ .type }}">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>04 세대 타입</span></header>
+<h2>{{ .type }} · {{ .n }}세대</h2>
+<div class="slide-body"><div class="split unit-split"><figure><div class="scene-host" data-scene='{"mode":"unit","floor":"{{ .floor }}","unit":"{{ .unit }}","view":"unit"}' data-ui="cut|views:unit"></div><figcaption>한 세대만 떼어 본 3D · 가구는 계획 배치 · 드래그로 돌려 보세요</figcaption></figure>
+<div class="text-col unit-info" data-unit-type="{{ .type }}"><ul class="merits"><li><b><span class="todo">✎ 장점 1</span></b>창 방향·실 면적 등 오른쪽 수치를 근거로</li><li><b><span class="todo">✎ 장점 2</span></b>누가 살기 좋은지</li><li><b><span class="todo">✎ 장점 3</span></b>가구·수납·다용도</li></ul></div></div></div>
+<footer><span>계획 모델 세대 평면 · 가구·위생기구 배치 · 평균 전용 {{ .avg | n1 }}㎡ · 평면 {{ .variants }}종</span><span class="pg"></span></footer>
+<aside class="notes"><p><span class="todo">✎ {{ .type }} 타입을 어떤 가구를 위해 어떻게 계획했는지</span></p></aside>
+</section>
+{{/each}}
+
+<!-- ============ 05 전용·공용 ============ -->
+<section class="slide" aria-label="전용 공용 개요" data-ch="areas">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>05 전용면적과 공용면적</span></header>
+<h2>전용률 약 {{ exclRatioPct | n0 }}%</h2>
+<div class="slide-body"><div id="area-stack" data-runtime="area-stack"></div>
+<div class="area-defs"><div><b>주거전용</b><p>세대 현관 안쪽의 실 면적 합</p></div><div><b>주거공용</b><p>계단·승강기·복도·설비 샤프트·주거 로비 + 주민공동시설</p></div><div><b>비주거</b><p>근린생활시설·공공시설·1층 램프</p></div><div><b>기타공용 (지하)</b><p>주차장·기계·전기실 — 계약면적에 반영</p></div></div>
+<p class="footnote">계획 모델의 벽 중심선 면적으로 산정한 값입니다. 분양·임대 면적표는 안목치수와 공용 안분 기준을 정해 별도로 확정합니다.</p></div>
+<footer><span>계획 모델 실 구획 기준 산정</span><span class="pg"></span></footer>
+<aside class="notes"><p>주거전용 {{ areas.excl | n0 }}㎡에 주거공용 {{ areas.resCommon | n0 }}㎡가 붙어 공급면적은 {{ supplyArea | n0 }}㎡, 전용률은 약 {{ exclRatioPct | n1 }}%입니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="층별 면적표">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>05 전용면적과 공용면적</span></header>
+<h2>층별 전용·공용면적</h2>
+<div class="slide-body"><div class="schedule-scroll" style="height:640px"><table class="compact area-table"><thead><tr><th>층</th><th class="num-right">주거전용</th><th class="num-right">주거공용</th><th class="num-right">주민공동</th><th class="num-right">비주거</th><th class="num-right">지하(기타공용)</th><th class="num-right">층 합계</th><th class="num-right">세대</th></tr></thead><tbody data-runtime="area-floors"></tbody></table></div></div>
+<footer><span>계획 모델 층별 실 구획 합계 (㎡)</span><span class="pg"></span></footer>
+<aside class="notes"><p>기준층({{ typFloor }}) 한 층의 구획은 3장 ‘층별 구성’ 표와 같습니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="타입별 공급 면적">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>05 전용면적과 공용면적</span></header>
+<h2>타입별 공급·계약면적</h2>
+<div class="slide-body"><div class="schedule-scroll" style="height:600px"><table class="compact area-table"><thead><tr><th>평면</th><th class="num-right">세대수</th><th class="num-right">주거전용</th><th class="num-right">주거공용</th><th class="num-right">공급면적</th><th class="num-right">기타공용</th><th class="num-right">계약면적</th><th class="num-right">공급(평)</th></tr></thead><tbody data-runtime="area-types"></tbody></table></div>
+<p class="footnote" data-runtime="area-basis"></p></div>
+<footer><span>계획 모델 기준 · 공용면적은 전용면적 비례 안분</span><span class="pg"></span></footer>
+<aside class="notes"><p>주거공용은 전체 주거공용을 세대 전용면적 비례로, 기타공용(지하)은 주거·비주거 면적 비율로 나눈 뒤 다시 전용면적 비례로 안분했습니다.</p></aside>
+</section>
+
+<!-- ============ 06 지하주차장 ============ -->
+{{#if hasParking}}
+<section class="slide" aria-label="지하주차장 구획" data-ch="parking">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>06 지하주차장</span></header>
+<h2>{{ basementLabel }} · {{ stalls }}면</h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1.3fr 1fr"><figure><div class="scene-host" data-scene='{"mode":"floor","floor":"{{ parkingIds | first }}","view":"floor"}' data-ui="floors:{{ parkingIds | join }}|views:floor,plan"></div><figcaption>파란 구획: 장애인 주차 · 밝은 구획: 확장형 · 주차면에 마우스를 올리면 유형</figcaption></figure>
+<div class="text-col" style="justify-content:flex-start;gap:14px"><table class="compact" data-runtime="parking"></table>
+<div class="explain"><h3>배치 원칙</h3><p><span class="todo">✎ 주차 배치 원칙</span></p></div>
+<div class="explain"><h3>필요 대수 검토</h3><p>세대당 0.3대 + 근생 134㎡당 1대 가정 시 <b>{{ stallReqAssumed | n1 }}대</b> → 계획 {{ stalls }}면 (여유 {{ stallMargin | n1 }}면)</p></div></div></div></div>
+<footer><span>계획 모델 주차구획 · 주차장법 · 조례 (가정값)</span><span class="pg"></span></footer>
+<aside class="notes"><p>필요 대수는 청년주택 기준과 조례로 다시 확정해야 하며, {{ stallReqAssumed | n1 }}대는 기획 단계 가정값입니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="주차 시뮬레이션">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>06 지하주차장</span></header>
+<h2>주차 시뮬레이션 · 램프에서 주차면까지</h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1.55fr 1fr;gap:36px"><figure><div class="scene-host" data-scene='{"mode":"parksim","view":"park"}' id="sim-scene" data-ui="views:park,basement,side"></div><figcaption>도로 → 램프 → 지하 차로를 따라 가장 가까운 빈 면부터 주차 (속도는 실제보다 빠르게 재생)</figcaption></figure>
+<div class="text-col sim-panel" data-runtime="parksim"></div></div></div>
+<footer><span>계획 모델의 램프·차로·주차면 좌표로 계산한 주행 경로</span><span class="pg"></span></footer>
+<aside class="notes"><p>차량이 도로에서 램프로 내려와 차로를 따라 가장 가까운 빈 주차면에 들어가는 과정을 계획 도면의 좌표로 재현했습니다. 주행속도 시속 10km 가정, 차량 간 간섭·대기는 반영하지 않은 동선 확인용입니다.</p></aside>
+</section>
+{{/if}}
+
+<!-- ============ 07 안전 · 사업비 · 확인 ============ -->
+{{#if hasFire}}
+<section class="slide" aria-label="안전과 구조" data-ch="check">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>07 안전 · 사업비 · 확인 사항</span></header>
+<h2>안전과 구조</h2>
+<div class="slide-body"><div class="split"><figure><div class="scene-host" data-scene='{"mode":"core","view":"core"}' data-ui="views:core,side|auto"></div><figcaption>코어 · 계단 {{ stairs }} · 승강기 {{ elevators }} (비상용 {{ emergencyElevators }}, 붉은색)</figcaption></figure>
+<div class="text-col"><div class="numbers" style="margin:0;padding:16px 0;gap:22px"><div><strong style="font-size:40px">{{ stairs }} + {{ elevators }}</strong><span>계단 + 승강기</span></div><div><strong style="font-size:40px">{{ sprinklers | int }}</strong><span>스프링클러 헤드</span></div><div><strong style="font-size:40px">{{ maxTravel | n1 }}m</strong><span>최대 보행거리 (기준 {{ travelLimit | n0 }}m)</span></div></div>
+<div class="explain"><h3>구조</h3><p>기둥 {{ columns }}개{{#if transferFloor}} · {{ transferFloor }} 전이층{{/if}} · 매트기초 (개략)</p></div>
+<div class="explain"><h3>설비</h3><p>수전 {{ mep.transformer | int }}kVA · 비상발전 {{ mep.gen | int }}kW · 저수조 {{ mep.tank | int }}t</p></div>
+<div class="explain"><h3>보완 중</h3><p><span class="todo">✎ 소방·피난 보완 항목 요약</span></p></div></div></div></div>
+<footer><span>계획 모델 소방·구조·설비 검토 (기획 단계)</span><span class="pg"></span></footer>
+<aside class="notes"><p>소방·구조·설비 수치는 계획 모델로 자동 계산한 기획 단계 값입니다.</p></aside>
+</section>
+{{/if}}
+
+{{#if hasCost}}
+<section class="slide" aria-label="개략 사업비">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>07 안전 · 사업비 · 확인 사항</span></header>
+<h2>개략 공사비 {{ costTotalEok | n0 }}억 원</h2>
+<div class="slide-body"><div class="numbers" style="margin:0 0 22px;padding:18px 0"><div><strong style="font-size:50px">{{ costTotalEok | n1 }}억</strong><span>총공사비 (부가세 포함)</span></div><div><strong style="font-size:50px">{{ costPerPyeongMan | n0 }}만</strong><span>3.3㎡당 · 연면적 기준</span></div><div><strong style="font-size:50px">{{ costPerUnitEok | n2 }}억</strong><span>세대당</span></div><div><strong style="font-size:50px">{{ costBenchPct | n0 }}%</strong><span>유사 사례 단가 대비</span></div></div>
+<div class="bars" data-runtime="cost"></div></div>
+<footer><span>계획 모델 물량 × 2026 단가 가정 · 해체비 별도</span><span class="pg"></span></footer>
+<aside class="notes"><p>모델에서 뽑은 물량에 단가를 곱한 개략 공사비입니다.</p></aside>
+</section>
+{{/if}}
+
+<section class="slide" aria-label="모델 둘러보기" data-ch="explore">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>모델 둘러보기</span></header>
+<h2>직접 둘러보기</h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1.75fr 1fr;gap:40px"><figure><div class="scene-host" data-scene='{"mode":"exterior","view":"iso"}' id="explore-scene" data-ui="rail|views:iso,street,top,side|auto"></div><figcaption id="explore-caption">외관 · 오른쪽 층 버튼으로 층별 평면 열기</figcaption></figure>
+<div class="explore-menu"><button data-explore='{"mode":"exterior","view":"iso"}'><span>외관</span><small>창호·기단·주변 건물</small><i>↗</i></button><button data-explore='{"mode":"program","view":"iso","explode":true}'><span>층별 구성</span><small>층을 벌려 본 프로그램</small><i>↗</i></button><button data-explore='{"mode":"unit","floor":"{{ unitTypeList.0.floor }}","unit":"{{ unitTypeList.0.unit }}","view":"unit"}'><span>세대 내부</span><small>{{ unitTypeList.0.code }} {{ unitTypeList.0.unit }}호</small><i>↗</i></button>{{#if hasParking}}<button data-explore='{"mode":"parksim","view":"park"}'><span>지하주차</span><small>주차구획·램프</small><i>↗</i></button>{{/if}}<button data-explore='{"mode":"core","view":"core"}'><span>코어</span><small>계단·승강기</small><i>↗</i></button><button data-explore='{"mode":"context","view":"aerial"}'><span>대지와 주변</span><small>용도지역·철도·도로</small><i>↗</i></button></div></div></div>
+<footer><span>계획 모델로 생성한 실시간 3D</span><span class="pg"></span></footer>
+<aside class="notes"><p>질문이 있으시면 이 화면에서 바로 확인하실 수 있습니다. 오른쪽 층 버튼을 누르면 해당 층 평면이 열립니다.</p></aside>
+</section>
+
+<section class="slide" aria-label="함께 확인할 사항">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>07 안전 · 사업비 · 확인 사항</span></header>
+<h2>다음 단계에서 함께 확인할 사항</h2>
+<div class="slide-body"><div class="split" style="grid-template-columns:1fr 1fr;gap:54px"><div class="text-col" style="justify-content:flex-start"><p class="lead">용적률 {{ far | n0 }}%, {{ units }}세대,<br>높이 {{ height | n1 }}m의 {{ floorsUp }}층 계획입니다.</p>
+<div class="explain"><h3>계획의 강점</h3><p><span class="todo">✎ 강점 세 가지</span></p></div>
+<div class="explain"><h3>보완할 점</h3><p>{{#if hasLegal}}법규 자동 판정 부적합 {{ legalBad }}건 · 확인 필요 {{ legalChk }}건 (전체 {{ legalTotal }}항목) · {{/if}}비주거 비율 {{ nonResRatio | n2 }}% · <span class="todo">✎ 보완 계획</span></p></div></div>
+<div class="decisions"><h3>발주처 확인이 필요한 사항</h3><div><b>① 사업 전제</b><p>현재 대지는 2026년 입주한 장기임대주택이 운영 중 — 신축·변경 방식과 임대의무 승계를 먼저 확정</p></div><div><b>② 외부 협의</b><p>GTX-B·철도보호지구 · 교통처리(차량 출입) · 대공방어 고도 · 기부채납 도서관 귀속</p></div><div><b>③ 면적·주차 기준</b><p>분양·임대 면적 안분 기준 · 법정 주차 대수</p></div></div></div></div>
+<footer><span>대지조사 정리(U00–U05) · 법규 검토 요약</span><span class="pg"></span></footer>
+<aside class="notes"><p><span class="todo">✎ 마무리 한 문단 — 이 계획에서 가장 먼저 정해야 할 것</span></p></aside>
+</section>
+
+<section class="slide" aria-label="자료 기준">
+<header><span>{{ site }} <span class="slash">/</span> 건축계획</span><span>자료 기준</span></header>
+<h2>자료의 기준</h2>
+<div class="slide-body"><table class="compact"><thead><tr><th>항목</th><th>기준</th></tr></thead><tbody>
+<tr><td>대지·법규</td><td>토지이음, 건축물대장, 서울시 고시, 지구단위계획 시행지침 (조사 기준일 2026.11.06)</td></tr>
+<tr><td>면적</td><td>계획 모델의 층 외곽선·실 구획(벽 중심선) 산술값 — 법정 면적·분양 면적 아님</td></tr>
+<tr><td>세대</td><td>계획 모델 세대 평면 {{ units }}세대, {{ planCount }}개 평면, 가구·위생기구 배치</td></tr>
+<tr><td>주차 시뮬레이션</td><td>모델의 램프·차로·주차면 좌표로 경로 계산, 주행속도 10km/h 가정, 차량 간 간섭 미반영</td></tr>
+<tr><td>공사비</td><td>모델 물량 × 2026 단가 가정 (기획 단계 개략, 해체비 별도)</td></tr>
+<tr><td>3D 연출</td><td>하늘·조명·가로수·차량 색은 연출</td></tr></tbody></table>
+<p class="footnote">사용 라이선스: Three.js (MIT), Pretendard (SIL OFL 1.1). 이 파일은 인터넷 없이 열리며, 하단 ‘편집’으로 문구를 고쳐 수정본으로 저장할 수 있습니다.</p></div>
+<footer><span>{{ title }} 건축계획</span><span class="pg"></span></footer>
+<aside class="notes"><p>제시한 수치는 모두 기획 단계 계획 모델 기준이며, 인허가 도서 작성 단계에서 법정 기준으로 확정됩니다.</p></aside>
+</section>
